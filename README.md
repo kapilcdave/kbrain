@@ -21,11 +21,10 @@ operations, and unreviewed agent memory do not belong here.
 
 - [Agent Memory Coordination](projects/agent-memory-coordination.md)
 - [Hedge Router](projects/hedge-router.md)
-- [PolyTerminal](projects/polyterminal.md)
+- [Polyterminal](projects/polyterminal.md)
 - [when2jam](projects/when2jam.md)
 - [Options Research](projects/options-research.md)
 - [Narrative Momentum](projects/narrative-momentum.md)
-- [Money Console](projects/money-console.md)
 - [Earlier Builds](projects/other-builds.md)
 
 ### Things I Investigated
@@ -42,6 +41,7 @@ operations, and unreviewed agent memory do not belong here.
 - [Market Efficiency](research/market-efficiency.md)
 - [Fees and Adverse Selection](research/fees-and-adverse-selection.md)
 - [Capacity Versus Edge](research/capacity-versus-edge.md)
+- [Weather Station Proximity and the Tarmac Effect](research/weather-station-proximity.md)
 - [Fake Edges From Data Bugs](lessons/fake-edges-from-data-bugs.md)
 - [Preregistration](lessons/preregistration.md)
 - [Production Safety](lessons/production-safety.md)

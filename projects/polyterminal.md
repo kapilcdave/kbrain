@@ -1,5 +1,5 @@
 ---
-title: PolyTerminal
+title: Polyterminal
 type: project
 status: experimental
 started: 2026
@@ -9,7 +9,7 @@ source_repositories:
   - https://github.com/kapilcdave/polyterminal
 ---
 
-# PolyTerminal
+# Polyterminal
 
 ## Summary
 
@@ -24,7 +24,7 @@ about whether two contracts were genuinely comparable.
 
 ## What I Built
 
-PolyTerminal combines REST snapshots with live market-data streams in a Textual
+Polyterminal combines REST snapshots with live market-data streams in a Textual
 interface. Its matcher checks entities, dates, numbers, and direction rather
 than allowing text similarity to override incompatible contract structure.
 

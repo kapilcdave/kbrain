@@ -43,3 +43,7 @@ station-level persistence analysis.
 Weather contracts depend on exact station, observation window, and settlement
 rules. Historical candles do not fully reveal depth or queue position. Archived
 latency effects are not executable without a sufficiently timely source.
+
+The station-local work, including nearby-station comparisons, paved-airport
+heating, and aircraft-plume hypotheses, is documented separately in
+[Weather Station Proximity and the Tarmac Effect](../research/weather-station-proximity.md).

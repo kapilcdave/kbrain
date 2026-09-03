@@ -21,7 +21,6 @@ intentionally omitted.
 | Compute exposure | Hedge Router development | Dedicated page and public source link |
 | Market terminal | Read-only comparison product | Dedicated page and public source link |
 | Scheduling | Availability product | Dedicated page and public source link |
-| Personal finance | Local browser dashboard | Design summary only |
 | Personal site | Static site and writing | Linked from About |
 | Narrative analysis | Filing and news pipeline | Dedicated page and public source link |
 | Options | Research and paper tooling | Dedicated page and public source link |
