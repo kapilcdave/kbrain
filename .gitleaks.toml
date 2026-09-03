@@ -1,0 +1,12 @@
+title = "kbrain public repository"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public example placeholders"
+regexTarget = "line"
+regexes = [
+  '''YOUR_[A-Z0-9_]+_HERE''',
+  '''example\.com'''
+]
