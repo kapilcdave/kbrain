@@ -4,7 +4,7 @@ _Updated September 16, 2026._
 
 ## Current Focus
 
-- Running most of my research and operations through a persistent
+- Running most of my research and operations through Khermes, a persistent
   [Hermes agent](projects/hermes-agent.md), and turning each hard debugging
   session into a reusable [skill](projects/agent-skills.md) rather than a
   memory.

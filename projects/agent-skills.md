@@ -27,7 +27,7 @@ test of a good one is narrow: does it stop a specific mistake from recurring?
 
 Each skill is a directory:
 
-```
+```text
 skill-name/
   SKILL.md          # frontmatter (name, description, tags) + the procedure
   references/       # deep material loaded only when relevant
@@ -65,16 +65,20 @@ collection of plausible-sounding stale advice.
 
 ## Published Skills
 
-Five are published here. They are the ones that are self-contained, generally
-useful, and free of operational detail.
+Nine are published here. They are self-contained, generally useful, and free of
+private operational detail.
 
 | Skill | What it covers |
-|---|---|
+| --- | --- |
 | [`cloud-vm-maintenance`](../agent/skills/cloud-vm-maintenance) | Keeping a small VM lean: memory triage by RSS, disk reclamation, orphaned processes, self-reinstalling cloud agents, API latency measurement |
+| [`evidence-first-research`](../agent/skills/evidence-first-research) | Testing research claims against explicit baselines, falsification criteria, and evidence gates |
 | [`hermes-provider-diagnosis`](../agent/skills/hermes-provider-diagnosis) | Classifying model/provider failures: hard incompatibility vs transient capacity vs credentials, and why a health ping can pass on a broken route |
-| [`secret-config-operations`](../agent/skills/secret-config-operations) | Editing credential files without leaking values into diffs, logs, or transcripts |
+| [`kbrain-curation`](../agent/skills/kbrain-curation) | Turning private working context into durable public Markdown without mirroring raw state |
 | [`multi-agent-chat-topologies`](../agent/skills/multi-agent-chat-topologies) | Wiring several agents into one shared channel without feedback loops |
+| [`safe-agent-handoff`](../agent/skills/safe-agent-handoff) | Transferring work with explicit state, permissions, risks, and verification |
+| [`secret-config-operations`](../agent/skills/secret-config-operations) | Editing credential files without leaking values into diffs, logs, or transcripts |
 | [`trading-strategy-validation`](../agent/skills/trading-strategy-validation) | Falsifying a strategy or backtest before believing it — the largest skill, drawn from the research recorded elsewhere in this repository |
+| [`verified-delivery`](../agent/skills/verified-delivery) | Carrying requested work through implementation, execution, and final-state verification |
 
 `trading-strategy-validation` is the direct encoding of the methodology in
 [METHODOLOGY.md](../METHODOLOGY.md) and the lessons under

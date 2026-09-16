@@ -21,7 +21,7 @@ operations, and unreviewed agent memory do not belong here.
 ### Things I Built
 
 - [Agent Memory Coordination](projects/agent-memory-coordination.md)
-- [Hermes Agent (@kapilubot)](projects/hermes-agent.md)
+- [Khermes (@kapilebot)](projects/hermes-agent.md)
 - [Agent Skills](projects/agent-skills.md)
 - [Hedge Router](projects/hedge-router.md)
 - [Polyterminal](projects/polyterminal.md)
