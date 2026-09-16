@@ -4,10 +4,10 @@ _Updated September 16, 2026._
 
 ## Current Focus
 
-- Running most of my research and operations through Khermes, a persistent
-  [Hermes agent](projects/hermes-agent.md), and turning each hard debugging
-  session into a reusable [skill](projects/agent-skills.md) rather than a
-  memory.
+- Running research and operations through multiple persistent agents: Hermes
+  (`@kapilubot`) and [Khermes](projects/kapilebot.md) (`@kapilebot`), with each
+  hard debugging session becoming a reusable [skill](projects/agent-skills.md)
+  rather than an untracked memory.
 - Turning model-gateway telemetry into privacy-preserving compute-exposure
   measurements through [Hedge Router](projects/hedge-router.md).
 - Exploring shared intent and memory for parallel coding agents through

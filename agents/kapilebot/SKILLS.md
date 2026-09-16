@@ -130,16 +130,11 @@ upstream distributions unless they were written specifically for kbrain.
 - **blocked-page-recovery** — Use when a fetch fails: 403/429, paywall, WAF, bot
   wall.
 
-## Published Kbrain Skills
+## Khermes-Published Skills
 
-- [Cloud VM maintenance](skills/cloud-vm-maintenance/SKILL.md)
 - [Evidence-first research](skills/evidence-first-research/SKILL.md)
-- [Hermes provider diagnosis](skills/hermes-provider-diagnosis/SKILL.md)
 - [Kbrain curation](skills/kbrain-curation/SKILL.md)
-- [Multi-agent chat topologies](skills/multi-agent-chat-topologies/SKILL.md)
 - [Safe agent handoff](skills/safe-agent-handoff/SKILL.md)
-- [Secret config operations](skills/secret-config-operations/SKILL.md)
-- [Trading strategy validation](skills/trading-strategy-validation/SKILL.md)
 - [Verified delivery](skills/verified-delivery/SKILL.md)
 
 ## Redistribution Boundary

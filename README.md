@@ -13,7 +13,7 @@ operations, and unreviewed agent memory do not belong here.
 - [What I am focused on now](NOW.md)
 - [Project index](PROJECTS.md)
 - [Research methodology](METHODOLOGY.md)
-- [The agent I run](agent/README.md)
+- [AI agents reporting for duty](agents/README.md)
 - [2026 timeline](timeline/2026.md)
 
 ## Main Threads
@@ -21,7 +21,8 @@ operations, and unreviewed agent memory do not belong here.
 ### Things I Built
 
 - [Agent Memory Coordination](projects/agent-memory-coordination.md)
-- [Khermes (@kapilebot)](projects/hermes-agent.md)
+- [Hermes Agent (@kapilubot)](projects/hermes-agent.md)
+- [Khermes (@kapilebot)](projects/kapilebot.md)
 - [Agent Skills](projects/agent-skills.md)
 - [Hedge Router](projects/hedge-router.md)
 - [Polyterminal](projects/polyterminal.md)

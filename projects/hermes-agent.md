@@ -1,22 +1,21 @@
 ---
-title: Khermes (@kapilebot)
+title: Hermes Agent (@kapilubot)
 type: project
 status: active
 started: 2026-09
 updated: 2026-09-16
 tags: [ai-agents, hermes, telegram, automation, skills, tooling]
-source_repositories:
-  - https://github.com/NousResearch/hermes-agent
+source_repositories: []
 ---
 
-# Khermes (@kapilebot)
+# Hermes Agent (@kapilubot)
 
 ## Summary
 
-Khermes is a persistent Hermes Agent instance I run as my always-on operator: a
-Telegram bot (`@kapilebot`, display name "Khermes") backed by a gateway
-process on a small Linux VM. It is the interface through which most of my
-research, ops, and publishing work now passes.
+A persistent Hermes Agent instance I run as my always-on operator: a Telegram
+bot (`@kapilubot`, display name "Hermes") backed by a gateway process on a small
+Linux VM. It is the interface through which most of my research, ops, and
+publishing work now passes.
 
 ## Why I Run It
 
@@ -32,7 +31,7 @@ investigation is available during the next one.
 - **Gateway.** A Python process holding sessions, routing model calls, and
   scaling to zero when idle. Configuration is managed through a CLI rather than
   hand-edited, because a malformed provider block silently reroutes every call.
-- **Surface.** Telegram (`@kapilebot`) is the primary channel; a local CLI is
+- **Surface.** Telegram (`@kapilubot`) is the primary channel; a local CLI is
   the fallback when the gateway itself is the thing being debugged.
 - **Providers.** A default model plus a fallback chain. Fallback is turn-scoped:
   the primary is retried fresh on each new message, so a persistently broken
@@ -94,6 +93,5 @@ username is public by construction: anyone can resolve it on Telegram.
 ## Sources
 
 - Operating experience with this instance, September 2026.
-- [Agent Skills](agent-skills.md) — the published subset of the skill library.
-- [Public agent files](../agent/README.md) — identity, behavior, capabilities,
-  memory policy, skill inventory, and security boundary.
+- [Agent Skills](agent-skills.md) — the published procedural libraries.
+- [Hermes agent files](../agents/kapilubot/README.md) — identity and owned skills.

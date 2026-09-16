@@ -74,7 +74,7 @@ script. It is not to find a phrasing that gets through.
 
 ## Related
 
-- [`secret-config-operations`](../agent/skills/secret-config-operations) — the
-  operational procedure and its inspection helper.
+- [`secret-config-operations`](../agents/kapilubot/skills/secret-config-operations)
+  — the operational procedure and its inspection helper.
 - [Production Safety](production-safety.md) — the same fail-closed reasoning
   applied to order flow.
