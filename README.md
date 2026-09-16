@@ -13,6 +13,7 @@ operations, and unreviewed agent memory do not belong here.
 - [What I am focused on now](NOW.md)
 - [Project index](PROJECTS.md)
 - [Research methodology](METHODOLOGY.md)
+- [The agent I run](agent/README.md)
 - [2026 timeline](timeline/2026.md)
 
 ## Main Threads
@@ -20,6 +21,8 @@ operations, and unreviewed agent memory do not belong here.
 ### Things I Built
 
 - [Agent Memory Coordination](projects/agent-memory-coordination.md)
+- [Hermes Agent (@kapilubot)](projects/hermes-agent.md)
+- [Agent Skills](projects/agent-skills.md)
 - [Hedge Router](projects/hedge-router.md)
 - [Polyterminal](projects/polyterminal.md)
 - [when2jam](projects/when2jam.md)
@@ -45,6 +48,7 @@ operations, and unreviewed agent memory do not belong here.
 - [Fake Edges From Data Bugs](lessons/fake-edges-from-data-bugs.md)
 - [Preregistration](lessons/preregistration.md)
 - [Production Safety](lessons/production-safety.md)
+- [Secret Handling for Agents](lessons/secret-handling.md)
 - [Negative Results](lessons/negative-results.md)
 
 ## Principles

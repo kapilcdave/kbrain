@@ -3,6 +3,8 @@
 | Project | Area | Status | Page |
 |---|---|---|---|
 | Agent Memory Coordination | AI infrastructure | Prototype | [Read](projects/agent-memory-coordination.md) |
+| Hermes Agent (@kapilubot) | AI agents / operations | Active | [Read](projects/hermes-agent.md) |
+| Agent Skills | AI agents / knowledge management | Active | [Read](projects/agent-skills.md) |
 | Hedge Router | AI infrastructure / risk | Experimental | [Read](projects/hedge-router.md) |
 | Polyterminal | Prediction-market tooling | Experimental | [Read](projects/polyterminal.md) |
 | when2jam | Collaborative scheduling | Maintained | [Read](projects/when2jam.md) |

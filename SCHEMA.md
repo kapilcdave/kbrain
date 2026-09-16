@@ -27,3 +27,12 @@ source_repositories:
 - Retractions remain next to the claims they replace.
 - `[[wikilinks]]` may be added later, but ordinary Markdown links remain the
   portable default.
+
+## Exception: `agent/skills/`
+
+Files under [`agent/skills/`](agent/skills) are published verbatim as skill
+definitions and keep their own tool-native frontmatter (`name`, `description`,
+`version`, `tags`) instead of the page schema above. They are artifacts, not
+knowledge pages. Their narrative context lives in
+[projects/agent-skills.md](projects/agent-skills.md), which does follow the
+schema.
