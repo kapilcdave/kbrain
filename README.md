@@ -19,6 +19,7 @@ operations, and unreviewed agent memory do not belong here.
 
 ### Things I Built
 
+- [Hermes Agent](projects/hermes-agent.md) — and its [deployment](hermes/README.md)
 - [Agent Memory Coordination](projects/agent-memory-coordination.md)
 - [Hedge Router](projects/hedge-router.md)
 - [Polyterminal](projects/polyterminal.md)

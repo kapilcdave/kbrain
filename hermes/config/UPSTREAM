@@ -1,0 +1,15 @@
+# Upstream pin for the Hermes agent.
+# bootstrap.sh checks out exactly this commit. Bump it deliberately, never
+# implicitly: this file is the difference between a reproducible rebuild and
+# "whatever main happened to be that day".
+
+UPSTREAM_URL=https://github.com/NousResearch/hermes-agent.git
+UPSTREAM_SHA=1fd18277267152893a8a24792b79213e7ca3f899
+
+# Official installer, which fetches the self-managed toolchain into
+# $HERMES_HOME/tools and creates $HERMES_HOME/hermes-agent/.hermes/bin/hermes
+INSTALLER_URL=https://hermes-agent.nousresearch.com/install.sh
+
+# Verified on the running Iowa VM 2026-10-12: tree clean at this SHA, i.e. we
+# carry zero local patches against upstream. If that ever stops being true,
+# the diff belongs in this directory as a patch file.

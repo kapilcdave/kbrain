@@ -2,6 +2,7 @@
 
 | Project | Area | Status | Page |
 |---|---|---|---|
+| Hermes Agent | AI infrastructure | Maintained | [Read](projects/hermes-agent.md) |
 | Agent Memory Coordination | AI infrastructure | Prototype | [Read](projects/agent-memory-coordination.md) |
 | Hedge Router | AI infrastructure / risk | Experimental | [Read](projects/hedge-router.md) |
 | Polyterminal | Prediction-market tooling | Experimental | [Read](projects/polyterminal.md) |

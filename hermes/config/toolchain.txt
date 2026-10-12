@@ -1,0 +1,16 @@
+# Self-managed toolchain under $HERMES_HOME/tools, as verified on a working install
+# The installer fetches these; the list exists so a rebuild that
+# silently gets different majors is detectable. 1.6 GB total.
+
+agent-browser-0.26.0-linux-x64
+chromium-1208
+cua-driver-0.21.0-linux-x64
+ffmpeg-9.0.1-linux-x64
+node-26.7.0-linux-x64
+npm-12.0.2-linux-x64
+python-3.14.7+20260901-linux-x64
+ripgrep-15.2.0-linux-x64
+uv-0.12.3-linux-x64
+
+# Note: the agent brings its own Python 3.14 here and does not use the host's
+# 3.13.5. Do not "fix" a version mismatch by pointing it at the system Python.

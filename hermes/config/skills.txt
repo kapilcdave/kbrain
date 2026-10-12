@@ -1,0 +1,16 @@
+# Skill packs present in $HERMES_HOME/skills on a working install.
+# All of these ship with upstream; none are locally authored, so bootstrap gets
+# them for free from the installer and this file is an assertion, not a payload.
+
+apple
+autonomous-ai-agents
+creative
+devops
+email
+media
+note-taking
+productivity
+research
+social-media
+software-development
+web
