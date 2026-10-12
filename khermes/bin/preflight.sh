@@ -5,6 +5,14 @@
 # bad token, no allowed users, a dependency that throws on import. The unit
 # state tells you systemd started a process, not that Telegram round-trips.
 # So this checks the facts that would have caught that, and exits non-zero.
+#
+#   bin/preflight.sh
+#   NAME=<vm> ZONE=<zone> HERMES_USER=<user> bin/preflight.sh
+#
+# HERMES_USER matters whenever the agent runs as a different account than the
+# one you SSH in as. Checking the wrong account reports a confident, total
+# failure for a perfectly healthy agent -- so it is passed explicitly over the
+# SSH hop rather than defaulted on the far side.
 set -uo pipefail
 
 NAME="${NAME:-hermes-iowa}"
@@ -12,68 +20,86 @@ ZONE="${ZONE:-us-central1-a}"
 
 if [ "${HERMES_ON_VM:-0}" != "1" ]; then
   exec gcloud compute ssh "$NAME" --zone "$ZONE" --command \
-    "HERMES_ON_VM=1 bash -s" < "${BASH_SOURCE[0]}"
+    "HERMES_ON_VM=1 HERMES_USER='${HERMES_USER:-}' bash -s" < "${BASH_SOURCE[0]}"
 fi
 
-HERMES_USER="${HERMES_USER:-$(id -un)}"
-HOME_DIR="$(getent passwd "$HERMES_USER" | cut -d: -f6)"
-HERMES_HOME="${HERMES_HOME:-$HOME_DIR/.hermes}"
-export XDG_RUNTIME_DIR="/run/user/$(id -u "$HERMES_USER")"
+U="${HERMES_USER:-}"; [ -n "$U" ] || U="$(id -un)"
+id "$U" >/dev/null 2>&1 || { echo "no such user: $U" >&2; exit 2; }
+HOME_DIR="$(getent passwd "$U" | cut -d: -f6)"
+H="${HERMES_HOME:-$HOME_DIR/.hermes}"
+RT="/run/user/$(id -u "$U")"
+
+# The agent's home is 0700 and its units belong to its own user manager, so
+# every check has to cross into that account. Run as it when we are not it.
+if [ "$U" = "$(id -un)" ]; then
+  asu() { XDG_RUNTIME_DIR="$RT" "$@"; }
+  aroot() { sudo "$@"; }
+else
+  asu() { sudo -u "$U" XDG_RUNTIME_DIR="$RT" "$@"; }
+  aroot() { sudo "$@"; }
+fi
 
 fail=0
-chk() { # chk <label> <0|1> <detail>
+chk() { # chk <label> <0|1> <detail> -- a real failure
   if [ "$2" = 0 ]; then printf '  ok    %s\n' "$1"
   else printf '  FAIL  %s -- %s\n' "$1" "$3"; fail=1; fi
 }
+warn() { # warn <label> <0|1> <detail> -- worth seeing, not a verdict
+  if [ "$2" = 0 ]; then printf '  ok    %s\n' "$1"
+  else printf '  warn  %s -- %s\n' "$1" "$3"; fi
+}
 
-echo "preflight: hermes-gateway on $(hostname)"
+echo "preflight: hermes-gateway as $U on $(hostname -s)"
 
-systemctl --user is-active --quiet hermes-gateway.service
+asu systemctl --user is-active --quiet hermes-gateway.service
 chk "unit active" $? "systemctl --user status hermes-gateway"
 
-systemctl --user is-enabled --quiet hermes-gateway.service
+asu systemctl --user is-enabled --quiet hermes-gateway.service
 chk "unit enabled at boot" $? "systemctl --user enable hermes-gateway"
 
-[ -f "/var/lib/systemd/linger/$HERMES_USER" ]
-chk "lingering enabled" $? "agent would die on reboot; loginctl enable-linger $HERMES_USER"
+aroot test -f "/var/lib/systemd/linger/$U"
+chk "lingering enabled" $? "agent dies on reboot; loginctl enable-linger $U"
 
-# 0600 or tighter, nothing group/world readable
-perm=$(stat -c '%a' "$HERMES_HOME/.env" 2>/dev/null || echo missing)
+# 0600 or tighter. Never reads a value out of the file.
+perm=$(aroot stat -c '%a' "$H/.env" 2>/dev/null || echo missing)
 [ "$perm" = 600 ]
 chk ".env mode 0600" $? "mode is $perm"
 
-# A blank allowlist means anyone who finds the bot gets shell tools.
-allow=$(grep -c '^TELEGRAM_ALLOWED_USERS=[0-9]' "$HERMES_HOME/.env" 2>/dev/null || echo 0)
-[ "$allow" -ge 1 ]
+# Count only -- a blank allowlist means anyone who finds the bot gets shell.
+allow=$(aroot grep -c '^TELEGRAM_ALLOWED_USERS=[0-9]' "$H/.env" 2>/dev/null || echo 0)
+[ "${allow:-0}" -ge 1 ]
 chk "TELEGRAM_ALLOWED_USERS set" $? "blank or placeholder allowlist -- bot is open to strangers"
 
-# The real test: has the gateway processed a Telegram update? The receipts file
-# is written per bot id as updates are acknowledged.
-shopt -s nullglob
-receipts=("$HERMES_HOME"/telegram_update_receipts_*.json)
-[ ${#receipts[@]} -ge 1 ]
-chk "telegram receipts present" $? "gateway has never acknowledged an update; token or network wrong"
+# Has the gateway ever acknowledged a Telegram update? Receipts are written
+# per bot id as updates are processed, so their existence proves the token and
+# the network path both work. This one is fatal.
+newest=$(aroot bash -c "ls -t '$H'/telegram_update_receipts_*.json 2>/dev/null | head -1")
+[ -n "$newest" ]
+chk "telegram path proven" $? "gateway has never acknowledged an update; token or network wrong"
 
-# ... and did it do so recently? Stale receipts mean it polled once and stopped.
-if [ ${#receipts[@]} -ge 1 ]; then
-  age=$(( $(date +%s) - $(stat -c %Y "${receipts[0]}") ))
+# Their *age*, though, measures how recently a human messaged the bot -- not
+# agent health. An idle week and a dead bot look identical here, which is why
+# the heartbeat below is the liveness signal and this only warns. Treating it
+# as fatal reports a broken agent every time you simply stop texting it.
+if [ -n "$newest" ]; then
+  age=$(( $(date +%s) - $(aroot stat -c %Y "$newest") ))
   [ "$age" -lt 86400 ]
-  chk "receipts fresh (<24h)" $? "last update was ${age}s ago"
+  warn "update seen in last 24h" $? "last inbound message ${age}s ago ($((age/86400))d) -- idle, not necessarily broken"
 fi
 
-hb="$HERMES_HOME/state/gateway.heartbeat"
-if [ -f "$hb" ]; then
-  hage=$(( $(date +%s) - $(stat -c %Y "$hb") ))
+hb="$H/state/gateway.heartbeat"
+if aroot test -f "$hb"; then
+  hage=$(( $(date +%s) - $(aroot stat -c %Y "$hb") ))
   [ "$hage" -lt 600 ]
-  chk "heartbeat fresh (<10m)" $? "heartbeat ${hage}s old; loop is wedged"
+  chk "heartbeat fresh (<10m)" $? "heartbeat ${hage}s old; the loop is wedged"
 else
   chk "heartbeat present" 1 "$hb missing"
 fi
 
-# Errors systemd will not surface, because the process stays up through them.
-errs=$(journalctl --user -u hermes-gateway --since "-10 min" -p err --no-pager 2>/dev/null | grep -cvE 'logs begin|No entries' || true)
+# Errors systemd never surfaces, because the process stays up through them.
+errs=$(asu journalctl --user -u hermes-gateway --since "-10 min" -p err --no-pager -q 2>/dev/null | grep -c . || true)
 [ "${errs:-0}" -eq 0 ]
-chk "no errors in last 10m" $? "$errs error lines; journalctl --user -u hermes-gateway -p err"
+chk "no errors in last 10m" $? "${errs:-?} error lines; journalctl --user -u hermes-gateway -p err"
 
 avail=$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo)
 [ "$avail" -gt 120 ]

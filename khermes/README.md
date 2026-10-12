@@ -26,6 +26,15 @@ bin/preflight.sh        # proves Telegram round-trips before you trust it
 [`config/.env.example`](config/.env.example). Those are the only manual step,
 and they are deliberately not in Git.
 
+All three scripts take `NAME`, `ZONE` and `HERMES_USER` from the environment.
+Set `HERMES_USER` whenever the agent runs as a different account than the one
+you SSH in as, or the checks inspect the wrong account and report a confident
+total failure for a healthy agent:
+
+```sh
+NAME=<vm> HERMES_USER=<agent-user> bin/preflight.sh
+```
+
 Then, optionally:
 
 ```sh
