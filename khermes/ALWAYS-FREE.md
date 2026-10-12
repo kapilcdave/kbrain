@@ -21,6 +21,23 @@ paid account the always-free allowances apply as a monthly discount and a
 compliant `e2-micro` costs nothing to run. Letting the trial lapse is the one
 path that loses the agent.
 
+### Telling trial from paid without the console
+
+`gcloud billing accounts describe` reports `open: true` either way, so it
+cannot answer this. The CPU quota can:
+
+```sh
+gcloud compute regions describe us-central1 --format=json \
+  | python3 -c "import json,sys;print([q for q in json.load(sys.stdin)['quotas'] if q['metric']=='CPUS'])"
+```
+
+A free trial is hard-capped near **8 vCPUs** per region. A limit in the
+hundreds means the account has already been upgraded — as does the mere fact
+that a large instance ever ran, since a trial cannot start one. Two useful
+corollaries: running VMs prove the account is *not* in the stopped
+post-trial state, and an already-upgraded account means anything above the
+free allowances is **billing right now**, not at some future conversion.
+
 ## What always-free covers
 
 | Allowance | Limit |
@@ -84,8 +101,13 @@ irreplaceable, which is the whole argument in
 **Egress.** 1 GB/month outbound from North America is a low ceiling and
 nothing meters it by default. Telegram text is negligible; a browser toolset
 uploading screenshots, or any bulk transfer off the box, is not. Inbound and
-in-region traffic do not count. A billing alert at $1 is a cheap tripwire
-that catches both an egress surprise and an IPv4 rate change.
+in-region traffic do not count. A billing alert at a dollar or two is a cheap
+tripwire that catches both an egress surprise and an IPv4 rate change.
+
+A budget **alerts; it does not cap**. Nothing is stopped or throttled when
+the threshold is crossed, so a budget set to the free-tier floor is a smoke
+detector, not a fuse. The only hard limits are the shape of what you
+provision — which is why `provision-vm.sh` refuses rather than warns.
 
 ## Resources that can never be free
 
