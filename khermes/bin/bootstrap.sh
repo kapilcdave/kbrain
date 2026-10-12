@@ -16,12 +16,13 @@ SWAP_MB="${SWAP_MB:-1024}"
 # ---------------------------------------------------------------- remote half
 if [ "${HERMES_ON_VM:-0}" != "1" ]; then
   echo "==> staging to $NAME ($ZONE)"
-  tar -C "$(dirname "$HERE")" -czf /tmp/hermes-deploy.tgz "$(basename "$HERE")"
+  DIR="$(basename "$HERE")"
+  tar -C "$(dirname "$HERE")" -czf /tmp/hermes-deploy.tgz "$DIR"
   gcloud compute scp /tmp/hermes-deploy.tgz "$NAME":/tmp/ --zone "$ZONE"
   gcloud compute ssh "$NAME" --zone "$ZONE" --command \
     "set -e; rm -rf /tmp/hermes-deploy && mkdir -p /tmp/hermes-deploy \
      && tar -C /tmp/hermes-deploy -xzf /tmp/hermes-deploy.tgz \
-     && HERMES_ON_VM=1 SWAP_MB=$SWAP_MB bash /tmp/hermes-deploy/hermes/bin/bootstrap.sh"
+     && HERMES_ON_VM=1 SWAP_MB=$SWAP_MB bash /tmp/hermes-deploy/$DIR/bin/bootstrap.sh"
   exit $?
 fi
 

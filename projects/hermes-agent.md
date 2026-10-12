@@ -1,58 +1,97 @@
-# Hermes Agent
+---
+title: Hermes Agent (@kapilubot)
+type: project
+status: active
+started: 2026-09
+updated: 2026-09-16
+tags: [ai-agents, hermes, telegram, automation, skills, tooling]
+source_repositories: []
+---
 
-A long-running personal agent I talk to over Telegram, hosted on a single GCP
-always-free `e2-micro` in Iowa. Upstream is
-[NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent); the
-work here is the deployment, not the agent framework.
+# Hermes Agent (@kapilubot)
 
-Status: **maintained**.
+## Summary
 
-## Shape
+A persistent Hermes Agent instance I run as my always-on operator: a Telegram
+bot (`@kapilubot`, display name "Hermes") backed by a gateway process on a small
+Linux VM. It is the interface through which most of my research, ops, and
+publishing work now passes.
 
-One VM, one user-level systemd unit, Telegram as the only interface. No
-inbound ports, no webhook, no load balancer, no container orchestration. The
-agent long-polls Telegram, so the box needs outbound internet and nothing
-else — which is what makes a 964 MB instance with an ephemeral IP a
-sufficient host.
+## Why I Run It
 
-The deployment is reproducible from
-[`hermes/`](../hermes/README.md): provision the correctly-shaped free VM,
-install the pinned upstream, paste five secrets, start the unit.
+Most of my work is the same three motions repeated: inspect a system, run an
+experiment, and write down what was actually true afterward. Those motions are
+worth encoding once rather than re-deriving each session. The agent gives me a
+single conversational surface with shell access, file access, scheduled jobs,
+and a growing library of written procedures, so a lesson learned during one
+investigation is available during the next one.
 
-## What this taught me
+## Shape of the System
 
-**An "export the whole disk" instinct was wrong by two orders of magnitude.**
-A deployed agent's disk decomposes into a few GB of upstream checkout, a few
-more of installer-fetched toolchain, about a GB of cache and per-install
-environments, whatever co-tenant projects write, and a few tens of MB that
-are actually mine. Of that remainder, the part worth keeping is also the part
-that must never be public. The right export was a pinned upstream SHA plus a
-credential template — ~99% smaller than the disk and the only safe shape.
+- **Gateway.** A Python process holding sessions, routing model calls, and
+  scaling to zero when idle. Configuration is managed through a CLI rather than
+  hand-edited, because a malformed provider block silently reroutes every call.
+- **Surface.** Telegram (`@kapilubot`) is the primary channel; a local CLI is
+  the fallback when the gateway itself is the thing being debugged.
+- **Providers.** A default model plus a fallback chain. Fallback is turn-scoped:
+  the primary is retried fresh on each new message, so a persistently broken
+  primary re-invokes fallback every turn.
+- **Skills.** Versioned Markdown procedures loaded on demand. See
+  [Agent Skills](agent-skills.md).
+- **Safety guard.** A command scanner sits between the agent and the shell. It
+  blocks destructive or unresolvable command bodies before execution rather than
+  trusting a benign-looking outer command.
 
-**`active (running)` is not evidence the agent works.** A gateway with a bad
-token, an empty allowlist, or a broken import sits in `active (running)` while
-round-tripping nothing. The checks that actually bind are external: has a
-Telegram update been acknowledged, and recently; is the heartbeat fresh; are
-there error lines the process survived.
-[`preflight.sh`](../hermes/bin/preflight.sh) asserts those and exits non-zero,
-because a unit state check would have passed in every failure mode worth
-catching.
+## What I Learned
 
-**User-level systemd needs lingering, and fails silently without it.** The
-unit runs under `systemd --user`, which exits at logout unless the user
-lingers. Lose that and the agent dies at the next reboot with nothing in the
-system journal explaining it — and `sudo systemctl status hermes-gateway`
-reports the unit does not exist, which sends you looking in the wrong place.
+**Written procedure beats model recall.** The durable win is not a smarter
+model, it is a checked-in procedure that names the specific trap. A skill that
+says "this exact endpoint rejects assistant prefill, reroute instead of waiting"
+converts a recurring half-hour of rediscovery into a lookup.
 
-**"Always free" is a shape you have to hold, not a tier you fall back to.** A
-lapsed trial closes the billing account and stops every VM; the free
-allowances only apply once you have upgraded to a paid account. And the free
-tier covers compute and disk, not the external IPv4 address every
-internet-reachable VM needs — so the floor is a few dollars a month, not zero.
-Written up in [ALWAYS-FREE.md](../hermes/ALWAYS-FREE.md).
+**The failure classes are not interchangeable.** A `400` from an unsupported
+feature and a `429` from capacity look identical in a user report and require
+opposite responses. Waiting fixes one and never fixes the other. Most wasted
+agent-debugging time comes from treating a hard incompatibility as transient.
 
-**The binding constraint on a 1 GB VM is RAM, not CPU.** An `e2-micro` has
-964 MB, and the agent carries a Chromium for its browser tools. Bootstrap
-adds a swapfile with `vm.swappiness=10` because the realistic failure is an
-OOM kill mid-turn, not a slow turn — and on a shared box, moving the
-co-tenant off buys more headroom than trimming the agent does.
+**A probe that does not reproduce the real request path proves nothing.** A
+one-shot health ping succeeds on routes where every real multi-turn request
+fails, because the ping omits the message shape that triggers the fault. A green
+probe against the wrong path is worse than no probe.
+
+**Security guards produce misleading error text.** The command scanner rejects
+inline multi-line interpreter payloads and shell heredocs, and the resulting
+message can look like an unrelated infrastructure failure. Writing the same
+logic to a file and executing the file passes. I lost real time diagnosing a
+"broken gateway" that was a correctly functioning scanner.
+
+**Some operations must be handed back to a human shell.** The agent cannot
+restart its own gateway from inside a gateway-hosted session, because the signal
+propagates to the child and kills the restart mid-flight. This is a design
+constraint, not a bug; the right output is the exact command for me to run
+elsewhere, with all config changes already applied so one restart collects them.
+
+**Secrets need a value-blind workflow.** Reading a credential file, diffing it,
+or rewriting it all pull values into a transcript that outlives the task. The
+working pattern is inspection that reports key names, set/empty status, and
+length only, plus key-only renames performed by a helper script. See
+[Secret Handling for Agents](../lessons/secret-handling.md).
+
+## Current Status
+
+Active and in daily use. The interesting artifact is not the deployment, which
+is ordinary, but the accumulated skill library and the operating constraints
+above.
+
+## Public Boundary
+
+This page describes architecture and lessons. Tokens, chat identifiers, private
+paths, hostnames, provider credentials, and session contents are excluded under
+the [publication boundary](../decisions/publication-boundary.md). The bot
+username is public by construction: anyone can resolve it on Telegram.
+
+## Sources
+
+- Operating experience with this instance, September 2026.
+- [Agent Skills](agent-skills.md) — the published procedural libraries.
+- [Hermes agent files](../agents/kapilubot/README.md) — identity and owned skills.
