@@ -39,6 +39,14 @@ header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 18px
 main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;padding:14px}
 @media (max-width:1100px){main{grid-template-columns:1fr}}
 .world{border:3px solid var(--line);background:#000;position:relative}
+.pop{position:absolute;display:none;z-index:4;width:290px;background:#0d0e12;color:#f2f2f2;border:3px solid #e6e6e6;padding:10px 13px 11px;
+  font:18px/1.15 var(--mono);box-shadow:5px 5px 0 #000}
+.pop:before,.pop:after{content:"";position:absolute;background:#e6e6e6;width:7px;height:7px}
+.pop:before{left:-10px;top:22px}.pop:after{left:-17px;top:29px}
+.pop.flip:before{left:auto;right:-10px}.pop.flip:after{left:auto;right:-17px}
+.pop .who{font-family:var(--px);font-size:9px;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+.pop .t{color:#8a8d99}.pop .doing{margin:2px 0 6px}.pop .sum{border-top:1px dashed #2a2d38;margin-top:7px;padding-top:6px;color:#c9cbd3}
+.pop a{color:#e0b040;cursor:pointer;text-decoration:none}.pop .row{display:flex;justify-content:space-between;margin-top:8px}
 canvas{display:block;width:100%;height:auto;image-rendering:pixelated;cursor:pointer}
 .cmd{display:flex;gap:8px;padding:10px;background:var(--panel);border-top:3px solid var(--line);flex-wrap:wrap}
 .cmd select,.cmd input{background:var(--bg);border:2px solid var(--line);padding:6px 8px}
@@ -85,6 +93,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#07080f;border:2px sol
 <div class="alert" id="stallBar">⚠ STALLED: no hypothesis has changed state in a while, so the chief of staff is paused. Read the feed, adjust the goal or routing, then ACK.</div>
 <main>
   <section class="world">
+    <div class="pop" id="pop"></div>
     <canvas id="cv" width="1920" height="1200" aria-label="kbrain office: one room per agent role"></canvas>
     <form class="cmd" id="cmd">
       <select id="cmdRole" aria-label="send to">
@@ -179,7 +188,7 @@ class Agent {
     if (this.moodT > 0 && (this.moodT -= dt) <= 0) this.mood = null;
   }
   setMood(m, ms) { this.mood = m; this.moodT = ms; }
-  hit(px, py) { return Math.abs(px - this.x) < 22 && py > this.y - 52 && py < this.y + 4; }
+  hit(px, py) { return Math.abs(px - this.x) < 26 && py > this.y - 66 && py < this.y + 8; }
 }
 const agents = Object.keys(ROLE).map(r => new Agent(r));
 const byRole = Object.fromEntries(agents.map(a => [a.role, a]));
@@ -205,6 +214,7 @@ function placeAgents() {                           // start everyone at their po
   }
 }
 function setTheme(t) {
+  if (typeof closePop === "function" && POP.agent) closePop();
   const relayout = layoutOf(t) !== layoutOf(THEME);
   THEME = t; if (relayout) placeAgents(); document.documentElement.dataset.theme = t;
   try { localStorage.setItem("kb-theme-v2", t); } catch (_) {}
@@ -316,6 +326,7 @@ function drawAgent(a) {
   ctx.fillStyle = THEME === "blueprint" ? "#06182c" : "#00000055"; ctx.beginPath(); ctx.ellipse(a.x, a.y + 1, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
   const pal = {h:a.m.hair, k:a.m.skin, e:"#111", m:"#7a3b2e", s:a.m.shirt, a:a.m.acc, p:"#2d3446", b:"#141414"};
   const rows = BODY.concat(LEGS[a.moving ? Math.floor(a.walkT / 160) % 2 : 0]);
+  if (THEME === "minimal" && (clock + Object.keys(ROLE).indexOf(a.role) * 977) % 4300 < 130) pal.e = pal.k;   // blink
   if (THEME === "minimal") {                         // contrast on black: lift the darkest colors, then rim the silhouette
     Object.assign(pal, {p:"#4d5672", b:"#3b3f4c", h:mix(a.m.hair, .22, [150, 150, 160])});
     for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2]])
@@ -424,25 +435,72 @@ function wrap(str, n, max = 3) {
   if (out.length > max) { out.length = max; out[max - 1] = out[max - 1].slice(0, n - 1) + "…"; }
   return out;
 }
+function speech(a, lines, sub, faint) {
+  const lh = 15, padX = 10, padY = 8;
+  ctx.font = fontFor(7); let tw = Math.max(...lines.map(l => ctx.measureText(l).width));
+  if (sub) { ctx.font = fontFor(6); tw = Math.max(tw, ctx.measureText(sub).width); }
+  const w = Math.ceil(tw) + padX * 2, h = lines.length * lh + (sub ? 13 : 0) + padY * 2 - 3;
+  let x = a.x + 40; const y = a.y - 76, right = x + w <= W - 6;
+  if (!right) x = a.x - 40 - w;
+  const bd = faint ? "#3a3d48" : "#e6e6e6";
+  px(x + 3, y, w - 6, h, bd); px(x, y + 3, w, h - 6, bd);            // pixel-rounded border
+  px(x + 3, y + 3, w - 6, h - 6, "#0d0e12");
+  const ty = y + h - 14;                                              // tail toward the dude
+  if (right) { px(x - 5, ty, 5, 5, bd); px(x - 10, ty + 5, 5, 5, bd); } else { px(x + w, ty, 5, 5, bd); px(x + w + 5, ty + 5, 5, 5, bd); }
+  lines.forEach((l, i) => text(l, x + padX, y + padY + i * lh, 7, faint ? "#8a8d99" : "#f2f2f2"));
+  if (sub) text(sub, x + padX, y + padY + lines.length * lh + 1, 6, "#8a8d99");
+}
 function drawMinimal() {
   px(0, 0, W, H, "#060709");
   const online = STATE && STATE.runner_age_s !== null && STATE.runner_age_s < 45;
   [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
   for (const a of agents) {
     text(a.m.name.toLowerCase(), a.x, a.y + 10, 7, "#8a8d99", "center");
-    const WHITE = "#f2f2f2", SOFT = "#9a9ca8";
-    let lines, col = WHITE, sub = null;
-    if (a.note && a.note.until > clock) lines = wrap(a.note.text, 32, 2);
-    else if (!STATE) lines = ["…"], col = SOFT;
+    if (POP.agent === a) continue;                    // the open popup speaks for this one
+    let lines, sub = null, faint = false;
+    if (a.note && a.note.until > clock) lines = wrap(a.note.text, 30, 2);
+    else if (!STATE) lines = ["…"], faint = true;
     else if (STATE.stop) lines = ["stopped"];
-    else if (!online) { lines = ["offline"]; col = SOFT; if (a.role === "chief") sub = "start the runner: kb serve"; }
-    else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 32); sub = (a.task.model || "").split(":").pop() || "starting…"; }
+    else if (!online) { lines = ["offline"]; faint = true; if (a.role === "chief") { lines = ["zzz… the runner is off"]; sub = "start it: kb serve"; faint = false; } }
+    else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 30); sub = (a.task.model || "").split(":").pop() || "starting…"; }
     else if (a.mood === "sleep") lines = ["napping · rate limited"];
-    else lines = ["idle"], col = SOFT;
-    const tx = a.x + 36, ty = a.y - 56;
-    lines.forEach((l, i) => text(l, tx, ty + i * 15, 7, col));
-    if (sub) text(sub, tx, ty + lines.length * 15 + 2, 6, SOFT);
+    else lines = ["idle"], faint = true;
+    speech(a, lines, sub, faint);
   }
+}
+
+// ---------- click a dude: a popup card right next to them ----------
+const POP = {agent:null, detail:null};
+function popHtml() {
+  const a = POP.agent, t = a.task || (STATE && STATE.last_by_role[a.role]), d = POP.detail;
+  const res = d && d.task.result ? JSON.parse(d.task.result) : null, run = d && d.runs.length ? d.runs[d.runs.length - 1] : null;
+  const chain = STATE && STATE.roles[a.role] ? STATE.roles[a.role].models.map(m => esc(m.split(":").pop() || m.replace(":", ""))).join(" → ") : "";
+  const state = a.task ? "working" : a.mood === "sleep" ? "napping" : "idle";
+  return `<div class="who"><span>${esc(a.m.name.toUpperCase())}</span><span class="t">${state}</span></div>
+    ${t ? `<div class="t">${a.task ? "doing" : "last did"}</div><div class="doing">#${t.id} ${esc(t.title)}</div>` : `<div class="t">hasn't done anything yet</div>`}
+    ${run ? `<div class="t">${esc(run.model.split(":").pop() || run.model)} · try ${d.task.attempts + (a.task ? 1 : 0)}/${d.task.max_attempts}${run.outcome ? " · " + esc(run.outcome) : ""}</div>` : ""}
+    ${t && t.hypothesis ? `<div class="t">hypothesis: <span style="color:#f2f2f2">${esc(t.hypothesis)}</span></div>` : ""}
+    ${res && res.summary ? `<div class="sum">${esc(res.summary.slice(0, 220))}${res.summary.length > 220 ? "…" : ""}</div>` : ""}
+    <div class="t" style="margin-top:7px">${esc(a.m.blurb)}</div>
+    ${chain ? `<div class="t" style="margin-top:4px">models: ${chain}</div>` : ""}
+    <div class="row">${t ? `<a data-open="${t.id}">full details ›</a>` : "<span></span>"}<a id="popClose">close</a></div>`;
+}
+async function openPop(a) {
+  POP.agent = a; POP.detail = null; renderPop();
+  const t = a.task || (STATE && STATE.last_by_role[a.role]);
+  if (t) { const d = await api(`/api/task/${t.id}`); if (POP.agent === a && !d.error) { POP.detail = d; renderPop(); } }
+}
+function renderPop() { const el = $("#pop"); el.innerHTML = popHtml(); el.style.display = "block"; $("#popClose").onclick = closePop; placePop(); }
+function closePop() { POP.agent = null; $("#pop").style.display = "none"; }
+function placePop() {
+  if (!POP.agent) return;
+  const el = $("#pop"), b = cv.getBoundingClientRect(), wr = cv.parentElement.getBoundingClientRect();
+  const k = Math.min(b.width / W, b.height / H), ox = b.left - wr.left + (b.width - W * k) / 2, oy = b.top - wr.top + (b.height - H * k) / 2;
+  const a = POP.agent, sx = ox + a.x * k, sy = oy + a.y * k, pw = el.offsetWidth;
+  const flip = sx + 44 * k + pw > wr.width - 8;
+  el.classList.toggle("flip", flip);
+  el.style.left = `${flip ? sx - 44 * k - pw : sx + 44 * k}px`;
+  el.style.top = `${Math.max(8, sy - 80 * k)}px`;
 }
 function note(role, s, c) { const a = byRole[role]; if (a) a.note = {text:s, c, until:clock + 4000}; }
 function animateMinimal(e) {
@@ -461,7 +519,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(64, now - last); last = now; clock += dt;
   agents.forEach(a => a.update(dt));
-  if (THEME === "minimal") { drawMinimal(); requestAnimationFrame(frame); return; }
+  if (THEME === "minimal") { drawMinimal(); placePop(); requestAnimationFrame(frame); return; }
   if (THEME === "pipeline") {
     drawPipeline(); [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
     moveCrates(dt); drawCrates(); drawGates();
@@ -544,6 +602,7 @@ async function pollState() {
   $("#ackBtn").style.display = s.stalled ? "" : "none"; $("#stallBar").style.display = s.stalled ? "block" : "none";
   for (const a of agents) a.task = s.running.find(t => t.role === a.role) || null;
   crateTargets();
+  if (POP.agent && !document.querySelector("#pop:hover")) renderPop();
 
   $("#board").innerHTML = HSTAGES.map(([st, col]) => {
     const hs = s.hypotheses.filter(h => h.status === st);
@@ -581,7 +640,9 @@ function openAgent(a) {
 cv.addEventListener("click", ev => {
   const b = cv.getBoundingClientRect(), k = Math.min(b.width / W, b.height / H);
   const x = (ev.clientX - b.left - (b.width - W * k) / 2) / k, y = (ev.clientY - b.top - (b.height - H * k) / 2) / k;
-  const a = agents.find(a => a.hit(x, y)); if (a) return openAgent(a);
+  const a = agents.find(a => a.hit(x, y));
+  if (a) return THEME === "minimal" ? openPop(a) : openAgent(a);
+  closePop();
   if (THEME === "pipeline") for (const c of crates.values()) if (Math.abs(x - c.x) < 13 && y > c.y - 2 && y < c.y + 16)
     return openDrawer(c.slug, `<p>stage: <b style="color:${HCOL[c.status]}">${esc(c.status)}</b></p>${c.reason ? `<p class="muted">${esc(c.reason)}</p>` : ""}`);
 });
@@ -591,7 +652,7 @@ document.addEventListener("click", ev => {
 });
 $("#dClose").onclick = () => $("#drawer").classList.remove("on");
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { $("#drawer").classList.remove("on"); document.body.classList.remove("cmdshow"); }
+  if (e.key === "Escape") { closePop(); $("#drawer").classList.remove("on"); document.body.classList.remove("cmdshow"); }
   if (e.key === "/" && THEME === "minimal" && document.activeElement.tagName !== "INPUT") { e.preventDefault(); document.body.classList.add("cmdshow"); $("#cmdText").focus(); }
 });
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
@@ -622,7 +683,8 @@ $("#stopBtn").onclick = async () => { await api(STATE && STATE.stop ? "/api/resu
 $("#ackBtn").onclick = async () => { await api("/api/ack", {}); pollState(); };
 
 placeAgents(); setTheme(THEME);
-pollState(); pollEvents();
+pollState().then(() => { const r = new URLSearchParams(location.search).get("pop"); if (r && byRole[r] && THEME === "minimal") openPop(byRole[r]); });
+pollEvents();
 setInterval(pollState, 2000); setInterval(pollEvents, 2000);
 requestAnimationFrame(frame);
 </script>
