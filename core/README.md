@@ -21,7 +21,7 @@ rate limits requeue with backoff instead of burning attempts; a crash re-queues 
 Hermes is not required; the chief role replaces it.
 
 ## Free / cheap models
-Backends: `claude`, `codex`, `gemini`, `opencode` (CLIs on your logins; `opencode models` lists the free ones), `api:<provider>/<model>` (tool-less call to any
+Backends: `claude`, `codex`, `agy` (Antigravity; headless runs currently auto-deny shell commands, so it sits last in the chains), `opencode` (CLIs on your logins; `opencode models` lists the free ones), `api:<provider>/<model>` (tool-less call to any
 OpenAI-compatible endpoint; define it under `[providers]` in `config/routing.toml`). Keys go in
 `~/.config/kbrain/env` (chmod 600, never in the repo); the daemon loads them and strips them from every
 agent's environment. `max_runs_per_day` is a global circuit breaker. Compare models with `bin/kb stats`.

@@ -38,11 +38,15 @@ def run_shell(model, prompt, workdir, timeout, log_path, tools):
     import shlex
     return _spawn(shlex.split(model), workdir, log_path, timeout)
 
-def run_gemini(model, prompt, workdir, timeout, log_path, tools):
-    argv = ["gemini", "--approval-mode", "auto_edit", "-p", "Complete the task described above."]
+def run_agy(model, prompt, workdir, timeout, log_path, tools):
+    """Antigravity CLI (Google AI Pro login). `agy models` lists them: gemini-3.8-flash-*, claude-*, gpt-oss-*."""
+    allow = ["command(cat *)", "command(ls *)", "command(echo *)", "command(python3 *)"]
+    settings = json.dumps({"permissions": {"allow": allow}})      # session-only, never saved
+    argv = ["agy", "--sandbox", "--mode", "accept-edits", "--settings", settings, "--add-dir", str(workdir)]
     if model:
-        argv += ["-m", model]
-    return _spawn(argv, workdir, log_path, timeout, stdin_text=prompt)
+        argv += ["--model", model]
+    argv.append("--print=" + prompt)       # --print consumes the next token as the prompt
+    return _spawn(argv, workdir, log_path, timeout)
 
 def run_opencode(model, prompt, workdir, timeout, log_path, tools):
     """opencode run -m provider/model: free models (big-pickle etc.) with file tools, in `workdir`."""
@@ -100,7 +104,7 @@ def run_api(model, prompt, workdir, timeout, log_path, tools):
         i = text.find("{", i + 1)
     return 0, False
 
-BACKENDS = {"claude": run_claude, "codex": run_codex, "gemini": run_gemini, "opencode": run_opencode, "shell": run_shell, "api": run_api}
+BACKENDS = {"claude": run_claude, "codex": run_codex, "agy": run_agy, "opencode": run_opencode, "shell": run_shell, "api": run_api}
 
 def run(model, prompt, workdir, timeout, log_path, tools):
     backend, _, name = model.partition(":")

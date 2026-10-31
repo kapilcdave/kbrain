@@ -1,6 +1,7 @@
 # Role -> ordered fallback chain of "backend:model". On rate limit / bad output the runner moves
 # down the chain. Hot-reloaded every tick. Order free options first once `kb stats` shows they work.
-# Backends: claude (claude -p), codex (codex exec), gemini (gemini -p), opencode (opencode run;
+# NOTE: agy is last in each chain until headless permissions are sorted (see README).
+# Backends: claude (claude -p), codex (codex exec), agy (Antigravity: `agy models`), opencode (opencode run;
 # `opencode models` lists free ones, e.g. opencode:opencode/big-pickle), api (tool-less HTTP,
 # see [providers]), shell (deterministic).  api models can't touch files: use for text-only roles.
 
@@ -18,30 +19,30 @@ base_url = "https://openrouter.ai/api/v1"
 key_env = "OPENROUTER_API_KEY"
 
 [roles.chief]                # chief of staff: reads the digest, emits tasks, never executes work
-models = ["gemini:", "claude:claude-sonnet-5-5", "codex:"]
+models = ["claude:claude-sonnet-5-5", "codex:", "agy:gemini-3.8-flash-medium"]
 timeout_s = 900
 tools = ["Read", "Write"]
 can_spawn = true
 digest = true
 
 [roles.researcher]
-models = ["opencode:opencode/big-pickle", "gemini:", "claude:claude-sonnet-5-5", "codex:"]
+models = ["opencode:opencode/big-pickle", "claude:claude-sonnet-5-5", "codex:", "agy:gemini-3.8-flash-medium"]
 timeout_s = 1200
 tools = ["Read", "Write", "Edit", "WebFetch", "WebSearch"]
 
 [roles.curator]              # T1 bulk work: summarize, label, compact memory
-models = ["opencode:opencode/big-pickle", "gemini:", "claude:claude-haiku-5-5", "codex:"]
+models = ["opencode:opencode/big-pickle", "claude:claude-haiku-5-5", "codex:", "agy:gemini-3.8-flash-medium"]
 timeout_s = 600
 tools = ["Read", "Write", "Edit"]
 
 [roles.backtester]           # writes + runs code; blocked without a complete prereg
-models = ["claude:claude-sonnet-5-5", "codex:", "gemini:"]
+models = ["claude:claude-sonnet-5-5", "codex:", "agy:gemini-3.8-flash-medium"]
 timeout_s = 1800
 tools = ["Read", "Write", "Edit", "Bash(python3:*)"]
 requires_prereg = true
 
 [roles.skeptic]              # prefers a different backend family than the backtester's
-models = ["codex:", "gemini:", "claude:claude-sonnet-5-5"]
+models = ["codex:", "agy:gemini-3.8-flash-medium", "claude:claude-sonnet-5-5"]
 timeout_s = 1200
 tools = ["Read", "Write", "Bash(python3:*)"]
 independent_of = "backtester"

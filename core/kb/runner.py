@@ -23,7 +23,7 @@ def build_prompt(role_name, task, workdir, inline=False):
             "When finished, write result.json in the working directory: "
             '{"status":"ok|blocked|failed","summary":"...","artifacts":["relative/path"]'
             ',"new_tasks":[{"role":"...","title":"...","spec":{}}]} '
-            "`new_tasks` is honoured only for the chief role. Never print secrets.\n"
+            "`new_tasks` is honoured only for the chief role. Never print secrets. Use your file read/write tools rather than shell commands unless the task requires running code.\n"
             + inline_files(task, workdir, inline))
 
 def inline_files(task, workdir, inline):
