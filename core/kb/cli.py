@@ -1,19 +1,60 @@
-import argparse, json, sys, time
+import argparse, json, os, sys, time
 from datetime import datetime
-from .db import STATE, connect, add_task
-from . import runner
+from .db import STATE, connect, add_task, event
+from . import runner, lifecycle
+
+LOGO = r"""
+ ██╗  ██╗██████╗ ██████╗  █████╗ ██╗███╗   ██╗
+ ██║ ██╔╝██╔══██╗██╔══██╗██╔══██╗██║████╗  ██║
+ █████╔╝ ██████╔╝██████╔╝███████║██║██╔██╗ ██║
+ ██╔═██╗ ██╔══██╗██╔══██╗██╔══██║██║██║╚██╗██║
+ ██║  ██╗██████╔╝██║  ██║██║  ██║██║██║ ╚████║
+ ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝"""
+COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+GRAD = [214, 215, 179, 143, 107, 71]
+
+def c(code, s):
+    return f"\033[{code}m{s}\033[0m" if COLOR else s
+
+def banner():
+    for i, line in enumerate(LOGO.strip("\n").splitlines()):
+        print(c(f"38;5;{GRAD[i % len(GRAD)]};1", line))
+    print(c("2", "        r e s e a r c h   e n g i n e   ·   kapil's agents\n"))
+
+STATUS_COLOR = {"queued": "33", "running": "36;1", "done": "32", "failed": "31", "blocked": "35",
+                "idea": "37", "prereg": "36", "backtest": "34", "review": "33", "validated": "32;1",
+                "rejected": "31", "parked": "2"}
+
+def status(conn, cfg):
+    alive = runner.ALIVE.stat().st_mtime if runner.ALIVE.exists() else 0
+    age = time.time() - alive if alive else None
+    light = c("32", "● running") if age is not None and age < 45 else c("31", "○ not running")
+    stalled, _ = lifecycle.stalled(conn, cfg)
+    print(f" runner {light}   STOP {c('31;1','ON') if runner.STOP.exists() else 'off'}   "
+          f"mem {runner.mem_available_mb()}MB   runs/24h {runner.runs_last_day(conn)}/{cfg['limits'].get('max_runs_per_day')}"
+          + (c("31;1", "   ⚠ STALLED: run `kb ack` after reviewing") if stalled else ""))
+    counts = {r["status"]: r["n"] for r in conn.execute("SELECT status, COUNT(*) n FROM tasks GROUP BY status")}
+    print(" tasks  " + "  ".join(c(STATUS_COLOR.get(k, "0"), f"{k} {v}") for k, v in counts.items()) or " tasks  none")
+    print(c("1", "\n hypotheses"))
+    for r in conn.execute("SELECT * FROM hypotheses ORDER BY updated DESC LIMIT 12"):
+        print(f"  {c(STATUS_COLOR.get(r['status'],'0'), f'{r['status']:<10}')} {r['slug']:<34} {(r['reason'] or '')[:70]}")
+    print(c("1", "\n active"))
+    for r in conn.execute("SELECT id,role,status,attempts,title FROM tasks WHERE status IN ('running','queued') ORDER BY status DESC, id LIMIT 10"):
+        print(f"  #{r['id']:<5}{c(STATUS_COLOR[r['status']], f'{r['status']:<8}')}{r['role']:<11}{r['title'][:64]}")
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(prog="kb")
-    sub = ap.add_subparsers(dest="cmd", required=True)
-    a = sub.add_parser("add"); a.add_argument("role"); a.add_argument("title")
+    ap = argparse.ArgumentParser(prog="kb", description="kbrain research engine")
+    sub = ap.add_subparsers(dest="cmd")
+    a = sub.add_parser("add", help="queue a task"); a.add_argument("role"); a.add_argument("title")
     a.add_argument("--spec", default="{}"); a.add_argument("--hypothesis")
-    sub.add_parser("status"); sub.add_parser("stats"); t = sub.add_parser("tail"); t.add_argument("-n", type=int, default=30)
-    t.add_argument("-f", action="store_true")
+    sub.add_parser("status"); sub.add_parser("stats"); sub.add_parser("top", help="live status")
+    t = sub.add_parser("tail"); t.add_argument("-n", type=int, default=30); t.add_argument("-f", action="store_true")
+    w = sub.add_parser("web", help="LARP HQ at http://127.0.0.1:7777"); w.add_argument("--port", type=int, default=7777)
     sub.add_parser("serve"); sub.add_parser("once")
-    sub.add_parser("stop"); sub.add_parser("resume")
+    sub.add_parser("stop"); sub.add_parser("resume"); sub.add_parser("ack", help="acknowledge a stall alert")
     g = sub.add_parser("gate"); g.add_argument("prereg")
     args = ap.parse_args(argv)
+    from .router import load_config
 
     if args.cmd == "stop":
         STATE.mkdir(parents=True, exist_ok=True); runner.STOP.touch(); print("STOP set"); return
@@ -23,28 +64,36 @@ def main(argv=None):
         from .gates import prereg_missing
         m = prereg_missing(args.prereg); print("OK" if not m else f"missing: {', '.join(m)}"); sys.exit(bool(m))
     if args.cmd == "serve": return runner.serve()
-    c = connect()
-    if args.cmd == "add":
+    if args.cmd == "web":
+        from .web import serve
+        banner(); return serve(args.port)
+    conn = connect()
+    if args.cmd in (None, "status"):
+        banner(); status(conn, load_config())
+    elif args.cmd == "top":
+        try:
+            while True:
+                print("\033[2J\033[H", end=""); banner(); status(conn, load_config()); time.sleep(2)
+        except KeyboardInterrupt:
+            pass
+    elif args.cmd == "add":
         spec = json.load(open(args.spec[1:])) if args.spec.startswith("@") else json.loads(args.spec)
-        print(add_task(c, args.role, args.title, spec, hypothesis=args.hypothesis))
+        print(add_task(conn, args.role, args.title, spec, hypothesis=args.hypothesis))
+    elif args.cmd == "ack":
+        event(conn, "user:cli", "user.ack"); print("stall acknowledged; chief heartbeats resume")
     elif args.cmd == "once":
-        print(runner.tick(c, runner.load_config()))
-    elif args.cmd == "status":
-        for r in c.execute("SELECT status, COUNT(*) n FROM tasks GROUP BY status"): print(f"{r['status']:8} {r['n']}")
-        print("STOP flag:", runner.STOP.exists(), "| mem avail MB:", runner.mem_available_mb())
-        for r in c.execute("SELECT id,role,status,attempts,title FROM tasks WHERE status IN ('running','queued','blocked','failed') ORDER BY id LIMIT 15"):
-            print(f"#{r['id']:<4}{r['role']:<11}{r['status']:<8}try={r['attempts']} {r['title'][:60]}")
+        print(runner.tick(conn, load_config()))
     elif args.cmd == "stats":
         print(f"{'model':42}{'runs':>5}{'ok%':>6}{'avg_s':>7}")
-        for r in c.execute("SELECT model, COUNT(*) n, 100.0*SUM(outcome='ok')/COUNT(*) ok, AVG(ended-started) s FROM runs WHERE ended IS NOT NULL GROUP BY model ORDER BY n DESC"):
+        for r in conn.execute("SELECT model, COUNT(*) n, 100.0*SUM(outcome='ok')/COUNT(*) ok, AVG(ended-started) s FROM runs WHERE ended IS NOT NULL GROUP BY model ORDER BY n DESC"):
             print(f"{r['model'][:41]:42}{r['n']:>5}{r['ok']:>6.0f}{r['s'] or 0:>7.0f}")
     elif args.cmd == "tail":
         last = 0
         while True:
-            rows = c.execute("SELECT * FROM (SELECT * FROM events WHERE id>? ORDER BY id DESC LIMIT ?) ORDER BY id", (last, args.n)).fetchall()
+            rows = conn.execute("SELECT * FROM (SELECT * FROM events WHERE id>? ORDER BY id DESC LIMIT ?) ORDER BY id", (last, args.n)).fetchall()
             for r in rows:
                 last = r["id"]
-                print(datetime.fromtimestamp(r["ts"]).strftime("%H:%M:%S"), r["actor"], r["kind"], r["task_id"] or "", r["data"][:140])
+                print(c("2", datetime.fromtimestamp(r["ts"]).strftime("%H:%M:%S")), c("36", r["actor"]), r["kind"], r["task_id"] or "", r["data"][:140])
             if not args.f: break
             args.n = 1000; time.sleep(2)
 

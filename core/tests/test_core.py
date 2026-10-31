@@ -9,7 +9,7 @@ class Core(unittest.TestCase):
         from kb import db, runner
         self.db, self.runner = db, runner
         self.c = db.connect()
-        self.cfg = {"limits": {"min_mem_mb": 0, "heartbeat_s": 10**9, "max_runs_per_day": 100, "max_queued": 50, "max_depth": 3, "rate_limit_backoff_s": 100},
+        self.cfg = {"limits": {"min_mem_mb": 0, "heartbeat_s": 10**12, "max_runs_per_day": 100, "max_queued": 50, "max_depth": 3, "rate_limit_backoff_s": 100},
                     "roles": {"chief": {"models": ["shell:true"], "can_spawn": True},
                               "curator": {"models": ["shell:true", "shell:true"], "timeout_s": 5},
                               "backtester": {"models": ["shell:true"], "requires_prereg": True}}}

@@ -1,0 +1,14 @@
+[Unit]
+Description=kbrain HQ (local web monitor, 127.0.0.1:7777)
+
+[Service]
+Type=simple
+WorkingDirectory=%h/proj/kbrain/core
+ExecStart=%h/proj/kbrain/core/bin/kb web
+Restart=always
+RestartSec=10
+MemoryMax=300M
+Nice=10
+
+[Install]
+WantedBy=default.target

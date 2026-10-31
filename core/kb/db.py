@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS tasks(
   model_idx INTEGER NOT NULL DEFAULT 0, attempts INTEGER NOT NULL DEFAULT 0,
   max_attempts INTEGER NOT NULL DEFAULT 4, depth INTEGER NOT NULL DEFAULT 0,
   not_before REAL NOT NULL DEFAULT 0, created REAL NOT NULL, updated REAL NOT NULL,
-  result TEXT);
+  result TEXT, fingerprint TEXT);
 CREATE INDEX IF NOT EXISTS tasks_pick ON tasks(status, not_before, id);
 CREATE TABLE IF NOT EXISTS runs(
   id INTEGER PRIMARY KEY, task_id INTEGER NOT NULL, model TEXT NOT NULL,
@@ -22,19 +22,23 @@ CREATE TABLE IF NOT EXISTS events(
   id INTEGER PRIMARY KEY, ts REAL NOT NULL, actor TEXT NOT NULL,
   kind TEXT NOT NULL, task_id INTEGER, data TEXT NOT NULL DEFAULT '{}');
 CREATE INDEX IF NOT EXISTS events_task ON events(task_id, id);
+CREATE INDEX IF NOT EXISTS events_kind ON events(kind, id);
+-- idea -> prereg -> backtest -> review -> validated | rejected | parked
 CREATE TABLE IF NOT EXISTS hypotheses(
-  slug TEXT PRIMARY KEY,
-  status TEXT NOT NULL DEFAULT 'idea',  -- idea|prereg|backtest|rejected|validated|paper|live
-  path TEXT, updated REAL NOT NULL);
+  slug TEXT PRIMARY KEY, status TEXT NOT NULL DEFAULT 'idea',
+  path TEXT, prereg_sha TEXT, reason TEXT, updated REAL NOT NULL);
 """
+MIGRATIONS = [("tasks", "fingerprint", "TEXT"), ("hypotheses", "prereg_sha", "TEXT"), ("hypotheses", "reason", "TEXT")]
 
 def connect():
     STATE.mkdir(parents=True, exist_ok=True)
-    c = sqlite3.connect(DB_PATH, timeout=30, isolation_level=None)
+    c = sqlite3.connect(DB_PATH, timeout=30, isolation_level=None, check_same_thread=False)
     c.row_factory = sqlite3.Row
     c.execute("PRAGMA journal_mode=WAL")
-    c.execute("PRAGMA foreign_keys=ON")
     c.executescript(SCHEMA)
+    for table, col, typ in MIGRATIONS:
+        if col not in {r[1] for r in c.execute(f"PRAGMA table_info({table})")}:
+            c.execute(f"ALTER TABLE {table} ADD COLUMN {col} {typ}")
     return c
 
 def event(c, actor, kind, task_id=None, **data):
@@ -42,11 +46,13 @@ def event(c, actor, kind, task_id=None, **data):
               (time.time(), actor, kind, task_id, json.dumps(data, default=str)))
 
 def add_task(c, role, title, spec=None, parent_id=None, hypothesis=None,
-             depth=0, max_attempts=4, actor="user"):
+             depth=0, max_attempts=4, actor="user", fingerprint=None):
     now = time.time()
+    if hypothesis:
+        c.execute("INSERT OR IGNORE INTO hypotheses(slug,status,updated) VALUES(?,'idea',?)", (hypothesis, now))
     cur = c.execute(
-        "INSERT INTO tasks(parent_id,hypothesis,role,title,spec,depth,max_attempts,created,updated)"
-        " VALUES(?,?,?,?,?,?,?,?,?)",
-        (parent_id, hypothesis, role, title, json.dumps(spec or {}), depth, max_attempts, now, now))
-    event(c, actor, "task.created", cur.lastrowid, role=role, title=title)
+        "INSERT INTO tasks(parent_id,hypothesis,role,title,spec,depth,max_attempts,created,updated,fingerprint)"
+        " VALUES(?,?,?,?,?,?,?,?,?,?)",
+        (parent_id, hypothesis, role, title, json.dumps(spec or {}), depth, max_attempts, now, now, fingerprint))
+    event(c, actor, "task.created", cur.lastrowid, role=role, title=title, hypothesis=hypothesis, parent=parent_id)
     return cur.lastrowid

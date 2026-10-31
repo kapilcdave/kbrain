@@ -12,6 +12,14 @@ max_depth = 3                # chief -> worker -> worker
 rate_limit_backoff_s = 1800
 heartbeat_s = 900            # idle this long -> wake the chief of staff
 max_runs_per_day = 300       # global circuit breaker on free quotas
+stall_runs = 40              # this many runs with no hypothesis changing state -> chief pauses, alert
+dedup_days = 14              # refuse near-identical tasks within this window
+max_tasks_per_hypothesis = 8
+max_open_hypotheses = 5      # finish work before starting more
+
+[gates]                      # deterministic grading of backtest metrics (kb/lifecycle.py)
+min_units = 30               # independent units (days/events), not trades
+max_prereg_attempts = 2
 
 # Free OpenAI-compatible providers. Put keys in ~/.config/kbrain/env (chmod 600), e.g. OPENROUTER_API_KEY=...
 [providers.openrouter]
@@ -23,6 +31,7 @@ models = ["claude:claude-sonnet-5-5", "opencode:opencode/big-pickle", "codex:", 
 timeout_s = 900
 tools = ["Read", "Write"]
 can_spawn = true
+spawnable = ["researcher", "curator"]   # backtests/audits are spawned by lifecycle code only
 digest = true
 
 [roles.researcher]
@@ -40,9 +49,11 @@ models = ["claude:claude-sonnet-5-5", "codex:", "opencode:opencode/big-pickle", 
 timeout_s = 1800
 tools = ["Read", "Write", "Edit", "Bash(python3:*)"]
 requires_prereg = true
+with_stats = true
 
 [roles.skeptic]              # prefers a different backend family than the backtester's
 models = ["codex:", "opencode:opencode/big-pickle", "claude:claude-sonnet-5-5", "agy:gemini-3.8-flash-medium"]
 timeout_s = 1200
 tools = ["Read", "Write", "Bash(python3:*)"]
 independent_of = "backtester"
+with_stats = true

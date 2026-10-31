@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kbrain HQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0e18;--panel:#161929;--panel2:#1d2135;--line:#2c3154;--ink:#ece8d6;--dim:#8d8fa8;--gold:#f4c542;
+  --green:#5fd068;--red:#ef5b5b;--blue:#5aa9ff;--purple:#b48cff;--px:'Press Start 2P',monospace;--mono:'VT323',ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:19px}
+button,input,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 18px;border-bottom:3px solid var(--line);background:linear-gradient(#141729,#0d0e18)}
+.logo{font-family:var(--px);font-size:22px;letter-spacing:2px;color:var(--gold);text-shadow:3px 3px 0 #7a4a10,6px 6px 0 #00000088}
+.logo small{display:block;font-size:8px;letter-spacing:3px;color:var(--dim);text-shadow:none;margin-top:6px}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.chip{border:2px solid var(--line);background:var(--panel);padding:4px 10px;white-space:nowrap}
+.dot{display:inline-block;width:10px;height:10px;margin-right:6px;background:var(--red);box-shadow:0 0 8px var(--red)}
+.dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+.btn{font-family:var(--px);font-size:10px;padding:9px 12px;border:3px solid #000;cursor:pointer;background:var(--panel2);box-shadow:3px 3px 0 #000}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
+.btn.stop{background:#a8282c}.btn.go{background:#2b7a3d}.btn.ack{background:#a87a12}
+.alert{display:none;background:#5a1a1d;border-bottom:3px solid var(--red);padding:8px 18px;font-family:var(--px);font-size:10px;line-height:1.8}
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;padding:14px}
+@media (max-width:1100px){main{grid-template-columns:1fr}}
+.world{border:3px solid var(--line);background:#000;position:relative}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;cursor:pointer}
+.cmd{display:flex;gap:8px;padding:10px;background:var(--panel);border-top:3px solid var(--line);flex-wrap:wrap}
+.cmd select,.cmd input{background:var(--bg);border:2px solid var(--line);padding:6px 8px}
+.cmd input.text{flex:1;min-width:180px}
+.cmd input.slug{width:200px;display:none}
+aside{display:flex;flex-direction:column;border:3px solid var(--line);background:var(--panel);min-height:0;max-height:calc(100vh - 140px)}
+.tabs{display:flex;border-bottom:3px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:10px 4px;font-family:var(--px);font-size:9px;color:var(--dim);cursor:pointer}
+.tabs button.on{color:var(--gold);background:var(--panel2)}
+.pane{overflow:auto;padding:10px;display:none;flex:1}
+.pane.on{display:block}
+.col h4{font-family:var(--px);font-size:9px;margin:12px 0 6px;color:var(--dim);display:flex;justify-content:space-between}
+.hyp{border-left:4px solid var(--dim);background:var(--panel2);padding:4px 8px;margin:4px 0;line-height:1.05}
+.hyp b{font-weight:normal;color:var(--ink)}.hyp div{color:var(--dim);font-size:16px}
+.ev{padding:3px 2px;border-bottom:1px dashed #262a45;cursor:default;line-height:1.05}
+.ev[data-task]{cursor:pointer}.ev[data-task]:hover{background:var(--panel2)}
+.ev time{color:var(--dim);margin-right:6px}.ev .k{display:inline-block;width:20px;text-align:center}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:3px 4px;border-bottom:1px solid #262a45;font-weight:normal}
+th{color:var(--dim)}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:min(560px,100%);background:var(--panel);border-left:3px solid var(--gold);
+  transform:translateX(105%);transition:transform .18s;z-index:10;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.drawer header{border:0;padding:12px 14px}.drawer h3{font-family:var(--px);font-size:12px;margin:0;color:var(--gold);line-height:1.6}
+.drawer .body{overflow:auto;padding:0 14px 14px;flex:1}
+pre{white-space:pre-wrap;word-break:break-word;background:#07080f;border:2px solid var(--line);padding:8px;font-size:16px;max-height:45vh;overflow:auto}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:3px solid var(--gold);padding:10px 16px;
+  font-family:var(--px);font-size:10px;z-index:20;display:none;box-shadow:4px 4px 0 #000}
+.muted{color:var(--dim)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">KBRAIN HQ<small>RESEARCH ENGINE · KAPIL'S AGENTS</small></div>
+  <div class="chips">
+    <span class="chip"><span class="dot" id="runnerDot"></span><span id="runnerTxt">runner</span></span>
+    <span class="chip" id="runsChip">runs —</span>
+    <span class="chip" id="memChip">mem —</span>
+    <span class="chip" id="slotsChip">slots —</span>
+    <button class="btn ack" id="ackBtn" style="display:none">ACK STALL</button>
+    <button class="btn stop" id="stopBtn">STOP</button>
+  </div>
+</header>
+<div class="alert" id="stallBar">⚠ STALLED: no hypothesis has changed state in a while, so the chief of staff is paused. Read the feed, adjust the goal or routing, then ACK.</div>
+<main>
+  <section class="world">
+    <canvas id="cv" width="960" height="600" aria-label="kbrain office: one room per agent role"></canvas>
+    <form class="cmd" id="cmd">
+      <select id="cmdRole" aria-label="send to">
+        <option value="chief">→ Chief of Staff</option>
+        <option value="researcher">→ Researcher (new hypothesis)</option>
+        <option value="curator">→ Curator</option>
+      </select>
+      <input class="slug" id="cmdSlug" placeholder="hypothesis-slug" pattern="[a-z0-9][a-z0-9-]{2,60}">
+      <input class="text" id="cmdText" placeholder="Tell the chief of staff what to look into…" maxlength="300" required>
+      <button class="btn go" type="submit">SEND</button>
+    </form>
+  </section>
+  <aside>
+    <div class="tabs" role="tablist">
+      <button class="on" data-tab="board">BOARD</button><button data-tab="feed">FEED</button>
+      <button data-tab="queue">QUEUE</button><button data-tab="models">MODELS</button>
+    </div>
+    <div class="pane on" id="board"></div>
+    <div class="pane" id="feed"></div>
+    <div class="pane" id="queue"></div>
+    <div class="pane" id="models"></div>
+  </aside>
+</main>
+<div class="drawer" id="drawer"><header><h3 id="dTitle">—</h3><button class="btn" id="dClose" style="margin-left:auto">X</button></header><div class="body" id="dBody"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const api = (p, body) => fetch(p, body === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json","X-KB":"1"}, body:JSON.stringify(body)}).then(r => r.json());
+
+// ---------- world model ----------
+const W = 960, H = 600, S = 3;
+const ROLE = {
+  chief:      {name:"Chief of Staff", room:0, shirt:"#c8902a", acc:"#7a1f1f", hair:"#3a2a1a", skin:"#e0ac69", blurb:"Reads the state digest, proposes new hypotheses, never does the work itself."},
+  researcher: {name:"Researcher",     room:1, shirt:"#3c7fc4", acc:"#9fd3ff", hair:"#1b1b1b", skin:"#c68642", blurb:"Turns ideas into falsifiable preregistrations, which the harness freezes."},
+  backtester: {name:"Backtester",     room:2, shirt:"#e8ecef", acc:"#3a9a5a", hair:"#7a4a20", skin:"#f1c27d", blurb:"Implements the frozen prereg. Code grades its metrics, not its opinion."},
+  skeptic:    {name:"Skeptic",        room:3, shirt:"#8a2b2b", acc:"#f0d0d0", hair:"#a8a8a8", skin:"#ffdbac", blurb:"Assumes every passing backtest is wrong and tries to prove it."},
+  curator:    {name:"Curator",        room:4, shirt:"#7d55b8", acc:"#e5d4ff", hair:"#c46a2a", skin:"#8d5524", blurb:"Compacts memory: indexes results and dead ends."},
+};
+const ROOMS = [
+  {name:"CHIEF'S OFFICE", f1:"#3b2f2a", f2:"#43352f", wall:"#5a3f2c"},
+  {name:"LIBRARY",        f1:"#23324a", f2:"#283a55", wall:"#2f4466"},
+  {name:"BACKTEST LAB",   f1:"#22382c", f2:"#274033", wall:"#2e5240"},
+  {name:"SKEPTIC'S COURT",f1:"#3e2326", f2:"#47282c", wall:"#5e2f33"},
+  {name:"ARCHIVE",        f1:"#30263f", f2:"#372c48", wall:"#46375c"},
+  {name:"MAILROOM · QUEUE", f1:"#2c2c30", f2:"#333338", wall:"#46464e"},
+].map((r, i) => ({...r, x:(i % 3) * 320, y:Math.floor(i / 3) * 300}));
+const MAIL = ROOMS[5];
+const roomCenter = i => ({x:ROOMS[i].x + 160, y:ROOMS[i].y + 200});
+
+const BODY = ["...hhhhhh...","..hhhhhhhh..","..hkkkkkkh..","..kekkkkek..","..kkkkkkkk..","...kkmmkk...","....kkkk....",
+              "..ssssssss..",".sssssassss.","ksssssassssk","k.ssssssss.k","..pppppppp.."];
+const LEGS = [["..ppp..ppp..","..ppp..ppp..","..bbb..bbb.."], [".ppp....ppp.",".pp......pp.",".bb......bb."]];
+
+class Agent {
+  constructor(role) {
+    this.role = role; this.m = ROLE[role]; this.r = ROOMS[this.m.room];
+    this.x = this.r.x + 60 + Math.random() * 200; this.y = this.r.y + 230;
+    this.tx = this.x; this.ty = this.y; this.wait = 0; this.walkT = 0; this.moving = false;
+    this.task = null; this.mood = null; this.moodT = 0;
+  }
+  desk() { return {x:this.r.x + 160, y:this.r.y + 126}; }
+  update(dt) {
+    if (this.task) { const d = this.desk(); this.tx = d.x; this.ty = d.y; }
+    else if (Math.hypot(this.tx - this.x, this.ty - this.y) < 1 && (this.wait -= dt) <= 0) {
+      this.tx = this.r.x + 40 + Math.random() * 240; this.ty = this.r.y + 195 + Math.random() * 80;
+      this.wait = 1500 + Math.random() * 3500;
+    }
+    const dx = this.tx - this.x, dy = this.ty - this.y, dist = Math.hypot(dx, dy);
+    const sp = (this.task ? 0.14 : 0.05) * dt * (this.mood === "sleep" ? 0 : 1);
+    this.moving = dist > 1 && sp > 0;
+    if (this.moving) { this.x += dx / dist * Math.min(sp, dist); this.y += dy / dist * Math.min(sp, dist); this.walkT += dt; }
+    if (this.moodT > 0 && (this.moodT -= dt) <= 0) this.mood = null;
+  }
+  setMood(m, ms) { this.mood = m; this.moodT = ms; }
+  hit(px, py) { return Math.abs(px - this.x) < 22 && py > this.y - 52 && py < this.y + 4; }
+}
+const agents = Object.keys(ROLE).map(r => new Agent(r));
+const byRole = Object.fromEntries(agents.map(a => [a.role, a]));
+let particles = [], floats = [], letters = [], STATE = null, lastEvent = 0, clock = 0;
+
+// ---------- drawing ----------
+const cv = $("#cv"), ctx = cv.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+const px = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
+function text(s, x, y, size = 8, color = "#ece8d6", align = "left") {
+  ctx.font = `${size}px "Press Start 2P", monospace`; ctx.textAlign = align; ctx.textBaseline = "top";
+  ctx.fillStyle = "#000"; ctx.fillText(s, x + 1, y + 1); ctx.fillStyle = color; ctx.fillText(s, x, y);
+}
+
+function drawRoom(r, i) {
+  for (let ty = 0; ty < 300; ty += 20) for (let tx = 0; tx < 320; tx += 20)
+    px(r.x + tx, r.y + ty, 20, 20, ((tx + ty) / 20) % 2 ? r.f1 : r.f2);
+  px(r.x, r.y, 320, 56, r.wall); px(r.x, r.y + 56, 320, 4, "#00000055");
+  px(r.x + 8, r.y + 8, 150, 20, "#0b0c14"); text(r.name, r.x + 14, r.y + 14, 8, "#f4c542");
+  const busy = i < 5 && byRole[Object.keys(ROLE)[i]].task;
+  // furniture
+  if (i === 0) { px(r.x + 60, r.y + 170, 200, 110, "#5a2f2f"); px(r.x + 66, r.y + 176, 188, 98, "#6e3a3a");
+    px(r.x + 190, r.y + 14, 110, 36, "#e8e6d9"); text("GOAL: SURVIVE", r.x + 196, r.y + 20, 6, "#333"); text("THE GATES", r.x + 196, r.y + 32, 6, "#333");
+    plant(r.x + 280, r.y + 230); }
+  if (i === 1) { for (let s = 0; s < 3; s++) { const sx = r.x + 170 + s * 46; px(sx, r.y + 6, 40, 48, "#4a2e1a");
+      for (let b = 0; b < 6; b++) px(sx + 3 + b * 6, r.y + 10 + (b % 2) * 2, 5, 18, ["#c44","#4a8","#48c","#cc4","#a6c","#e83"][(b + s) % 6]);
+      for (let b = 0; b < 6; b++) px(sx + 3 + b * 6, r.y + 32, 5, 18, ["#48c","#cc4","#c44","#e83","#4a8","#a6c"][(b + s) % 6]); } }
+  if (i === 2) { px(r.x + 180, r.y + 10, 120, 40, "#e8e6d9"); ctx.strokeStyle = "#2b7a3d"; ctx.lineWidth = 2; ctx.beginPath();
+    for (let k = 0; k <= 10; k++) { const yy = r.y + 40 - (Math.sin(k * 0.9 + (busy ? clock / 300 : 0)) * 10 + k * 1.2); k ? ctx.lineTo(r.x + 186 + k * 11, yy) : ctx.moveTo(r.x + 186, yy); } ctx.stroke();
+    px(r.x + 270, r.y + 180, 30, 90, "#1a1d24"); for (let k = 0; k < 8; k++) px(r.x + 276, r.y + 188 + k * 10, 4, 4, (busy && (Math.floor(clock / 150) + k) % 3 === 0) ? "#5fd068" : "#234"); }
+  if (i === 3) { px(r.x + 190, r.y + 20, 110, 34, "#4a2a18"); px(r.x + 196, r.y + 26, 98, 6, "#6b3e22"); text("⚖", r.x + 236, r.y + 34, 10, "#f4c542");
+    px(r.x + 30, r.y + 250, 70, 8, "#4a2a18"); px(r.x + 220, r.y + 250, 70, 8, "#4a2a18"); }
+  if (i === 4) { for (let k = 0; k < 4; k++) { px(r.x + 180 + k * 32, r.y + 8, 28, 48, "#55606e"); for (let d = 0; d < 3; d++) { px(r.x + 182 + k * 32, r.y + 11 + d * 15, 24, 12, "#6b7787"); px(r.x + 191 + k * 32, r.y + 16 + d * 15, 6, 2, "#333"); } } }
+  if (i === 5) { drawMail(r); return; }
+  // desk (drawn after agents for depth: see frame())
+}
+function plant(x, y) { px(x - 8, y, 16, 14, "#7a4a20"); px(x - 12, y - 18, 8, 18, "#2b7a3d"); px(x - 2, y - 26, 8, 26, "#3a9a5a"); px(x + 6, y - 16, 8, 16, "#2b7a3d"); }
+function drawDesk(i) {
+  const r = ROOMS[i], a = byRole[Object.keys(ROLE)[i]], x = r.x + 125, y = r.y + 112;
+  px(x - 4, y + 30, 6, 16, "#3e2614"); px(x + 68, y + 30, 6, 16, "#3e2614");
+  px(x - 6, y, 82, 10, "#9b6a35"); px(x - 6, y + 10, 82, 22, "#6b4220");
+  px(x + 22, y - 28, 32, 24, "#111"); px(x + 34, y - 4, 8, 4, "#222");
+  const on = !!a.task; px(x + 25, y - 25, 26, 18, on ? "#0f2a3a" : "#0a0b10");
+  if (on) for (let k = 0; k < 4; k++) px(x + 27, y - 23 + k * 4, ((clock / 40 + k * 7) % 22) | 0, 2, "#5aa9ff");
+}
+function drawMail(r) {
+  px(r.x + 20, r.y + 70, 120, 14, "#5a5a64"); px(r.x + 20, r.y + 110, 120, 14, "#5a5a64");
+  for (let k = 0; k < 10; k++) { px(r.x + 24 + k * 11, r.y + 60, 9, 10, "#ece8d6"); px(r.x + 24 + k * 11, r.y + 100, 9, 10, k % 3 ? "#ece8d6" : "#f4c542"); }
+  const q = STATE ? (STATE.counts.queued || 0) : 0;
+  px(r.x + 170, r.y + 150, 120, 110, "#3a3a44"); px(r.x + 174, r.y + 154, 112, 102, "#25252c");
+  for (let k = 0; k < Math.min(q, 40); k++) envelope(r.x + 182 + (k % 6) * 17, r.y + 240 - Math.floor(k / 6) * 12, "#f4c542");
+  text(`QUEUE ${q}`, r.x + 178, r.y + 132, 8, q ? "#f4c542" : "#8d8fa8");
+  const rl = STATE ? STATE.queued.filter(t => t.not_before * 1000 > Date.now()).length : 0;
+  if (rl) text(`${rl} WAITING ON LIMITS`, r.x + 20, r.y + 270, 6, "#b48cff");
+}
+function envelope(x, y, seal) { px(x, y, 14, 9, "#ece8d6"); px(x, y, 14, 1, "#999"); px(x + 3, y + 2, 2, 2, "#bbb"); px(x + 9, y + 2, 2, 2, "#bbb"); px(x + 6, y + 4, 3, 3, seal); }
+
+function drawAgent(a) {
+  const sitting = a.task && !a.moving, bob = sitting ? (Math.floor(clock / 220) % 2) : 0;
+  const ox = a.x - 18, oy = a.y - 48 + bob;
+  ctx.fillStyle = "#00000055"; ctx.beginPath(); ctx.ellipse(a.x, a.y + 1, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+  const pal = {h:a.m.hair, k:a.m.skin, e:"#111", m:"#7a3b2e", s:a.m.shirt, a:a.m.acc, p:"#2d3446", b:"#141414"};
+  const rows = BODY.concat(LEGS[a.moving ? Math.floor(a.walkT / 160) % 2 : 0]);
+  rows.forEach((row, ry) => { for (let rx = 0; rx < 12; rx++) { const ch = row[rx]; if (ch !== ".") px(ox + rx * S, oy + ry * S, S, S, pal[ch]); } });
+  if (a.mood === "sleep") text("z", a.x + 14, a.y - 60 - (clock / 30 % 14), 8, "#b48cff");
+}
+function bubble(a) {
+  let l1, l2, col = "#5aa9ff";
+  if (a.task) { l1 = `#${a.task.id} ${a.task.title}`; l2 = (a.task.model || "").split(":").pop() || "starting…"; }
+  else if (a.mood === "sleep") { l1 = "rate limited · napping"; l2 = ""; col = "#b48cff"; }
+  else return text(a.m.name.toUpperCase(), a.x, a.y - 62, 6, "#8d8fa8", "center");
+  l1 = l1.length > 30 ? l1.slice(0, 29) + "…" : l1;
+  ctx.font = '7px "Press Start 2P", monospace';
+  const w = Math.max(ctx.measureText(l1).width, ctx.measureText(l2).width) + 14, h = l2 ? 30 : 18;
+  const bx = Math.max(4, Math.min(W - w - 4, a.x - w / 2)), by = a.y - 66 - h;
+  px(bx + 3, by + 3, w, h, "#00000088"); px(bx, by, w, h, "#ece8d6"); px(a.x - 3, by + h, 6, 5, "#ece8d6");
+  ctx.fillStyle = "#111"; ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText(l1, bx + 7, by + 6);
+  if (l2) { ctx.fillStyle = col === "#5aa9ff" ? "#2b6cb0" : col; ctx.fillText(l2, bx + 7, by + 18); }
+}
+
+function burst(x, y, colors, n = 26) { for (let k = 0; k < n; k++) particles.push({x, y, vx:(Math.random() - .5) * .5, vy:-Math.random() * .55 - .1, life:1200 + Math.random() * 600, c:colors[k % colors.length]}); }
+function float(x, y, s, c, size = 9) { floats.push({x, y, s, c, size, life:2200}); }
+function fly(from, to, seal) { letters.push({...from, x1:to.x, y1:to.y, x0:from.x, y0:from.y, t:0, dur:1300, seal}); }
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(64, now - last); last = now; clock += dt;
+  ROOMS.forEach(drawRoom);
+  agents.forEach(a => a.update(dt));
+  [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
+  for (let i = 0; i < 5; i++) drawDesk(i);
+  for (const r of ROOMS) { ctx.strokeStyle = "#07080f"; ctx.lineWidth = 4; ctx.strokeRect(r.x + 2, r.y + 2, 316, 296); }
+  letters = letters.filter(l => (l.t += dt) < l.dur);
+  for (const l of letters) { const t = l.t / l.dur, x = l.x0 + (l.x1 - l.x0) * t, y = l.y0 + (l.y1 - l.y0) * t - Math.sin(Math.PI * t) * 60; envelope(x - 7, y - 4, l.seal); }
+  particles = particles.filter(p => (p.life -= dt) > 0);
+  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.0009 * dt; px(p.x, p.y, 4, 4, p.c); }
+  floats = floats.filter(f => (f.life -= dt) > 0);
+  for (const f of floats) text(f.s, f.x, f.y - (2200 - f.life) / 40, f.size, f.c, "center");
+  agents.forEach(bubble);
+  const h = new Date().getHours();
+  if (h >= 20 || h < 6) { ctx.fillStyle = "rgba(10,18,60,.28)"; ctx.fillRect(0, 0, W, H); }
+  if (STATE && STATE.stop) { ctx.fillStyle = "rgba(120,20,24,.35)"; ctx.fillRect(0, 0, W, H); text("STOPPED", W / 2, H / 2 - 12, 24, "#ef5b5b", "center"); }
+  requestAnimationFrame(frame);
+}
+
+// ---------- events -> animation ----------
+const ICON = {"task.created":"✉","run.started":"▶","task.done":"✓","task.failed":"✗","task.retry":"↻","task.rate_limited":"z","task.blocked":"■",
+  "task.spawn_refused":"⊘","task.crashed":"✗","hyp.status":"◆","verdict":"⚖","alert.stall":"⚠","alert.validated":"★","runner.started":"⚙"};
+const KCOL = {"task.done":"#5fd068","task.failed":"#ef5b5b","task.crashed":"#ef5b5b","task.retry":"#f4c542","task.rate_limited":"#b48cff","alert.stall":"#ef5b5b","alert.validated":"#f4c542","hyp.status":"#5aa9ff"};
+const STAMP = {prereg:["FROZEN ❄",1,"#9fd3ff"], backtest:["→ LAB",2,"#5fd068"], review:["→ COURT",3,"#f4c542"], validated:["VALIDATED ★",3,"#f4c542"], rejected:["REJECTED",4,"#ef5b5b"], parked:["PARKED",4,"#8d8fa8"]};
+
+function animate(e) {
+  const d = JSON.parse(e.data || "{}"), a = byRole[d.role], c = a ? roomCenter(a.m.room) : null;
+  switch (e.kind) {
+    case "task.created": { const src = e.actor === "heartbeat" ? roomCenter(0) : (e.actor.startsWith("user") ? {x:W / 2, y:H} : e.actor === "lifecycle" ? roomCenter(4) : roomCenter(0));
+      if (e.actor === "heartbeat") float(src.x, src.y - 80, "⏰ HEARTBEAT", "#f4c542", 8);
+      fly(src, {x:MAIL.x + 230, y:MAIL.y + 200}, ROLE[d.role] ? ROLE[d.role].shirt : "#f4c542"); break; }
+    case "run.started": if (a) fly({x:MAIL.x + 230, y:MAIL.y + 200}, a.desk(), a.m.shirt); break;
+    case "task.done": if (a) { burst(a.x, a.y - 50, ["#f4c542", "#5fd068", "#5aa9ff", "#ef5b5b"]); float(a.x, a.y - 90, "✓ DONE", "#5fd068"); } break;
+    case "task.failed": case "task.crashed": if (a) float(a.x, a.y - 90, "✗ FAILED", "#ef5b5b"); break;
+    case "task.retry": if (a) float(a.x, a.y - 90, "↻ RETRY", "#f4c542", 8); break;
+    case "task.blocked": if (a) float(a.x, a.y - 90, "■ BLOCKED", "#b48cff", 8); break;
+    case "task.rate_limited": if (a) a.setMood("sleep", 9000); break;
+    case "task.spawn_refused": float(roomCenter(0).x, roomCenter(0).y - 110, "⊘ REFUSED", "#ef5b5b", 7); break;
+    case "hyp.status": { const s = STAMP[d.status]; if (s) { const p = roomCenter(s[1]); float(p.x, p.y - 120, s[0], s[2], 10);
+        if (d.status === "validated") { for (let k = 0; k < 4; k++) setTimeout(() => burst(p.x + (Math.random() - .5) * 200, p.y - 120, ["#f4c542", "#fff", "#5fd068"], 40), k * 300); toast(`★ ${d.hypothesis} validated: needs your review`); } } break; }
+    case "alert.stall": toast("⚠ Stall detected: chief paused"); break;
+  }
+}
+function describe(e) {
+  const d = JSON.parse(e.data || "{}");
+  const bits = [d.role, d.title, d.hypothesis && `[${d.hypothesis}]`, d.status, d.verdict, d.model && d.model.split(":").pop(), d.reason, d.why, d.msg].filter(Boolean);
+  return `${e.kind.replace("task.", "")} ${e.task_id ? "#" + e.task_id : ""} ${bits.join(" · ")}`;
+}
+function feedLine(e) {
+  const el = document.createElement("div"); el.className = "ev"; if (e.task_id) el.dataset.task = e.task_id;
+  const t = new Date(e.ts * 1000).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+  el.innerHTML = `<time>${t}</time><span class="k" style="color:${KCOL[e.kind] || "#8d8fa8"}">${ICON[e.kind] || "·"}</span>${esc(describe(e))}`;
+  return el;
+}
+
+async function pollEvents() {
+  try {
+    const evs = await api(`/api/events?after=${lastEvent}&limit=${lastEvent ? 300 : 150}`);
+    const feed = $("#feed"), first = lastEvent === 0;
+    for (const e of evs) { if (!first) animate(e); feed.prepend(feedLine(e)); lastEvent = Math.max(lastEvent, e.id); }
+    while (feed.children.length > 400) feed.lastChild.remove();
+  } catch (_) {}
+}
+
+// ---------- state -> panels ----------
+const HSTAGES = [["idea","#8d8fa8"],["prereg","#9fd3ff"],["backtest","#5aa9ff"],["review","#f4c542"],["validated","#5fd068"],["rejected","#ef5b5b"],["parked","#555a78"]];
+async function pollState() {
+  try { STATE = await api("/api/state"); } catch (_) { $("#runnerTxt").textContent = "HQ server unreachable"; return; }
+  const s = STATE, online = s.runner_age_s !== null && s.runner_age_s < 45;
+  $("#runnerDot").classList.toggle("on", online);
+  $("#runnerTxt").textContent = online ? "runner online" : "runner offline";
+  $("#runsChip").textContent = `runs/24h ${s.runs_today}/${s.max_runs}`;
+  $("#memChip").textContent = `mem ${s.mem_mb}MB`;
+  $("#slotsChip").textContent = `open slots ${s.open_slots}`;
+  $("#stopBtn").textContent = s.stop ? "RESUME" : "STOP"; $("#stopBtn").className = "btn " + (s.stop ? "go" : "stop");
+  $("#ackBtn").style.display = s.stalled ? "" : "none"; $("#stallBar").style.display = s.stalled ? "block" : "none";
+  for (const a of agents) a.task = s.running.find(t => t.role === a.role) || null;
+
+  $("#board").innerHTML = HSTAGES.map(([st, col]) => {
+    const hs = s.hypotheses.filter(h => h.status === st);
+    return `<div class="col"><h4><span style="color:${col}">${st.toUpperCase()}</span><span>${hs.length}</span></h4>` +
+      (hs.map(h => `<div class="hyp" style="border-color:${col}"><b>${esc(h.slug)}</b>${h.reason ? `<div>${esc(h.reason)}</div>` : ""}</div>`).join("") || `<div class="muted">—</div>`) + `</div>`;
+  }).join("") + (s.hypotheses.length ? "" : `<p class="muted">No hypotheses yet. Send the chief of staff an idea, or start the runner and let the heartbeat wake it.</p>`);
+
+  const row = t => `<tr data-task="${t.id}" style="cursor:pointer"><td>#${t.id}</td><td>${esc(t.role)}</td><td>${esc(t.title)}${t.hypothesis ? ` <span class="muted">[${esc(t.hypothesis)}]</span>` : ""}</td></tr>`;
+  $("#queue").innerHTML = `<h4 class="col"><span>RUNNING</span></h4><table>${s.running.map(row).join("") || "<tr><td class=muted>idle</td></tr>"}</table>` +
+    `<h4 class="col"><span>QUEUED</span></h4><table>${s.queued.map(row).join("") || "<tr><td class=muted>empty</td></tr>"}</table>`;
+  $("#models").innerHTML = `<table><tr><th>model</th><th>runs</th><th>ok</th><th>avg s</th></tr>` +
+    s.stats.map(m => `<tr><td>${esc(m.model)}</td><td>${m.n}</td><td>${Math.round(100 * m.ok / m.n)}%</td><td>${Math.round(m.avg_s || 0)}</td></tr>`).join("") +
+    `</table><h4 class="col"><span>ROUTING</span></h4>` +
+    Object.entries(s.roles).map(([r, v]) => `<div class="hyp"><b>${esc(r)}</b><div>${v.models.map(esc).join(" → ")}</div></div>`).join("");
+}
+
+// ---------- inspector ----------
+function openDrawer(title, html) { $("#dTitle").textContent = title; $("#dBody").innerHTML = html; $("#drawer").classList.add("on"); }
+async function openTask(id) {
+  const d = await api(`/api/task/${id}`); if (d.error) return;
+  const t = d.task, res = t.result ? JSON.parse(t.result) : null;
+  openDrawer(`#${t.id} ${t.role.toUpperCase()}`, `<p>${esc(t.title)}</p>
+    <p class="muted">status <b>${esc(t.status)}</b> · attempts ${t.attempts}/${t.max_attempts} · hypothesis ${esc(t.hypothesis || "—")}</p>
+    ${res ? `<h4 class="col"><span>RESULT</span></h4><pre>${esc(JSON.stringify(res, null, 2))}</pre>` : ""}
+    <h4 class="col"><span>RUNS</span></h4><table>${d.runs.map(r => `<tr><td>${esc(r.model)}</td><td>${esc(r.outcome || "running")}</td><td>${r.ended ? Math.round(r.ended - r.started) + "s" : ""}</td></tr>`).join("")}</table>
+    <h4 class="col"><span>SPEC</span></h4><pre>${esc(t.spec)}</pre>
+    <h4 class="col"><span>LOG TAIL</span></h4><pre>${esc(d.log || "(no log)")}</pre>`);
+}
+function openAgent(a) {
+  const cur = a.task || (STATE && STATE.last_by_role[a.role]);
+  const chain = STATE && STATE.roles[a.role] ? STATE.roles[a.role].models.map(esc).join(" → ") : "";
+  openDrawer(a.m.name.toUpperCase(), `<p>${esc(a.m.blurb)}</p><p class="muted">model chain: ${chain}</p>
+    ${cur ? `<p>${a.task ? "Working on" : "Last task"}: <a href="#" data-open="${cur.id}" style="color:var(--gold)">#${cur.id} ${esc(cur.title)}</a></p>` : "<p class=muted>No tasks yet.</p>"}`);
+}
+cv.addEventListener("click", ev => {
+  const b = cv.getBoundingClientRect(), x = (ev.clientX - b.left) * W / b.width, y = (ev.clientY - b.top) * H / b.height;
+  const a = agents.find(a => a.hit(x, y)); if (a) openAgent(a);
+});
+document.addEventListener("click", ev => {
+  const el = ev.target.closest("[data-task],[data-open]"); if (!el) return;
+  ev.preventDefault(); openTask(el.dataset.task || el.dataset.open);
+});
+$("#dClose").onclick = () => $("#drawer").classList.remove("on");
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("#drawer").classList.remove("on"); });
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button,.pane").forEach(x => x.classList.remove("on"));
+  b.classList.add("on"); $("#" + b.dataset.tab).classList.add("on");
+});
+
+// ---------- commands ----------
+function toast(s) { const t = $("#toast"); t.textContent = s; t.style.display = "block"; clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = "none", 5000); }
+$("#cmdRole").onchange = e => {
+  const r = e.target.value; $("#cmdSlug").style.display = r === "researcher" ? "" : "none"; $("#cmdSlug").required = r === "researcher";
+  $("#cmdText").placeholder = {chief:"Tell the chief of staff what to look into…", researcher:"Describe the idea and its mechanism…", curator:"What should be tidied up?"}[r];
+};
+$("#cmd").onsubmit = async e => {
+  e.preventDefault();
+  const role = $("#cmdRole").value, txt = $("#cmdText").value.trim(); if (!txt) return;
+  const body = role === "chief" ? {role, title:`Instruction from Kapil: ${txt}`, spec:{instruction:txt}}
+    : role === "researcher" ? {role, title:txt, hypothesis:$("#cmdSlug").value.trim(), spec:{idea:txt}}
+    : {role, title:txt, spec:{instruction:txt}};
+  const r = await api("/api/task", body);
+  if (r.error) return toast("✗ " + r.error);
+  $("#cmdText").value = ""; toast(`✉ queued task #${r.id} for ${role}`); pollEvents(); pollState();
+};
+$("#stopBtn").onclick = async () => { await api(STATE && STATE.stop ? "/api/resume" : "/api/stop", {}); pollState(); };
+$("#ackBtn").onclick = async () => { await api("/api/ack", {}); pollState(); };
+
+pollState(); pollEvents();
+setInterval(pollState, 2000); setInterval(pollEvents, 2000);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
