@@ -14,6 +14,14 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono)
 button,input,select{font:inherit;color:inherit}
 header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 18px;border-bottom:3px solid var(--line);background:var(--panel)}
 :root[data-theme=lamplight]{--bg:#07080c;--panel:#0d0f15;--panel2:#131620;--line:#1f2230;--gold:#e8c468}
+:root[data-theme=minimal]{--bg:#060709;--panel:#0b0c10;--panel2:#111319;--line:#1a1c24}
+:root[data-theme=minimal] header{position:fixed;top:0;left:0;right:0;z-index:5;opacity:0;transition:opacity .2s;border-bottom-width:1px}
+:root[data-theme=minimal] header:hover{opacity:1}
+:root[data-theme=minimal] main{display:block;padding:0}
+:root[data-theme=minimal] aside,:root[data-theme=minimal] .cmd{display:none}
+:root[data-theme=minimal] .world{border:0;background:var(--bg)}
+:root[data-theme=minimal] canvas{height:100vh;object-fit:contain}
+:root[data-theme=minimal] body.cmdshow .cmd{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:6;border-top:1px solid var(--line)}
 :root[data-theme=pipeline]{--bg:#07080c;--panel:#0c0d12;--panel2:#13151c;--line:#1f2230;--gold:#f4c542}
 :root[data-theme=blueprint]{--bg:#071c33;--panel:#0a2540;--panel2:#0e2f52;--line:#24578a;--ink:#e6f1ff;--dim:#8fb3d9;--gold:#ffd166}
 .themes{display:flex;gap:2px;padding:2px 4px}.themes button{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--px);font-size:8px;padding:4px 6px}
@@ -65,7 +73,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#07080f;border:2px sol
 <header>
   <div class="logo">KBRAIN HQ<small>RESEARCH ENGINE · KAPIL'S AGENTS</small></div>
   <div class="chips">
-    <span class="chip themes" id="themes"><button data-theme-btn="classic">CLASSIC</button><button data-theme-btn="lamplight">LAMPLIGHT</button><button data-theme-btn="blueprint">BLUEPRINT</button><button data-theme-btn="pipeline">PIPELINE</button></span>
+    <span class="chip themes" id="themes"><button data-theme-btn="classic">CLASSIC</button><button data-theme-btn="lamplight">LAMPLIGHT</button><button data-theme-btn="blueprint">BLUEPRINT</button><button data-theme-btn="pipeline">PIPELINE</button><button data-theme-btn="minimal">MINIMAL</button></span>
     <span class="chip"><span class="dot" id="runnerDot"></span><span id="runnerTxt">runner</span></span>
     <span class="chip" id="runsChip">runs —</span>
     <span class="chip" id="memChip">mem —</span>
@@ -131,7 +139,13 @@ const PIPE = {beltY:285, st:{chief:130, researcher:310, backtester:490, skeptic:
 const STAGE_X = {idea:130, prereg:310, backtest:490, review:670};
 const GATE = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#f4c542"};
 const HCOL = {idea:"#8d8fa8", prereg:"#5aa9ff", backtest:"#5fd068", review:"#f4c542", validated:"#f4c542", rejected:"#ef5b5b", parked:"#555a78"};
-function homeOf(role) { return role === "curator" ? PIPE.curator : {x:PIPE.st[role], y:PIPE.beltY - 30}; }
+const MIN = {chief:{x:150, y:190}, researcher:{x:560, y:160}, backtester:{x:250, y:360}, skeptic:{x:650, y:380}, curator:{x:420, y:540}};
+const MINCOL = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#ef6b6b", curator:"#b48cff"};
+function homeOf(role) {
+  if (THEME === "minimal") return MIN[role];
+  return role === "curator" ? PIPE.curator : {x:PIPE.st[role], y:PIPE.beltY - 30};
+}
+const layoutOf = t => (t === "pipeline" || t === "minimal") ? t : "rooms";
 const roomCenter = i => {
   if (THEME !== "pipeline") return {x:ROOMS[i].x + 160, y:ROOMS[i].y + 200};
   if (i === 5) return {x:PIPE.inbox.x, y:PIPE.inbox.y + 20};
@@ -150,11 +164,11 @@ class Agent {
     this.tx = this.x; this.ty = this.y; this.wait = 0; this.walkT = 0; this.moving = false;
     this.task = null; this.mood = null; this.moodT = 0;
   }
-  desk() { return THEME === "pipeline" ? homeOf(this.role) : {x:this.r.x + 160, y:this.r.y + 126}; }
+  desk() { return layoutOf(THEME) !== "rooms" ? homeOf(this.role) : {x:this.r.x + 160, y:this.r.y + 126}; }
   update(dt) {
     if (this.task) { const d = this.desk(); this.tx = d.x; this.ty = d.y; }
     else if (Math.hypot(this.tx - this.x, this.ty - this.y) < 1 && (this.wait -= dt) <= 0) {
-      if (THEME === "pipeline") { const h = homeOf(this.role); this.tx = h.x + (Math.random() - .5) * 44; this.ty = h.y - Math.random() * 6; }
+      if (layoutOf(THEME) !== "rooms") { const h = homeOf(this.role), r = THEME === "minimal" ? 12 : 44; this.tx = h.x + (Math.random() - .5) * r; this.ty = h.y - Math.random() * (THEME === "minimal" ? 3 : 6); }
       else { this.tx = this.r.x + 40 + Math.random() * 240; this.ty = this.r.y + 195 + Math.random() * 80; }
       this.wait = 1500 + Math.random() * 3500;
     }
@@ -178,20 +192,20 @@ ctx.imageSmoothingEnabled = false;
 
 // ---------- themes ----------
 const BP = {bg:"#0a2540", grid:"#0f3156", line:"#a9d1f7", faint:"#3a73aa", hi:"#ffd166"};
-const DIMC = {classic:"#8d8fa8", lamplight:"#4a4f60", blueprint:"#5d8fc4", pipeline:"#4a4f60"};
+const DIMC = {classic:"#8d8fa8", lamplight:"#4a4f60", blueprint:"#5d8fc4", pipeline:"#4a4f60", minimal:"#3e4250"};
 let THEME = "classic";
 try { THEME = localStorage.getItem("kb-theme") || "classic"; } catch (_) {}
 THEME = new URLSearchParams(location.search).get("theme") || THEME;
-if (!["classic", "lamplight", "blueprint", "pipeline"].includes(THEME)) THEME = "classic";
+if (!["classic", "lamplight", "blueprint", "pipeline", "minimal"].includes(THEME)) THEME = "classic";
 function placeAgents() {                           // start everyone at their post for the current layout
   for (const a of agents) {
-    if (THEME === "pipeline") { const h = homeOf(a.role); a.x = h.x + (Math.random() - .5) * 30; a.y = h.y; }
+    if (layoutOf(THEME) !== "rooms") { const h = homeOf(a.role); a.x = h.x + (THEME === "minimal" ? 0 : (Math.random() - .5) * 30); a.y = h.y; }
     else { a.x = a.r.x + 60 + Math.random() * 200; a.y = a.r.y + 230; }
     a.tx = a.x; a.ty = a.y;
   }
 }
 function setTheme(t) {
-  const relayout = (t === "pipeline") !== (THEME === "pipeline");
+  const relayout = layoutOf(t) !== layoutOf(THEME);
   THEME = t; if (relayout) placeAgents(); document.documentElement.dataset.theme = t;
   try { localStorage.setItem("kb-theme", t); } catch (_) {}
   document.querySelectorAll("[data-theme-btn]").forEach(b => b.classList.toggle("on", b.dataset.themeBtn === t));
@@ -298,7 +312,7 @@ function lights() {                                  // lamplight: a warm pool o
 function drawAgent(a) {
   const sitting = a.task && !a.moving, bob = sitting ? (Math.floor(clock / 220) % 2) : 0;
   const ox = a.x - 18, oy = a.y - 48 + bob;
-  if (THEME === "lamplight" && !a.task) ctx.globalAlpha = .45;
+  if ((THEME === "lamplight" || THEME === "minimal") && !a.task && !(a.note && a.note.until > clock)) ctx.globalAlpha = THEME === "minimal" ? .5 : .45;
   ctx.fillStyle = THEME === "blueprint" ? "#06182c" : "#00000055"; ctx.beginPath(); ctx.ellipse(a.x, a.y + 1, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
   const pal = {h:a.m.hair, k:a.m.skin, e:"#111", m:"#7a3b2e", s:a.m.shirt, a:a.m.acc, p:"#2d3446", b:"#141414"};
   const rows = BODY.concat(LEGS[a.moving ? Math.floor(a.walkT / 160) % 2 : 0]);
@@ -397,10 +411,51 @@ function drawGates() {
   }
 }
 
+// ---------- minimal: dark screen, the bros, who they are, what they're doing ----------
+function wrap(str, n, max = 3) {
+  const out = []; let cur = "";
+  for (const w of String(str).split(/\s+/)) { if ((cur + " " + w).trim().length > n) { if (cur) out.push(cur); cur = w.slice(0, n); } else cur = (cur + " " + w).trim(); }
+  if (cur) out.push(cur);
+  if (out.length > max) { out.length = max; out[max - 1] = out[max - 1].slice(0, n - 1) + "…"; }
+  return out;
+}
+function drawMinimal() {
+  px(0, 0, W, H, "#060709");
+  const online = STATE && STATE.runner_age_s !== null && STATE.runner_age_s < 45;
+  [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
+  for (const a of agents) {
+    text(a.m.name.toLowerCase(), a.x, a.y + 10, 6, "#3e4250", "center");
+    let lines, col = MINCOL[a.role], sub = null;
+    if (a.note && a.note.until > clock) { lines = wrap(a.note.text, 32, 2); col = a.note.c; }
+    else if (!STATE) lines = ["…"], col = "#3e4250";
+    else if (STATE.stop) lines = ["stopped"], col = "#ef5b5b";
+    else if (!online) { lines = ["offline"]; col = "#3e4250"; if (a.role === "chief") sub = "start the runner: kb serve"; }
+    else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 32); sub = (a.task.model || "").split(":").pop() || "starting…"; }
+    else if (a.mood === "sleep") lines = ["napping · rate limited"], col = "#b48cff";
+    else lines = ["idle"], col = "#2c2f3a";
+    const tx = a.x + 28, ty = a.y - 40;
+    lines.forEach((l, i) => text(l, tx, ty + i * 14, 7, col));
+    if (sub) text(sub, tx, ty + lines.length * 14 + 2, 6, "#4a4f60");
+  }
+}
+function note(role, s, c) { const a = byRole[role]; if (a) a.note = {text:s, c, until:clock + 4000}; }
+function animateMinimal(e) {
+  const d = JSON.parse(e.data || "{}"), a = byRole[d.role];
+  const N = {"run.started":["▸ starting", "#8d8fa8"], "task.done":["✓ done", "#5fd068"], "task.failed":["✗ failed", "#ef5b5b"], "task.crashed":["✗ crashed", "#ef5b5b"],
+             "task.retry":["↻ retrying with the next model", "#e0b040"], "task.blocked":["■ blocked", "#b48cff"]}[e.kind];
+  if (N && a) note(a.role, N[0], N[1]);
+  if (e.kind === "task.rate_limited" && a) a.setMood("sleep", 9000);
+  if (e.kind === "task.created" && e.actor === "heartbeat") note("chief", "waking up to plan", "#e0b040");
+  if (e.kind === "task.spawn_refused") note("chief", `⊘ refused: ${d.reason || ""}`, "#ef5b5b");
+  if (e.kind === "hyp.status") { const who = {prereg:"researcher", backtest:"backtester", review:"skeptic", validated:"skeptic", rejected:"skeptic", parked:"curator"}[d.status];
+    if (who) note(who, `${d.hypothesis}: ${d.status}`, HCOL[d.status] || "#8d8fa8"); }
+}
+
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(64, now - last); last = now; clock += dt;
   agents.forEach(a => a.update(dt));
+  if (THEME === "minimal") { drawMinimal(); requestAnimationFrame(frame); return; }
   if (THEME === "pipeline") {
     drawPipeline(); [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
     moveCrates(dt); drawCrates(); drawGates();
@@ -430,6 +485,7 @@ const KCOL = {"task.done":"#5fd068","task.failed":"#ef5b5b","task.crashed":"#ef5
 const STAMP = {prereg:["FROZEN ❄",1,"#9fd3ff"], backtest:["→ LAB",2,"#5fd068"], review:["→ COURT",3,"#f4c542"], validated:["VALIDATED ★",3,"#f4c542"], rejected:["REJECTED",4,"#ef5b5b"], parked:["PARKED",4,"#8d8fa8"]};
 
 function animate(e) {
+  if (THEME === "minimal") return animateMinimal(e);
   const d = JSON.parse(e.data || "{}"), a = byRole[d.role], c = a ? roomCenter(a.m.room) : null;
   switch (e.kind) {
     case "task.created": { const src = e.actor === "heartbeat" ? roomCenter(0) : (e.actor.startsWith("user") ? {x:W / 2, y:H} : e.actor === "lifecycle" ? roomCenter(4) : roomCenter(0));
@@ -517,7 +573,8 @@ function openAgent(a) {
     ${cur ? `<p>${a.task ? "Working on" : "Last task"}: <a href="#" data-open="${cur.id}" style="color:var(--gold)">#${cur.id} ${esc(cur.title)}</a></p>` : "<p class=muted>No tasks yet.</p>"}`);
 }
 cv.addEventListener("click", ev => {
-  const b = cv.getBoundingClientRect(), x = (ev.clientX - b.left) * W / b.width, y = (ev.clientY - b.top) * H / b.height;
+  const b = cv.getBoundingClientRect(), k = Math.min(b.width / W, b.height / H);
+  const x = (ev.clientX - b.left - (b.width - W * k) / 2) / k, y = (ev.clientY - b.top - (b.height - H * k) / 2) / k;
   const a = agents.find(a => a.hit(x, y)); if (a) return openAgent(a);
   if (THEME === "pipeline") for (const c of crates.values()) if (Math.abs(x - c.x) < 13 && y > c.y - 2 && y < c.y + 16)
     return openDrawer(c.slug, `<p>stage: <b style="color:${HCOL[c.status]}">${esc(c.status)}</b></p>${c.reason ? `<p class="muted">${esc(c.reason)}</p>` : ""}`);
@@ -527,7 +584,10 @@ document.addEventListener("click", ev => {
   ev.preventDefault(); openTask(el.dataset.task || el.dataset.open);
 });
 $("#dClose").onclick = () => $("#drawer").classList.remove("on");
-document.addEventListener("keydown", e => { if (e.key === "Escape") $("#drawer").classList.remove("on"); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { $("#drawer").classList.remove("on"); document.body.classList.remove("cmdshow"); }
+  if (e.key === "/" && THEME === "minimal" && document.activeElement.tagName !== "INPUT") { e.preventDefault(); document.body.classList.add("cmdshow"); $("#cmdText").focus(); }
+});
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".tabs button,.pane").forEach(x => x.classList.remove("on"));
   b.classList.add("on"); $("#" + b.dataset.tab).classList.add("on");
