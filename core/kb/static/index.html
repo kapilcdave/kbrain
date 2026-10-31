@@ -193,10 +193,10 @@ ctx.imageSmoothingEnabled = false;
 // ---------- themes ----------
 const BP = {bg:"#0a2540", grid:"#0f3156", line:"#a9d1f7", faint:"#3a73aa", hi:"#ffd166"};
 const DIMC = {classic:"#8d8fa8", lamplight:"#4a4f60", blueprint:"#5d8fc4", pipeline:"#4a4f60", minimal:"#3e4250"};
-let THEME = "classic";
-try { THEME = localStorage.getItem("kb-theme") || "classic"; } catch (_) {}
+let THEME = "minimal";
+try { THEME = localStorage.getItem("kb-theme-v2") || "minimal"; } catch (_) {}
 THEME = new URLSearchParams(location.search).get("theme") || THEME;
-if (!["classic", "lamplight", "blueprint", "pipeline", "minimal"].includes(THEME)) THEME = "classic";
+if (!["classic", "lamplight", "blueprint", "pipeline", "minimal"].includes(THEME)) THEME = "minimal";
 function placeAgents() {                           // start everyone at their post for the current layout
   for (const a of agents) {
     if (layoutOf(THEME) !== "rooms") { const h = homeOf(a.role); a.x = h.x + (THEME === "minimal" ? 0 : (Math.random() - .5) * 30); a.y = h.y; }
@@ -207,7 +207,7 @@ function placeAgents() {                           // start everyone at their po
 function setTheme(t) {
   const relayout = layoutOf(t) !== layoutOf(THEME);
   THEME = t; if (relayout) placeAgents(); document.documentElement.dataset.theme = t;
-  try { localStorage.setItem("kb-theme", t); } catch (_) {}
+  try { localStorage.setItem("kb-theme-v2", t); } catch (_) {}
   document.querySelectorAll("[data-theme-btn]").forEach(b => b.classList.toggle("on", b.dataset.themeBtn === t));
 }
 document.querySelectorAll("[data-theme-btn]").forEach(b => b.onclick = () => setTheme(b.dataset.themeBtn));
@@ -311,12 +311,17 @@ function lights() {                                  // lamplight: a warm pool o
 
 function drawAgent(a) {
   const sitting = a.task && !a.moving, bob = sitting ? (Math.floor(clock / 220) % 2) : 0;
-  const ox = a.x - 18, oy = a.y - 48 + bob;
-  if ((THEME === "lamplight" || THEME === "minimal") && !a.task && !(a.note && a.note.until > clock)) ctx.globalAlpha = THEME === "minimal" ? .5 : .45;
+  const SS = THEME === "minimal" ? 4 : S, ox = a.x - 6 * SS, oy = a.y - 16 * SS + bob;
+  if (THEME === "lamplight" && !a.task) ctx.globalAlpha = .45;
   ctx.fillStyle = THEME === "blueprint" ? "#06182c" : "#00000055"; ctx.beginPath(); ctx.ellipse(a.x, a.y + 1, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
   const pal = {h:a.m.hair, k:a.m.skin, e:"#111", m:"#7a3b2e", s:a.m.shirt, a:a.m.acc, p:"#2d3446", b:"#141414"};
   const rows = BODY.concat(LEGS[a.moving ? Math.floor(a.walkT / 160) % 2 : 0]);
-  rows.forEach((row, ry) => { for (let rx = 0; rx < 12; rx++) { const ch = row[rx]; if (ch !== ".") px(ox + rx * S, oy + ry * S, S, S, pal[ch]); } });
+  if (THEME === "minimal") {                         // contrast on black: lift the darkest colors, then rim the silhouette
+    Object.assign(pal, {p:"#4d5672", b:"#3b3f4c", h:mix(a.m.hair, .22, [150, 150, 160])});
+    for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2]])
+      rows.forEach((row, ry) => { for (let rx = 0; rx < 12; rx++) if (row[rx] !== ".") px(ox + rx * SS + dx, oy + ry * SS + dy, SS, SS, "#6b6f80"); });
+  }
+  rows.forEach((row, ry) => { for (let rx = 0; rx < 12; rx++) { const ch = row[rx]; if (ch !== ".") px(ox + rx * SS, oy + ry * SS, SS, SS, pal[ch]); } });
   ctx.globalAlpha = 1;
   if (a.mood === "sleep") text("z", a.x + 14, a.y - 60 - (clock / 30 % 14), 8, "#b48cff");
 }
@@ -424,18 +429,19 @@ function drawMinimal() {
   const online = STATE && STATE.runner_age_s !== null && STATE.runner_age_s < 45;
   [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
   for (const a of agents) {
-    text(a.m.name.toLowerCase(), a.x, a.y + 10, 6, "#3e4250", "center");
-    let lines, col = MINCOL[a.role], sub = null;
-    if (a.note && a.note.until > clock) { lines = wrap(a.note.text, 32, 2); col = a.note.c; }
-    else if (!STATE) lines = ["…"], col = "#3e4250";
-    else if (STATE.stop) lines = ["stopped"], col = "#ef5b5b";
-    else if (!online) { lines = ["offline"]; col = "#3e4250"; if (a.role === "chief") sub = "start the runner: kb serve"; }
+    text(a.m.name.toLowerCase(), a.x, a.y + 10, 7, "#8a8d99", "center");
+    const WHITE = "#f2f2f2", SOFT = "#9a9ca8";
+    let lines, col = WHITE, sub = null;
+    if (a.note && a.note.until > clock) lines = wrap(a.note.text, 32, 2);
+    else if (!STATE) lines = ["…"], col = SOFT;
+    else if (STATE.stop) lines = ["stopped"];
+    else if (!online) { lines = ["offline"]; col = SOFT; if (a.role === "chief") sub = "start the runner: kb serve"; }
     else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 32); sub = (a.task.model || "").split(":").pop() || "starting…"; }
-    else if (a.mood === "sleep") lines = ["napping · rate limited"], col = "#b48cff";
-    else lines = ["idle"], col = "#2c2f3a";
-    const tx = a.x + 28, ty = a.y - 40;
-    lines.forEach((l, i) => text(l, tx, ty + i * 14, 7, col));
-    if (sub) text(sub, tx, ty + lines.length * 14 + 2, 6, "#4a4f60");
+    else if (a.mood === "sleep") lines = ["napping · rate limited"];
+    else lines = ["idle"], col = SOFT;
+    const tx = a.x + 36, ty = a.y - 56;
+    lines.forEach((l, i) => text(l, tx, ty + i * 15, 7, col));
+    if (sub) text(sub, tx, ty + lines.length * 15 + 2, 6, SOFT);
   }
 }
 function note(role, s, c) { const a = byRole[role]; if (a) a.note = {text:s, c, until:clock + 4000}; }

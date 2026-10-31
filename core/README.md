@@ -40,7 +40,7 @@ OpenAI-compatible endpoint; define it under `[providers]` in `config/routing.tom
 agent's environment. `max_runs_per_day` is a global circuit breaker. Compare models with `bin/kb stats`.
 
 ## HQ (the LARP view)
-`bin/kb web` -> http://127.0.0.1:7777. One pixel room per role; agents walk to their desks when they get a
+`bin/kb web` -> http://127.0.0.1:7777. Default view is MINIMAL: a dark screen with the agents, their names, and white text saying what each is doing (hover the top edge for the header and other layouts, press / to send a message). Other layouts: one pixel room per role; agents walk to their desks when they get a
 task, show the task and model in a speech bubble, nap on rate limits; envelopes fly to the mailroom (queue)
 and out to desks. Side panel: hypothesis board, live feed, queue, model stats. Click an agent or event to
 inspect a task (result, runs, log tail). The command bar sends instructions to the chief, a new idea to a
