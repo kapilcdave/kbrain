@@ -5,88 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>kbrain HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0e0f13;--panel:#121419;--line:#23262f;--ink:#e4e4e7;--dim:#7c8090;--faint:#4a4e5c;
-  --gold:#e8c468;--blue:#6aa8ff;--green:#6fd08c;--red:#ef6b6b;--purple:#b597ff;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+:root{--bg:#0d0e18;--panel:#161929;--panel2:#1d2135;--line:#2c3154;--ink:#ece8d6;--dim:#8d8fa8;--gold:#f4c542;
+  --green:#5fd068;--red:#ef5b5b;--blue:#5aa9ff;--purple:#b48cff;--px:'Press Start 2P',monospace;--mono:'VT323',ui-monospace,monospace}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 var(--mono)}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:19px}
 button,input,select{font:inherit;color:inherit}
-header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line)}
-.logo{font-weight:600;font-size:15px;letter-spacing:.5px}.logo span{color:var(--dim);font-weight:400}
-.chips{display:flex;gap:16px;flex-wrap:wrap;margin-left:auto;align-items:center;color:var(--dim)}
-.chips b{color:var(--ink);font-weight:400}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;background:var(--red);vertical-align:1px}
-.dot.on{background:var(--green)}
-.btn{padding:5px 12px;border:1px solid var(--line);background:transparent;cursor:pointer;border-radius:3px}
-.btn:hover{border-color:var(--dim)}
-.btn.stop{color:var(--red);border-color:#5a2a2e}.btn.go{color:var(--green);border-color:#24502f}.btn.ack{color:var(--gold);border-color:#5a4a20}
-.alert{display:none;padding:9px 20px;border-bottom:1px solid #5a2a2e;color:var(--red)}
-main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:0;min-height:calc(100vh - 54px)}
+header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 18px;border-bottom:3px solid var(--line);background:var(--panel)}
+:root[data-theme=lamplight]{--bg:#07080c;--panel:#0d0f15;--panel2:#131620;--line:#1f2230;--gold:#e8c468}
+:root[data-theme=blueprint]{--bg:#071c33;--panel:#0a2540;--panel2:#0e2f52;--line:#24578a;--ink:#e6f1ff;--dim:#8fb3d9;--gold:#ffd166}
+.themes{display:flex;gap:2px;padding:2px 4px}.themes button{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--px);font-size:8px;padding:4px 6px}
+.themes button.on{color:var(--gold)}
+.logo{font-family:var(--px);font-size:22px;letter-spacing:2px;color:var(--gold);text-shadow:3px 3px 0 #7a4a10,6px 6px 0 #00000088}
+.logo small{display:block;font-size:8px;letter-spacing:3px;color:var(--dim);text-shadow:none;margin-top:6px}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.chip{border:2px solid var(--line);background:var(--panel);padding:4px 10px;white-space:nowrap}
+.dot{display:inline-block;width:10px;height:10px;margin-right:6px;background:var(--red);box-shadow:0 0 8px var(--red)}
+.dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+.btn{font-family:var(--px);font-size:10px;padding:9px 12px;border:3px solid #000;cursor:pointer;background:var(--panel2);box-shadow:3px 3px 0 #000}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
+.btn.stop{background:#a8282c}.btn.go{background:#2b7a3d}.btn.ack{background:#a87a12}
+.alert{display:none;background:#5a1a1d;border-bottom:3px solid var(--red);padding:8px 18px;font-family:var(--px);font-size:10px;line-height:1.8}
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;padding:14px}
 @media (max-width:1100px){main{grid-template-columns:1fr}}
-.world{border-right:1px solid var(--line);display:flex;flex-direction:column}
+.world{border:3px solid var(--line);background:#000;position:relative}
 canvas{display:block;width:100%;height:auto;image-rendering:pixelated;cursor:pointer}
-.cmd{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap;margin-top:auto}
-.cmd select,.cmd input{background:transparent;border:1px solid var(--line);padding:6px 10px;border-radius:3px}
-.cmd select option{background:var(--panel)}
-.cmd input.text{flex:1;min-width:180px}.cmd input.slug{width:190px;display:none}
-.cmd input:focus,.cmd select:focus{outline:none;border-color:var(--dim)}
-aside{display:flex;flex-direction:column;min-height:0;max-height:calc(100vh - 54px)}
-.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 12px}
-.tabs button{background:none;border:0;border-bottom:1px solid transparent;margin-bottom:-1px;padding:12px 10px;color:var(--dim);cursor:pointer}
-.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
-.pane{overflow:auto;padding:12px 20px;display:none;flex:1}.pane.on{display:block}
-h4{font-weight:400;color:var(--dim);margin:16px 0 6px;display:flex;justify-content:space-between;text-transform:lowercase}
-h4:first-child{margin-top:4px}
-.hyp{padding:5px 0 5px 10px;border-left:2px solid var(--faint);margin:3px 0}
-.hyp div{color:var(--dim);font-size:12px}
-.ev{padding:4px 0;border-bottom:1px solid #1a1c23;color:var(--ink)}
-.ev[data-task]{cursor:pointer}.ev[data-task]:hover{color:#fff}
-.ev time{color:var(--faint);margin-right:8px}.ev .k{display:inline-block;width:16px}
-table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:4px 4px 4px 0;border-bottom:1px solid #1a1c23;font-weight:400;vertical-align:top}
+.cmd{display:flex;gap:8px;padding:10px;background:var(--panel);border-top:3px solid var(--line);flex-wrap:wrap}
+.cmd select,.cmd input{background:var(--bg);border:2px solid var(--line);padding:6px 8px}
+.cmd input.text{flex:1;min-width:180px}
+.cmd input.slug{width:200px;display:none}
+aside{display:flex;flex-direction:column;border:3px solid var(--line);background:var(--panel);min-height:0;max-height:calc(100vh - 140px)}
+.tabs{display:flex;border-bottom:3px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:10px 4px;font-family:var(--px);font-size:9px;color:var(--dim);cursor:pointer}
+.tabs button.on{color:var(--gold);background:var(--panel2)}
+.pane{overflow:auto;padding:10px;display:none;flex:1}
+.pane.on{display:block}
+.col h4{font-family:var(--px);font-size:9px;margin:12px 0 6px;color:var(--dim);display:flex;justify-content:space-between}
+.hyp{border-left:4px solid var(--dim);background:var(--panel2);padding:4px 8px;margin:4px 0;line-height:1.05}
+.hyp b{font-weight:normal;color:var(--ink)}.hyp div{color:var(--dim);font-size:16px}
+.ev{padding:3px 2px;border-bottom:1px dashed #262a45;cursor:default;line-height:1.05}
+.ev[data-task]{cursor:pointer}.ev[data-task]:hover{background:var(--panel2)}
+.ev time{color:var(--dim);margin-right:6px}.ev .k{display:inline-block;width:20px;text-align:center}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:3px 4px;border-bottom:1px solid #262a45;font-weight:normal}
 th{color:var(--dim)}
-.drawer{position:fixed;right:0;top:0;bottom:0;width:min(560px,100%);background:var(--panel);border-left:1px solid var(--line);
-  transform:translateX(105%);transition:transform .15s;z-index:10;display:flex;flex-direction:column}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:min(560px,100%);background:var(--panel);border-left:3px solid var(--gold);
+  transform:translateX(105%);transition:transform .18s;z-index:10;display:flex;flex-direction:column}
 .drawer.on{transform:none}
-.drawer header{padding:14px 20px}.drawer h3{font-size:13px;font-weight:600;margin:0}
-.drawer .body{overflow:auto;padding:0 20px 20px;flex:1}
-pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--line);padding:10px;font-size:12px;max-height:45vh;overflow:auto}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);padding:9px 16px;z-index:20;display:none;border-radius:3px}
-.muted{color:var(--dim)}a{color:var(--gold)}
+.drawer header{border:0;padding:12px 14px}.drawer h3{font-family:var(--px);font-size:12px;margin:0;color:var(--gold);line-height:1.6}
+.drawer .body{overflow:auto;padding:0 14px 14px;flex:1}
+pre{white-space:pre-wrap;word-break:break-word;background:#07080f;border:2px solid var(--line);padding:8px;font-size:16px;max-height:45vh;overflow:auto}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:3px solid var(--gold);padding:10px 16px;
+  font-family:var(--px);font-size:10px;z-index:20;display:none;box-shadow:4px 4px 0 #000}
+.muted{color:var(--dim)}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">kbrain <span>hq</span></div>
+  <div class="logo">KBRAIN HQ<small>RESEARCH ENGINE · KAPIL'S AGENTS</small></div>
   <div class="chips">
-    <span><span class="dot" id="runnerDot"></span><b id="runnerTxt">runner</b></span>
-    <span>runs <b id="runsChip">—</b></span>
-    <span>mem <b id="memChip">—</b></span>
-    <span>open slots <b id="slotsChip">—</b></span>
-    <button class="btn ack" id="ackBtn" style="display:none">ack stall</button>
-    <button class="btn stop" id="stopBtn">stop</button>
+    <span class="chip themes" id="themes"><button data-theme-btn="classic">CLASSIC</button><button data-theme-btn="lamplight">LAMPLIGHT</button><button data-theme-btn="blueprint">BLUEPRINT</button></span>
+    <span class="chip"><span class="dot" id="runnerDot"></span><span id="runnerTxt">runner</span></span>
+    <span class="chip" id="runsChip">runs —</span>
+    <span class="chip" id="memChip">mem —</span>
+    <span class="chip" id="slotsChip">slots —</span>
+    <button class="btn ack" id="ackBtn" style="display:none">ACK STALL</button>
+    <button class="btn stop" id="stopBtn">STOP</button>
   </div>
 </header>
-<div class="alert" id="stallBar">Stalled: no hypothesis has changed state for a while, so the chief of staff is paused. Check the feed, adjust the goal or routing, then ack.</div>
+<div class="alert" id="stallBar">⚠ STALLED: no hypothesis has changed state in a while, so the chief of staff is paused. Read the feed, adjust the goal or routing, then ACK.</div>
 <main>
   <section class="world">
-    <canvas id="cv" width="1920" height="880" aria-label="kbrain floor: the agents at their desks"></canvas>
+    <canvas id="cv" width="1920" height="1200" aria-label="kbrain office: one room per agent role"></canvas>
     <form class="cmd" id="cmd">
       <select id="cmdRole" aria-label="send to">
-        <option value="chief">to chief of staff</option>
-        <option value="researcher">to researcher (new hypothesis)</option>
-        <option value="curator">to curator</option>
+        <option value="chief">→ Chief of Staff</option>
+        <option value="researcher">→ Researcher (new hypothesis)</option>
+        <option value="curator">→ Curator</option>
       </select>
       <input class="slug" id="cmdSlug" placeholder="hypothesis-slug" pattern="[a-z0-9][a-z0-9-]{2,60}">
       <input class="text" id="cmdText" placeholder="Tell the chief of staff what to look into…" maxlength="300" required>
-      <button class="btn" type="submit">send</button>
+      <button class="btn go" type="submit">SEND</button>
     </form>
   </section>
   <aside>
     <div class="tabs" role="tablist">
-      <button class="on" data-tab="board">board</button><button data-tab="feed">feed</button>
-      <button data-tab="queue">queue</button><button data-tab="models">models</button>
+      <button class="on" data-tab="board">BOARD</button><button data-tab="feed">FEED</button>
+      <button data-tab="queue">QUEUE</button><button data-tab="models">MODELS</button>
     </div>
     <div class="pane on" id="board"></div>
     <div class="pane" id="feed"></div>
@@ -94,7 +99,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px s
     <div class="pane" id="models"></div>
   </aside>
 </main>
-<div class="drawer" id="drawer"><header><h3 id="dTitle">—</h3><button class="btn" id="dClose" style="margin-left:auto">close</button></header><div class="body" id="dBody"></div></div>
+<div class="drawer" id="drawer"><header><h3 id="dTitle">—</h3><button class="btn" id="dClose" style="margin-left:auto">X</button></header><div class="body" id="dBody"></div></div>
 <div class="toast" id="toast"></div>
 <script>
 "use strict";
@@ -102,151 +107,248 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const api = (p, body) => fetch(p, body === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json","X-KB":"1"}, body:JSON.stringify(body)}).then(r => r.json());
 
-// ---------- world: one open floor, a row of desks, an inbox ----------
-const W = 960, H = 440, S = 3, FONT = '"JetBrains Mono", ui-monospace, monospace';
-const C = {bg:"#0e0f13", line:"#23262f", ink:"#e4e4e7", dim:"#7c8090", faint:"#3a3d48", desk:"#2a2d37"};
+// ---------- world model ----------
+const W = 960, H = 600, S = 3;
 const ROLE = {
-  chief:      {name:"chief of staff", x:300, col:"#e8c468", hair:"#2b2118", skin:"#e0ac69", blurb:"Reads the state digest, proposes new hypotheses, never does the work itself."},
-  researcher: {name:"researcher",     x:450, col:"#6aa8ff", hair:"#161616", skin:"#c68642", blurb:"Turns ideas into falsifiable preregistrations, which the harness freezes."},
-  backtester: {name:"backtester",     x:600, col:"#6fd08c", hair:"#6b4220", skin:"#f1c27d", blurb:"Implements the frozen prereg. Code grades its metrics, not its opinion."},
-  skeptic:    {name:"skeptic",        x:750, col:"#ef6b6b", hair:"#9a9a9a", skin:"#ffdbac", blurb:"Assumes every passing backtest is wrong and tries to prove it."},
-  curator:    {name:"curator",        x:900, col:"#b597ff", hair:"#b5612a", skin:"#8d5524", blurb:"Compacts memory: indexes results and dead ends."},
+  chief:      {name:"Chief of Staff", room:0, shirt:"#c8902a", acc:"#7a1f1f", hair:"#3a2a1a", skin:"#e0ac69", blurb:"Reads the state digest, proposes new hypotheses, never does the work itself."},
+  researcher: {name:"Researcher",     room:1, shirt:"#3c7fc4", acc:"#9fd3ff", hair:"#1b1b1b", skin:"#c68642", blurb:"Turns ideas into falsifiable preregistrations, which the harness freezes."},
+  backtester: {name:"Backtester",     room:2, shirt:"#e8ecef", acc:"#3a9a5a", hair:"#7a4a20", skin:"#f1c27d", blurb:"Implements the frozen prereg. Code grades its metrics, not its opinion."},
+  skeptic:    {name:"Skeptic",        room:3, shirt:"#8a2b2b", acc:"#f0d0d0", hair:"#a8a8a8", skin:"#ffdbac", blurb:"Assumes every passing backtest is wrong and tries to prove it."},
+  curator:    {name:"Curator",        room:4, shirt:"#7d55b8", acc:"#e5d4ff", hair:"#c46a2a", skin:"#8d5524", blurb:"Compacts memory: indexes results and dead ends."},
 };
-const DESK_Y = 250, INBOX = {x:90, y:240};
-const BODY = ["...hhhhhh...","..hhhhhhhh..","..hkkkkkkh..","..kekkkkek..","..kkkkkkkk..","....kkkk....",
-              "..ssssssss..",".ssssssssss.","kssssssssssk","k.ssssssss.k","..pppppppp.."];
+const ROOMS = [
+  {name:"CHIEF'S OFFICE", f1:"#3b2f2a", f2:"#43352f", wall:"#5a3f2c"},
+  {name:"LIBRARY",        f1:"#23324a", f2:"#283a55", wall:"#2f4466"},
+  {name:"BACKTEST LAB",   f1:"#22382c", f2:"#274033", wall:"#2e5240"},
+  {name:"SKEPTIC'S COURT",f1:"#3e2326", f2:"#47282c", wall:"#5e2f33"},
+  {name:"ARCHIVE",        f1:"#30263f", f2:"#372c48", wall:"#46375c"},
+  {name:"MAILROOM · QUEUE", f1:"#2c2c30", f2:"#333338", wall:"#46464e"},
+].map((r, i) => ({...r, x:(i % 3) * 320, y:Math.floor(i / 3) * 300}));
+const MAIL = ROOMS[5];
+const roomCenter = i => ({x:ROOMS[i].x + 160, y:ROOMS[i].y + 200});
+
+const BODY = ["...hhhhhh...","..hhhhhhhh..","..hkkkkkkh..","..kekkkkek..","..kkkkkkkk..","...kkmmkk...","....kkkk....",
+              "..ssssssss..",".sssssassss.","ksssssassssk","k.ssssssss.k","..pppppppp.."];
 const LEGS = [["..ppp..ppp..","..ppp..ppp..","..bbb..bbb.."], [".ppp....ppp.",".pp......pp.",".bb......bb."]];
 
 class Agent {
   constructor(role) {
-    this.role = role; this.m = ROLE[role]; this.hx = this.m.x;
-    this.x = this.hx + (Math.random() - .5) * 60; this.y = 340 + Math.random() * 30;
-    this.tx = this.x; this.ty = this.y; this.wait = Math.random() * 3000; this.walkT = 0; this.moving = false;
+    this.role = role; this.m = ROLE[role]; this.r = ROOMS[this.m.room];
+    this.x = this.r.x + 60 + Math.random() * 200; this.y = this.r.y + 230;
+    this.tx = this.x; this.ty = this.y; this.wait = 0; this.walkT = 0; this.moving = false;
     this.task = null; this.mood = null; this.moodT = 0;
   }
-  desk() { return {x:this.hx, y:DESK_Y + 14}; }
+  desk() { return {x:this.r.x + 160, y:this.r.y + 126}; }
   update(dt) {
     if (this.task) { const d = this.desk(); this.tx = d.x; this.ty = d.y; }
     else if (Math.hypot(this.tx - this.x, this.ty - this.y) < 1 && (this.wait -= dt) <= 0) {
-      this.tx = this.hx + (Math.random() - .5) * 80; this.ty = 330 + Math.random() * 45; this.wait = 2500 + Math.random() * 5000;
+      this.tx = this.r.x + 40 + Math.random() * 240; this.ty = this.r.y + 195 + Math.random() * 80;
+      this.wait = 1500 + Math.random() * 3500;
     }
     const dx = this.tx - this.x, dy = this.ty - this.y, dist = Math.hypot(dx, dy);
-    const sp = (this.task ? 0.12 : 0.035) * dt * (this.mood === "sleep" ? 0 : 1);
+    const sp = (this.task ? 0.14 : 0.05) * dt * (this.mood === "sleep" ? 0 : 1);
     this.moving = dist > 1 && sp > 0;
     if (this.moving) { this.x += dx / dist * Math.min(sp, dist); this.y += dy / dist * Math.min(sp, dist); this.walkT += dt; }
     if (this.moodT > 0 && (this.moodT -= dt) <= 0) this.mood = null;
   }
   setMood(m, ms) { this.mood = m; this.moodT = ms; }
-  hit(px, py) { return Math.abs(px - this.x) < 24 && py > this.y - 52 && py < this.y + 6 || Math.abs(px - this.hx) < 50 && Math.abs(py - DESK_Y) < 40; }
+  hit(px, py) { return Math.abs(px - this.x) < 22 && py > this.y - 52 && py < this.y + 4; }
 }
 const agents = Object.keys(ROLE).map(r => new Agent(r));
 const byRole = Object.fromEntries(agents.map(a => [a.role, a]));
 let particles = [], floats = [], letters = [], STATE = null, lastEvent = 0, clock = 0;
 
+// ---------- drawing ----------
 const cv = $("#cv"), ctx = cv.getContext("2d");
-ctx.setTransform(2, 0, 0, 2, 0, 0);          // 2x backing store: crisp text when scaled
-const px = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
-function text(s, x, y, size = 11, color = C.ink, align = "left") {
-  ctx.font = `${size}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = "top"; ctx.fillStyle = color; ctx.fillText(s, x, y);
-}
-function line(x0, y0, x1, y1, c) { ctx.strokeStyle = c; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0 + .5, y0 + .5); ctx.lineTo(x1 + .5, y1 + .5); ctx.stroke(); }
+ctx.setTransform(2, 0, 0, 2, 0, 0);            // 2x backing store: crisp when scaled
+ctx.imageSmoothingEnabled = false;
 
-function drawFloor() {
-  px(0, 0, W, H, C.bg);
-  line(40, 300, W - 20, 300, "#16181e");
+// ---------- themes ----------
+const BP = {bg:"#0a2540", grid:"#0f3156", line:"#a9d1f7", faint:"#3a73aa", hi:"#ffd166"};
+const DIMC = {classic:"#8d8fa8", lamplight:"#4a4f60", blueprint:"#5d8fc4"};
+let THEME = "classic";
+try { THEME = localStorage.getItem("kb-theme") || "classic"; } catch (_) {}
+THEME = new URLSearchParams(location.search).get("theme") || THEME;
+if (!["classic", "lamplight", "blueprint"].includes(THEME)) THEME = "classic";
+function setTheme(t) {
+  THEME = t; document.documentElement.dataset.theme = t;
+  try { localStorage.setItem("kb-theme", t); } catch (_) {}
+  document.querySelectorAll("[data-theme-btn]").forEach(b => b.classList.toggle("on", b.dataset.themeBtn === t));
 }
-function drawDesk(a) {
-  const x = a.hx - 40, y = DESK_Y, on = !!a.task;
-  px(x, y, 80, 3, on ? a.m.col : C.desk);                      // desktop
-  px(x + 6, y + 3, 2, 26, C.desk); px(x + 72, y + 3, 2, 26, C.desk);
-  ctx.strokeStyle = on ? a.m.col : C.faint; ctx.lineWidth = 1;   // monitor outline
-  ctx.strokeRect(a.hx - 16.5, y - 26.5, 32, 21); px(a.hx - 1, y - 5, 2, 5, C.faint);
-  if (on) for (let k = 0; k < 3; k++) px(a.hx - 12, y - 22 + k * 5, ((clock / 50 + k * 9) % 22) | 0, 2, a.m.col);
-  const st = a.task ? "working" : a.mood === "sleep" ? "napping (rate limit)" : "idle";
-  text(a.m.name, a.hx, 396, 11, on ? C.ink : C.dim, "center");
-  text(st, a.hx, 412, 10, on ? a.m.col : C.faint, "center");
+document.querySelectorAll("[data-theme-btn]").forEach(b => b.onclick = () => setTheme(b.dataset.themeBtn));
+function mix(c, k, to) {
+  let h = c.replace("#", ""); if (h.length === 3) h = [...h].map(x => x + x).join("");
+  const n = parseInt(h.slice(0, 6), 16);
+  return `rgb(${[n >> 16, n >> 8 & 255, n & 255].map((v, i) => Math.round(v + (to[i] - v) * k)).join(",")})`;
 }
-function drawInbox() {
-  const q = STATE ? (STATE.counts.queued || 0) : 0, {x, y} = INBOX;
-  ctx.strokeStyle = C.faint; ctx.lineWidth = 1; ctx.strokeRect(x - 40.5, y - 6.5, 80, 30);
-  for (let k = 0; k < Math.min(q, 12); k++) px(x - 32, y + 14 - k * 4, 64, 2, k % 2 ? C.ink : C.dim);
-  text("inbox", x, 396, 11, q ? C.ink : C.dim, "center");
-  text(`${q} queued`, x, 412, 10, q ? "#e8c468" : C.faint, "center");
-  // runner state, so a stuck queue explains itself
-  const s = STATE, online = s && s.runner_age_s !== null && s.runner_age_s < 45;
-  if (s && !online) text("runner offline: start it with `kb serve` (or systemctl --user start kb-runner)", 24, 20, 11, "#ef6b6b");
+// furniture primitive: filled (classic), dimmed (lamplight), line art (blueprint)
+function box(x, y, w, h, c) {
+  if (THEME === "blueprint") { ctx.strokeStyle = BP.line; ctx.lineWidth = 1; ctx.strokeRect(Math.round(x) + .5, Math.round(y) + .5, Math.max(1, w - 1), Math.max(1, h - 1)); }
+  else px(x, y, w, h, THEME === "lamplight" ? mix(c, .62, [11, 12, 18]) : c);
 }
-function envelope(x, y, c) { px(x - 6, y - 4, 12, 8, C.ink); px(x - 6, y - 4, 12, 1, c); }
+const fontFor = size => THEME === "classic" ? `${size}px "Press Start 2P", monospace` : `${Math.round(size * 1.4)}px "JetBrains Mono", ui-monospace, monospace`;
+const roleOf = i => Object.keys(ROLE)[i];
+const px = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
+function text(s, x, y, size = 8, color = "#ece8d6", align = "left") {
+  ctx.font = fontFor(size); ctx.textAlign = align; ctx.textBaseline = "top";
+  if (THEME === "classic") { ctx.fillStyle = "#000"; ctx.fillText(s, x + 1, y + 1); }
+  ctx.fillStyle = color; ctx.fillText(s, x, y);
+}
+
+function drawRoom(r, i) {
+  const busy = i < 5 && !!byRole[roleOf(i)].task;
+  if (THEME === "classic") {
+    for (let ty = 0; ty < 300; ty += 20) for (let tx = 0; tx < 320; tx += 20)
+      px(r.x + tx, r.y + ty, 20, 20, ((tx + ty) / 20) % 2 ? r.f1 : r.f2);
+    px(r.x, r.y, 320, 56, r.wall); px(r.x, r.y + 56, 320, 4, "#00000055");
+    px(r.x + 8, r.y + 8, 150, 20, "#0b0c14"); text(r.name, r.x + 14, r.y + 14, 8, "#f4c542");
+  } else if (THEME === "lamplight") {
+    px(r.x, r.y, 320, 300, "#0b0c12");
+    text(r.name.toLowerCase(), r.x + 16, r.y + 14, 8, busy ? "#e8c468" : "#3e4252");
+  } else {
+    px(r.x, r.y, 320, 300, BP.bg); ctx.fillStyle = BP.grid;
+    for (let g = 0; g < 320; g += 20) ctx.fillRect(r.x + g, r.y, 1, 300);
+    for (let g = 0; g < 300; g += 20) ctx.fillRect(r.x, r.y + g, 320, 1);
+    text(r.name, r.x + 16, r.y + 14, 8, busy ? BP.hi : BP.line);
+    text(String(i + 1).padStart(2, "0"), r.x + 304, r.y + 280, 8, BP.faint, "right");
+  }
+  const ink = THEME === "classic" ? "#333" : THEME === "lamplight" ? "#24262d" : BP.line;
+  if (i === 0) { box(r.x + 60, r.y + 170, 200, 110, "#5a2f2f"); box(r.x + 66, r.y + 176, 188, 98, "#6e3a3a");
+    box(r.x + 190, r.y + 14, 110, 36, "#e8e6d9"); text("GOAL: SURVIVE", r.x + 196, r.y + 20, 6, ink); text("THE GATES", r.x + 196, r.y + 32, 6, ink);
+    plant(r.x + 280, r.y + 230); }
+  if (i === 1) { for (let sh = 0; sh < 3; sh++) { const sx = r.x + 170 + sh * 46; box(sx, r.y + 6, 40, 48, "#4a2e1a");
+      for (let b = 0; b < 6; b++) box(sx + 3 + b * 6, r.y + 10 + (b % 2) * 2, 5, 18, ["#c44","#4a8","#48c","#cc4","#a6c","#e83"][(b + sh) % 6]);
+      for (let b = 0; b < 6; b++) box(sx + 3 + b * 6, r.y + 32, 5, 18, ["#48c","#cc4","#c44","#e83","#4a8","#a6c"][(b + sh) % 6]); } }
+  if (i === 2) { box(r.x + 180, r.y + 10, 120, 40, "#e8e6d9");
+    ctx.strokeStyle = THEME === "classic" ? "#2b7a3d" : THEME === "lamplight" ? (busy ? "#e8c468" : "#3a3d48") : BP.hi; ctx.lineWidth = 2; ctx.beginPath();
+    for (let k = 0; k <= 10; k++) { const yy = r.y + 40 - (Math.sin(k * 0.9 + (busy ? clock / 300 : 0)) * 10 + k * 1.2); k ? ctx.lineTo(r.x + 186 + k * 11, yy) : ctx.moveTo(r.x + 186, yy); } ctx.stroke();
+    box(r.x + 270, r.y + 180, 30, 90, "#1a1d24");
+    for (let k = 0; k < 8; k++) px(r.x + 276, r.y + 188 + k * 10, 4, 4, (busy && (Math.floor(clock / 150) + k) % 3 === 0) ? "#5fd068" : THEME === "blueprint" ? BP.faint : "#1c2430"); }
+  if (i === 3) { box(r.x + 190, r.y + 20, 110, 34, "#4a2a18"); box(r.x + 196, r.y + 26, 98, 6, "#6b3e22"); text("⚖", r.x + 236, r.y + 34, 10, THEME === "lamplight" ? "#8a7340" : "#f4c542");
+    box(r.x + 30, r.y + 250, 70, 8, "#4a2a18"); box(r.x + 220, r.y + 250, 70, 8, "#4a2a18"); }
+  if (i === 4) { for (let k = 0; k < 4; k++) { box(r.x + 180 + k * 32, r.y + 8, 28, 48, "#55606e"); for (let d = 0; d < 3; d++) { box(r.x + 182 + k * 32, r.y + 11 + d * 15, 24, 12, "#6b7787"); box(r.x + 191 + k * 32, r.y + 16 + d * 15, 6, 2, "#333"); } } }
+  if (i === 5) drawMail(r);
+}
+function plant(x, y) { box(x - 8, y, 16, 14, "#7a4a20"); box(x - 12, y - 18, 8, 18, "#2b7a3d"); box(x - 2, y - 26, 8, 26, "#3a9a5a"); box(x + 6, y - 16, 8, 16, "#2b7a3d"); }
+function drawDesk(i) {
+  const r = ROOMS[i], a = byRole[roleOf(i)], x = r.x + 125, y = r.y + 112, on = !!a.task;
+  box(x - 4, y + 30, 6, 16, "#3e2614"); box(x + 68, y + 30, 6, 16, "#3e2614");
+  box(x - 6, y, 82, 10, "#9b6a35"); box(x - 6, y + 10, 82, 22, "#6b4220");
+  box(x + 22, y - 28, 32, 24, "#111"); box(x + 34, y - 4, 8, 4, "#222");
+  const scr = THEME === "classic" ? ["#0f2a3a", "#5aa9ff"] : THEME === "lamplight" ? ["#3a2a12", "#ffcf7a"] : [BP.bg, BP.hi];
+  if (on) { px(x + 25, y - 25, 26, 18, scr[0]); for (let k = 0; k < 4; k++) px(x + 27, y - 23 + k * 4, ((clock / 40 + k * 7) % 22) | 0, 2, scr[1]); }
+  else if (THEME === "classic") px(x + 25, y - 25, 26, 18, "#0a0b10");
+}
+function drawMail(r) {
+  box(r.x + 20, r.y + 70, 120, 14, "#5a5a64"); box(r.x + 20, r.y + 110, 120, 14, "#5a5a64");
+  for (let k = 0; k < 10; k++) { box(r.x + 24 + k * 11, r.y + 60, 9, 10, "#ece8d6"); box(r.x + 24 + k * 11, r.y + 100, 9, 10, k % 3 ? "#ece8d6" : "#f4c542"); }
+  const q = STATE ? (STATE.counts.queued || 0) : 0, hi = THEME === "blueprint" ? BP.hi : "#f4c542";
+  box(r.x + 170, r.y + 150, 120, 110, "#3a3a44"); box(r.x + 174, r.y + 154, 112, 102, "#25252c");
+  for (let k = 0; k < Math.min(q, 40); k++) envelope(r.x + 182 + (k % 6) * 17, r.y + 240 - Math.floor(k / 6) * 12, hi);
+  text(`QUEUE ${q}`, r.x + 178, r.y + 132, 8, q ? hi : DIMC[THEME]);
+  const rl = STATE ? STATE.queued.filter(t => t.not_before * 1000 > Date.now()).length : 0;
+  if (rl) text(`${rl} WAITING ON LIMITS`, r.x + 20, r.y + 262, 6, "#b48cff");
+  if (STATE && !(STATE.runner_age_s !== null && STATE.runner_age_s < 45)) text("RUNNER OFFLINE: kb serve", r.x + 20, r.y + 278, 6, "#ef5b5b");
+}
+function envelope(x, y, seal) { px(x, y, 14, 9, "#ece8d6"); px(x, y, 14, 1, "#999"); px(x + 3, y + 2, 2, 2, "#bbb"); px(x + 9, y + 2, 2, 2, "#bbb"); px(x + 6, y + 4, 3, 3, seal); }
+function walls() {
+  for (const r of ROOMS) {
+    if (THEME === "classic") { ctx.strokeStyle = "#07080f"; ctx.lineWidth = 4; ctx.strokeRect(r.x + 2, r.y + 2, 316, 296); }
+    else if (THEME === "lamplight") { ctx.strokeStyle = "#1a1d27"; ctx.lineWidth = 1; ctx.strokeRect(r.x + .5, r.y + .5, 319, 299); }
+    else { ctx.strokeStyle = BP.line; ctx.lineWidth = 2; ctx.strokeRect(r.x + 1, r.y + 1, 318, 298); }
+  }
+  if (THEME === "blueprint") {                       // door openings between rooms
+    for (const r of ROOMS) {
+      if (r.y === 0) px(r.x + 140, r.y + 296, 40, 8, BP.bg);
+      if (r.x < 640) px(r.x + 316, r.y + 130, 8, 40, BP.bg);
+    }
+  }
+}
+function lights() {                                  // lamplight: a warm pool over every desk in use
+  if (THEME !== "lamplight") return;
+  ctx.globalCompositeOperation = "lighter";
+  const pool = (x, y, rad, a) => { const g = ctx.createRadialGradient(x, y, 8, x, y, rad);
+    g.addColorStop(0, `rgba(255,190,110,${a})`); g.addColorStop(1, "rgba(255,190,110,0)"); ctx.fillStyle = g; ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2); };
+  for (const a of agents) if (a.task) { const r = ROOMS[a.m.room]; ctx.save(); ctx.beginPath(); ctx.rect(r.x, r.y, 320, 300); ctx.clip(); pool(r.x + 160, r.y + 115, 175, .26); ctx.restore(); }
+  if (STATE && STATE.counts.queued) pool(MAIL.x + 230, MAIL.y + 205, 90, .12);
+  ctx.globalCompositeOperation = "source-over";
+}
 
 function drawAgent(a) {
-  const sitting = a.task && !a.moving, bob = sitting ? (Math.floor(clock / 260) % 2) : 0;
-  const ox = a.x - 18, oy = a.y - 42 + bob;
-  px(a.x - 10, a.y + 1, 20, 2, "#00000066");
-  const pal = {h:a.m.hair, k:a.m.skin, e:"#111", s:a.m.col, p:"#2d3140", b:"#121212"};
-  const rows = BODY.concat(LEGS[a.moving ? Math.floor(a.walkT / 170) % 2 : 0]);
+  const sitting = a.task && !a.moving, bob = sitting ? (Math.floor(clock / 220) % 2) : 0;
+  const ox = a.x - 18, oy = a.y - 48 + bob;
+  if (THEME === "lamplight" && !a.task) ctx.globalAlpha = .45;
+  ctx.fillStyle = THEME === "blueprint" ? "#06182c" : "#00000055"; ctx.beginPath(); ctx.ellipse(a.x, a.y + 1, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+  const pal = {h:a.m.hair, k:a.m.skin, e:"#111", m:"#7a3b2e", s:a.m.shirt, a:a.m.acc, p:"#2d3446", b:"#141414"};
+  const rows = BODY.concat(LEGS[a.moving ? Math.floor(a.walkT / 160) % 2 : 0]);
   rows.forEach((row, ry) => { for (let rx = 0; rx < 12; rx++) { const ch = row[rx]; if (ch !== ".") px(ox + rx * S, oy + ry * S, S, S, pal[ch]); } });
-  if (a.mood === "sleep") text("z", a.x + 14, a.y - 56 - (clock / 40 % 12), 11, "#b597ff");
+  ctx.globalAlpha = 1;
+  if (a.mood === "sleep") text("z", a.x + 14, a.y - 60 - (clock / 30 % 14), 8, "#b48cff");
 }
 function bubble(a) {
-  if (!a.task) return;
-  let l1 = `#${a.task.id} ${a.task.title}`, l2 = (a.task.model || "").split(":").pop() || "starting…";
-  l1 = l1.length > 34 ? l1.slice(0, 33) + "…" : l1;
-  ctx.font = `11px ${FONT}`;
-  const w = Math.max(ctx.measureText(l1).width, ctx.measureText(l2).width) + 20, h = 40;
-  const bx = Math.max(8, Math.min(W - w - 8, a.hx - w / 2)), by = DESK_Y - 96;
-  px(bx, by, w, h, "#15171d"); ctx.strokeStyle = a.m.col; ctx.lineWidth = 1; ctx.strokeRect(bx + .5, by + .5, w - 1, h - 1);
-  text(l1, bx + 10, by + 7, 11, C.ink); text(l2, bx + 10, by + 22, 10, C.dim);
+  let l1, l2;
+  if (a.task) { l1 = `#${a.task.id} ${a.task.title}`; l2 = (a.task.model || "").split(":").pop() || "starting…"; }
+  else if (a.mood === "sleep") { l1 = "rate limited · napping"; l2 = ""; }
+  else return text(THEME === "classic" ? a.m.name.toUpperCase() : a.m.name.toLowerCase(), a.x, a.y - 62, 6, DIMC[THEME], "center");
+  l1 = l1.length > 30 ? l1.slice(0, 29) + "…" : l1;
+  const sty = {classic:{bg:"#ece8d6", bd:null, t1:"#111", t2:"#2b6cb0"}, lamplight:{bg:"#15171d", bd:"#e8c468", t1:"#ece8d6", t2:"#8d8fa8"},
+               blueprint:{bg:BP.bg, bd:BP.hi, t1:"#e6f1ff", t2:BP.line}}[THEME];
+  ctx.font = fontFor(7);
+  const lh = THEME === "classic" ? 12 : 14, w = Math.max(ctx.measureText(l1).width, ctx.measureText(l2).width) + 14, h = l2 ? lh * 2 + 8 : lh + 8;
+  const bx = Math.max(4, Math.min(W - w - 4, a.x - w / 2)), by = a.y - 66 - h;
+  if (THEME === "classic") px(bx + 3, by + 3, w, h, "#00000088");
+  px(bx, by, w, h, sty.bg); px(a.x - 3, by + h, 6, 5, sty.bd || sty.bg);
+  if (sty.bd) { ctx.strokeStyle = sty.bd; ctx.lineWidth = 1; ctx.strokeRect(bx + .5, by + .5, w - 1, h - 1); }
+  ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillStyle = sty.t1; ctx.fillText(l1, bx + 7, by + 5);
+  if (l2) { ctx.fillStyle = sty.t2; ctx.fillText(l2, bx + 7, by + 5 + lh); }
 }
-
-function burst(x, y, colors, n = 18) { for (let k = 0; k < n; k++) particles.push({x, y, vx:(Math.random() - .5) * .35, vy:-Math.random() * .4 - .05, life:900 + Math.random() * 500, c:colors[k % colors.length]}); }
-function float(x, y, s, c) { floats.push({x, y, s, c, life:2200}); }
-function fly(from, to, c) { letters.push({x0:from.x, y0:from.y, x1:to.x, y1:to.y, t:0, dur:1100, c}); }
+function burst(x, y, colors, n = 26) { for (let k = 0; k < n; k++) particles.push({x, y, vx:(Math.random() - .5) * .5, vy:-Math.random() * .55 - .1, life:1200 + Math.random() * 600, c:colors[k % colors.length]}); }
+function float(x, y, s, c, size = 9) { floats.push({x, y, s, c, size, life:2200}); }
+function fly(from, to, seal) { letters.push({...from, x1:to.x, y1:to.y, x0:from.x, y0:from.y, t:0, dur:1300, seal}); }
 
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(64, now - last); last = now; clock += dt;
-  drawFloor();
+  ROOMS.forEach(drawRoom);
   agents.forEach(a => a.update(dt));
-  [...agents].sort((p, q) => p.y - q.y).forEach(a => { if (a.y < DESK_Y + 20) drawAgent(a); });
-  agents.forEach(drawDesk); drawInbox();
-  [...agents].sort((p, q) => p.y - q.y).forEach(a => { if (a.y >= DESK_Y + 20) drawAgent(a); });
+  [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
+  for (let i = 0; i < 5; i++) drawDesk(i);
+  walls(); lights();
   letters = letters.filter(l => (l.t += dt) < l.dur);
-  for (const l of letters) { const t = l.t / l.dur, e = t * t * (3 - 2 * t); envelope(l.x0 + (l.x1 - l.x0) * e, l.y0 + (l.y1 - l.y0) * e - Math.sin(Math.PI * t) * 40, l.c); }
+  for (const l of letters) { const t = l.t / l.dur, x = l.x0 + (l.x1 - l.x0) * t, y = l.y0 + (l.y1 - l.y0) * t - Math.sin(Math.PI * t) * 60; envelope(x - 7, y - 4, l.seal); }
   particles = particles.filter(p => (p.life -= dt) > 0);
-  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.0008 * dt; px(p.x, p.y, 2, 2, p.c); }
+  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.0009 * dt; px(p.x, p.y, 4, 4, p.c); }
   floats = floats.filter(f => (f.life -= dt) > 0);
-  for (const f of floats) { ctx.globalAlpha = Math.min(1, f.life / 600); text(f.s, f.x, f.y - (2200 - f.life) / 45, 11, f.c, "center"); ctx.globalAlpha = 1; }
+  for (const f of floats) text(f.s, f.x, f.y - (2200 - f.life) / 40, f.size, f.c, "center");
   agents.forEach(bubble);
-  if (STATE && STATE.stop) { ctx.fillStyle = "rgba(14,15,19,.6)"; ctx.fillRect(0, 0, W, H); text("stopped", W / 2, H / 2 - 8, 14, "#ef6b6b", "center"); }
+  const h = new Date().getHours();
+  if (THEME === "classic" && (h >= 20 || h < 6)) { ctx.fillStyle = "rgba(10,18,60,.28)"; ctx.fillRect(0, 0, W, H); }
+  if (STATE && STATE.stop) { ctx.fillStyle = "rgba(120,20,24,.35)"; ctx.fillRect(0, 0, W, H); text("STOPPED", W / 2, H / 2 - 12, 24, "#ef5b5b", "center"); }
   requestAnimationFrame(frame);
 }
 
 // ---------- events -> animation ----------
-const ICON = {"task.created":"+","run.started":"▸","task.done":"✓","task.failed":"✗","task.retry":"↻","task.rate_limited":"z","task.blocked":"■",
-  "task.spawn_refused":"⊘","task.crashed":"✗","hyp.status":"◆","verdict":"=","alert.stall":"!","alert.validated":"★","runner.started":"·"};
-const KCOL = {"task.done":"#6fd08c","task.failed":"#ef6b6b","task.crashed":"#ef6b6b","task.retry":"#e8c468","task.rate_limited":"#b597ff","alert.stall":"#ef6b6b","alert.validated":"#e8c468","hyp.status":"#6aa8ff"};
-const STAMP = {prereg:["frozen","researcher","#6aa8ff"], backtest:["→ backtest","backtester","#6fd08c"], review:["→ review","skeptic","#e8c468"],
-  validated:["validated","skeptic","#e8c468"], rejected:["rejected","skeptic","#ef6b6b"], parked:["parked","curator","#7c8090"]};
-const PREV = {backtester:"researcher", skeptic:"backtester", researcher:"researcher", curator:"chief"};
-const deskTop = role => ({x:ROLE[role].x, y:DESK_Y - 30});
+const ICON = {"task.created":"✉","run.started":"▶","task.done":"✓","task.failed":"✗","task.retry":"↻","task.rate_limited":"z","task.blocked":"■",
+  "task.spawn_refused":"⊘","task.crashed":"✗","hyp.status":"◆","verdict":"⚖","alert.stall":"⚠","alert.validated":"★","runner.started":"⚙"};
+const KCOL = {"task.done":"#5fd068","task.failed":"#ef5b5b","task.crashed":"#ef5b5b","task.retry":"#f4c542","task.rate_limited":"#b48cff","alert.stall":"#ef5b5b","alert.validated":"#f4c542","hyp.status":"#5aa9ff"};
+const STAMP = {prereg:["FROZEN ❄",1,"#9fd3ff"], backtest:["→ LAB",2,"#5fd068"], review:["→ COURT",3,"#f4c542"], validated:["VALIDATED ★",3,"#f4c542"], rejected:["REJECTED",4,"#ef5b5b"], parked:["PARKED",4,"#8d8fa8"]};
 
 function animate(e) {
-  const d = JSON.parse(e.data || "{}"), a = byRole[d.role];
+  const d = JSON.parse(e.data || "{}"), a = byRole[d.role], c = a ? roomCenter(a.m.room) : null;
   switch (e.kind) {
-    case "task.created": {
-      const src = e.actor.startsWith("user") ? {x:INBOX.x, y:H} : e.actor === "lifecycle" ? deskTop(PREV[d.role] || "chief") : deskTop("chief");
-      if (e.actor === "heartbeat") float(deskTop("chief").x, deskTop("chief").y - 70, "heartbeat", "#e8c468");
-      fly(src, INBOX, ROLE[d.role] ? ROLE[d.role].col : C.ink); break; }
-    case "run.started": if (a) fly(INBOX, deskTop(a.role), a.m.col); break;
-    case "task.done": if (a) { burst(a.hx, DESK_Y - 30, [a.m.col, C.ink]); float(a.hx, DESK_Y - 110, "done", "#6fd08c"); } break;
-    case "task.failed": case "task.crashed": if (a) float(a.hx, DESK_Y - 110, "failed", "#ef6b6b"); break;
-    case "task.retry": if (a) float(a.hx, DESK_Y - 110, "retry", "#e8c468"); break;
-    case "task.blocked": if (a) float(a.hx, DESK_Y - 110, "blocked", "#b597ff"); break;
+    case "task.created": { const src = e.actor === "heartbeat" ? roomCenter(0) : (e.actor.startsWith("user") ? {x:W / 2, y:H} : e.actor === "lifecycle" ? roomCenter(4) : roomCenter(0));
+      if (e.actor === "heartbeat") float(src.x, src.y - 80, "⏰ HEARTBEAT", "#f4c542", 8);
+      fly(src, {x:MAIL.x + 230, y:MAIL.y + 200}, ROLE[d.role] ? ROLE[d.role].shirt : "#f4c542"); break; }
+    case "run.started": if (a) fly({x:MAIL.x + 230, y:MAIL.y + 200}, a.desk(), a.m.shirt); break;
+    case "task.done": if (a) { burst(a.x, a.y - 50, ["#f4c542", "#5fd068", "#5aa9ff", "#ef5b5b"]); float(a.x, a.y - 90, "✓ DONE", "#5fd068"); } break;
+    case "task.failed": case "task.crashed": if (a) float(a.x, a.y - 90, "✗ FAILED", "#ef5b5b"); break;
+    case "task.retry": if (a) float(a.x, a.y - 90, "↻ RETRY", "#f4c542", 8); break;
+    case "task.blocked": if (a) float(a.x, a.y - 90, "■ BLOCKED", "#b48cff", 8); break;
     case "task.rate_limited": if (a) a.setMood("sleep", 9000); break;
-    case "task.spawn_refused": float(deskTop("chief").x, DESK_Y - 130, "refused", "#ef6b6b"); break;
-    case "hyp.status": { const s = STAMP[d.status]; if (s) { const p = deskTop(s[1]); float(p.x, p.y - 100, `${d.hypothesis}: ${s[0]}`, s[2]);
-        if (d.status === "validated") { for (let k = 0; k < 3; k++) setTimeout(() => burst(p.x + (Math.random() - .5) * 120, p.y - 60, ["#e8c468", "#fff"], 30), k * 280); toast(`★ ${d.hypothesis} validated: needs your review`); } } break; }
-    case "alert.stall": toast("stall detected: chief paused"); break;
+    case "task.spawn_refused": float(roomCenter(0).x, roomCenter(0).y - 110, "⊘ REFUSED", "#ef5b5b", 7); break;
+    case "hyp.status": { const s = STAMP[d.status]; if (s) { const p = roomCenter(s[1]); float(p.x, p.y - 120, s[0], s[2], 10);
+        if (d.status === "validated") { for (let k = 0; k < 4; k++) setTimeout(() => burst(p.x + (Math.random() - .5) * 200, p.y - 120, ["#f4c542", "#fff", "#5fd068"], 40), k * 300); toast(`★ ${d.hypothesis} validated: needs your review`); } } break; }
+    case "alert.stall": toast("⚠ Stall detected: chief paused"); break;
   }
 }
 function describe(e) {
@@ -257,9 +359,10 @@ function describe(e) {
 function feedLine(e) {
   const el = document.createElement("div"); el.className = "ev"; if (e.task_id) el.dataset.task = e.task_id;
   const t = new Date(e.ts * 1000).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
-  el.innerHTML = `<time>${t}</time><span class="k" style="color:${KCOL[e.kind] || "#7c8090"}">${ICON[e.kind] || "·"}</span>${esc(describe(e))}`;
+  el.innerHTML = `<time>${t}</time><span class="k" style="color:${KCOL[e.kind] || "#8d8fa8"}">${ICON[e.kind] || "·"}</span>${esc(describe(e))}`;
   return el;
 }
+
 async function pollEvents() {
   try {
     const evs = await api(`/api/events?after=${lastEvent}&limit=${lastEvent ? 300 : 150}`);
@@ -270,32 +373,32 @@ async function pollEvents() {
 }
 
 // ---------- state -> panels ----------
-const HSTAGES = [["idea","#7c8090"],["prereg","#6aa8ff"],["backtest","#6aa8ff"],["review","#e8c468"],["validated","#6fd08c"],["rejected","#ef6b6b"],["parked","#4a4e5c"]];
+const HSTAGES = [["idea","#8d8fa8"],["prereg","#9fd3ff"],["backtest","#5aa9ff"],["review","#f4c542"],["validated","#5fd068"],["rejected","#ef5b5b"],["parked","#555a78"]];
 async function pollState() {
-  try { STATE = await api("/api/state"); } catch (_) { $("#runnerTxt").textContent = "hq server unreachable"; return; }
+  try { STATE = await api("/api/state"); } catch (_) { $("#runnerTxt").textContent = "HQ server unreachable"; return; }
   const s = STATE, online = s.runner_age_s !== null && s.runner_age_s < 45;
   $("#runnerDot").classList.toggle("on", online);
-  $("#runnerTxt").textContent = online ? (s.runner_state || "online") : "runner offline";
-  $("#runsChip").textContent = `${s.runs_today}/${s.max_runs}`;
-  $("#memChip").textContent = `${s.mem_mb}MB`;
-  $("#slotsChip").textContent = s.open_slots;
-  $("#stopBtn").textContent = s.stop ? "resume" : "stop"; $("#stopBtn").className = "btn " + (s.stop ? "go" : "stop");
+  $("#runnerTxt").textContent = online ? (s.runner_state || "runner online") : "runner offline";
+  $("#runsChip").textContent = `runs/24h ${s.runs_today}/${s.max_runs}`;
+  $("#memChip").textContent = `mem ${s.mem_mb}MB`;
+  $("#slotsChip").textContent = `open slots ${s.open_slots}`;
+  $("#stopBtn").textContent = s.stop ? "RESUME" : "STOP"; $("#stopBtn").className = "btn " + (s.stop ? "go" : "stop");
   $("#ackBtn").style.display = s.stalled ? "" : "none"; $("#stallBar").style.display = s.stalled ? "block" : "none";
   for (const a of agents) a.task = s.running.find(t => t.role === a.role) || null;
 
   $("#board").innerHTML = HSTAGES.map(([st, col]) => {
     const hs = s.hypotheses.filter(h => h.status === st);
-    return `<h4><span>${st}</span><span>${hs.length}</span></h4>` +
-      hs.map(h => `<div class="hyp" style="border-color:${col}">${esc(h.slug)}${h.reason ? `<div>${esc(h.reason)}</div>` : ""}</div>`).join("");
-  }).join("") + (s.hypotheses.length ? "" : `<p class="muted">No hypotheses yet. Send the chief of staff an idea below.</p>`);
+    return `<div class="col"><h4><span style="color:${col}">${st.toUpperCase()}</span><span>${hs.length}</span></h4>` +
+      (hs.map(h => `<div class="hyp" style="border-color:${col}"><b>${esc(h.slug)}</b>${h.reason ? `<div>${esc(h.reason)}</div>` : ""}</div>`).join("") || `<div class="muted">—</div>`) + `</div>`;
+  }).join("") + (s.hypotheses.length ? "" : `<p class="muted">No hypotheses yet. Send the chief of staff an idea, or start the runner and let the heartbeat wake it.</p>`);
 
   const row = t => `<tr data-task="${t.id}" style="cursor:pointer"><td>#${t.id}</td><td>${esc(t.role)}</td><td>${esc(t.title)}${t.hypothesis ? ` <span class="muted">[${esc(t.hypothesis)}]</span>` : ""}</td></tr>`;
-  $("#queue").innerHTML = `<h4>running</h4><table>${s.running.map(row).join("") || "<tr><td class=muted>idle</td></tr>"}</table>` +
-    `<h4>queued</h4><table>${s.queued.map(row).join("") || "<tr><td class=muted>empty</td></tr>"}</table>`;
-  $("#models").innerHTML = `<table><tr><th>model</th><th>runs</th><th>ok</th><th>avg</th></tr>` +
-    s.stats.map(m => `<tr><td>${esc(m.model)}</td><td>${m.n}</td><td>${Math.round(100 * m.ok / m.n)}%</td><td>${Math.round(m.avg_s || 0)}s</td></tr>`).join("") +
-    `</table><h4>routing</h4>` +
-    Object.entries(s.roles).map(([r, v]) => `<div class="hyp">${esc(r)}<div>${v.models.map(esc).join(" → ")}</div></div>`).join("");
+  $("#queue").innerHTML = `<h4 class="col"><span>RUNNING</span></h4><table>${s.running.map(row).join("") || "<tr><td class=muted>idle</td></tr>"}</table>` +
+    `<h4 class="col"><span>QUEUED</span></h4><table>${s.queued.map(row).join("") || "<tr><td class=muted>empty</td></tr>"}</table>`;
+  $("#models").innerHTML = `<table><tr><th>model</th><th>runs</th><th>ok</th><th>avg s</th></tr>` +
+    s.stats.map(m => `<tr><td>${esc(m.model)}</td><td>${m.n}</td><td>${Math.round(100 * m.ok / m.n)}%</td><td>${Math.round(m.avg_s || 0)}</td></tr>`).join("") +
+    `</table><h4 class="col"><span>ROUTING</span></h4>` +
+    Object.entries(s.roles).map(([r, v]) => `<div class="hyp"><b>${esc(r)}</b><div>${v.models.map(esc).join(" → ")}</div></div>`).join("");
 }
 
 // ---------- inspector ----------
@@ -303,23 +406,22 @@ function openDrawer(title, html) { $("#dTitle").textContent = title; $("#dBody")
 async function openTask(id) {
   const d = await api(`/api/task/${id}`); if (d.error) return;
   const t = d.task, res = t.result ? JSON.parse(t.result) : null;
-  openDrawer(`#${t.id} ${t.role}`, `<p>${esc(t.title)}</p>
-    <p class="muted">status ${esc(t.status)} · attempts ${t.attempts}/${t.max_attempts} · hypothesis ${esc(t.hypothesis || "—")}</p>
-    ${res ? `<h4>result</h4><pre>${esc(JSON.stringify(res, null, 2))}</pre>` : ""}
-    <h4>runs</h4><table>${d.runs.map(r => `<tr><td>${esc(r.model)}</td><td>${esc(r.outcome || "running")}</td><td>${r.ended ? Math.round(r.ended - r.started) + "s" : ""}</td></tr>`).join("") || "<tr><td class=muted>not started</td></tr>"}</table>
-    <h4>spec</h4><pre>${esc(t.spec)}</pre>
-    <h4>log tail</h4><pre>${esc(d.log || "(no log)")}</pre>`);
+  openDrawer(`#${t.id} ${t.role.toUpperCase()}`, `<p>${esc(t.title)}</p>
+    <p class="muted">status <b>${esc(t.status)}</b> · attempts ${t.attempts}/${t.max_attempts} · hypothesis ${esc(t.hypothesis || "—")}</p>
+    ${res ? `<h4 class="col"><span>RESULT</span></h4><pre>${esc(JSON.stringify(res, null, 2))}</pre>` : ""}
+    <h4 class="col"><span>RUNS</span></h4><table>${d.runs.map(r => `<tr><td>${esc(r.model)}</td><td>${esc(r.outcome || "running")}</td><td>${r.ended ? Math.round(r.ended - r.started) + "s" : ""}</td></tr>`).join("")}</table>
+    <h4 class="col"><span>SPEC</span></h4><pre>${esc(t.spec)}</pre>
+    <h4 class="col"><span>LOG TAIL</span></h4><pre>${esc(d.log || "(no log)")}</pre>`);
 }
 function openAgent(a) {
   const cur = a.task || (STATE && STATE.last_by_role[a.role]);
   const chain = STATE && STATE.roles[a.role] ? STATE.roles[a.role].models.map(esc).join(" → ") : "";
-  openDrawer(a.m.name, `<p>${esc(a.m.blurb)}</p><p class="muted">model chain: ${chain}</p>
-    ${cur ? `<p>${a.task ? "working on" : "last task"}: <a href="#" data-open="${cur.id}">#${cur.id} ${esc(cur.title)}</a></p>` : "<p class=muted>No tasks yet.</p>"}`);
+  openDrawer(a.m.name.toUpperCase(), `<p>${esc(a.m.blurb)}</p><p class="muted">model chain: ${chain}</p>
+    ${cur ? `<p>${a.task ? "Working on" : "Last task"}: <a href="#" data-open="${cur.id}" style="color:var(--gold)">#${cur.id} ${esc(cur.title)}</a></p>` : "<p class=muted>No tasks yet.</p>"}`);
 }
 cv.addEventListener("click", ev => {
   const b = cv.getBoundingClientRect(), x = (ev.clientX - b.left) * W / b.width, y = (ev.clientY - b.top) * H / b.height;
-  const a = agents.find(a => a.hit(x, y)); if (a) return openAgent(a);
-  if (Math.abs(x - INBOX.x) < 60 && y > 200) { document.querySelector('[data-tab="queue"]').click(); }
+  const a = agents.find(a => a.hit(x, y)); if (a) openAgent(a);
 });
 document.addEventListener("click", ev => {
   const el = ev.target.closest("[data-task],[data-open]"); if (!el) return;
@@ -345,15 +447,16 @@ $("#cmd").onsubmit = async e => {
     : role === "researcher" ? {role, title:txt, hypothesis:$("#cmdSlug").value.trim(), spec:{idea:txt}}
     : {role, title:txt, spec:{instruction:txt}};
   const r = await api("/api/task", body);
-  if (r.error) return toast(r.error);
+  if (r.error) return toast("✗ " + r.error);
   $("#cmdText").value = "";
   const online = STATE && STATE.runner_age_s !== null && STATE.runner_age_s < 45;
-  toast(online ? `queued #${r.id} for ${role}` : `queued #${r.id}. The runner is offline: start it with \`kb serve\``);
+  toast(online ? `✉ queued task #${r.id} for ${role}` : `✉ queued #${r.id}. The runner is offline: start it with kb serve`);
   pollEvents(); pollState();
 };
 $("#stopBtn").onclick = async () => { await api(STATE && STATE.stop ? "/api/resume" : "/api/stop", {}); pollState(); };
 $("#ackBtn").onclick = async () => { await api("/api/ack", {}); pollState(); };
 
+setTheme(THEME);
 pollState(); pollEvents();
 setInterval(pollState, 2000); setInterval(pollEvents, 2000);
 requestAnimationFrame(frame);
