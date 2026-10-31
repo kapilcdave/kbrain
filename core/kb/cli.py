@@ -28,7 +28,8 @@ STATUS_COLOR = {"queued": "33", "running": "36;1", "done": "32", "failed": "31",
 def status(conn, cfg):
     alive = runner.ALIVE.stat().st_mtime if runner.ALIVE.exists() else 0
     age = time.time() - alive if alive else None
-    light = c("32", "● running") if age is not None and age < 45 else c("31", "○ not running")
+    light = (c("32", "● " + runner.ALIVE.read_text()[:60]) if age is not None and age < 45
+             else c("31", "○ not running (start: kb serve, or systemctl --user start kb-runner)"))
     stalled, _ = lifecycle.stalled(conn, cfg)
     print(f" runner {light}   STOP {c('31;1','ON') if runner.STOP.exists() else 'off'}   "
           f"mem {runner.mem_available_mb()}MB   runs/24h {runner.runs_last_day(conn)}/{cfg['limits'].get('max_runs_per_day')}"

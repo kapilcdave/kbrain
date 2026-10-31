@@ -179,7 +179,7 @@ class Web(Base):
             self.assertEqual(e.exception.code, 403)
             req = urllib.request.Request(base + "/api/task", data=body, headers={"X-KB": "1", "Content-Type": "application/json"})
             self.assertIn("id", json.load(urllib.request.urlopen(req)))
-            self.assertIn(b"KBRAIN", urllib.request.urlopen(base + "/").read())
+            self.assertIn(b"<title>kbrain HQ</title>", urllib.request.urlopen(base + "/").read())
         finally:
             srv.shutdown()
 

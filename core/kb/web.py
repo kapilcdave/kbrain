@@ -19,6 +19,7 @@ def state(c):
     return {
         "now": now, "stop": runner.STOP.exists(), "mem_mb": runner.mem_available_mb(),
         "runner_age_s": (now - alive) if alive else None,
+        "runner_state": runner.ALIVE.read_text()[:120] if alive else None,
         "runs_today": runner.runs_last_day(c), "max_runs": cfg["limits"].get("max_runs_per_day"),
         "stalled": stalled, "open_slots": lifecycle.open_slots(c, cfg),
         "counts": {r["status"]: r["n"] for r in c.execute("SELECT status, COUNT(*) n FROM tasks GROUP BY status")},

@@ -1,4 +1,4 @@
-import json, re, shutil, time, traceback
+import json, re, shutil, threading, time, traceback
 from pathlib import Path
 from . import adapters, gates, lifecycle
 from .db import ROOT, STATE, connect, event, add_task
@@ -7,6 +7,7 @@ from .router import load_config, pick_model
 RATE_LIMIT = re.compile(r"(rate.?limit|usage limit|limit reached|too many requests|\b429\b|try again (in|at|later)|quota)", re.I)
 STOP = STATE / "STOP"
 ALIVE = STATE / "runner.alive"
+STATUS = "starting"                       # what the runner is doing; published to ALIVE
 
 def lim(cfg, key, default):
     return cfg.get("limits", {}).get(key, default)
@@ -180,18 +181,19 @@ def execute(c, cfg, task):
 
 def tick(c, cfg):
     """One scheduling step: 'ran', 'idle', 'stopped', 'low_mem' or 'budget'."""
+    global STATUS
     STATE.mkdir(parents=True, exist_ok=True)
-    ALIVE.touch()
     if STOP.exists():
-        return "stopped"
-    if mem_available_mb() < lim(cfg, "min_mem_mb", 1200):
-        return "low_mem"
+        STATUS = "stopped"; return "stopped"
+    if (mem := mem_available_mb()) < lim(cfg, "min_mem_mb", 900):
+        STATUS = f"waiting: low memory ({mem}MB free)"; return "low_mem"
     if runs_last_day(c) >= lim(cfg, "max_runs_per_day", 300):
-        return "budget"
+        STATUS = "waiting: daily run budget used"; return "budget"
     heartbeat(c, cfg)
     task = pick(c)
     if not task:
-        return "idle"
+        STATUS = "idle"; return "idle"
+    STATUS = f"working on #{task['id']} ({task['role']})"
     try:
         execute(c, cfg, task)
     except Exception:
@@ -200,8 +202,18 @@ def tick(c, cfg):
         lifecycle.on_failed(c, task, "crash")
     return "ran"
 
+def _publish():
+    while True:                             # liveness even while a 20-minute task runs
+        try:
+            ALIVE.write_text(STATUS)
+        except OSError:
+            pass
+        time.sleep(10)
+
 def serve(poll_s=10):
     adapters.load_env()
+    STATE.mkdir(parents=True, exist_ok=True)
+    threading.Thread(target=_publish, daemon=True).start()
     c = connect()
     c.execute("UPDATE tasks SET status='queued' WHERE status='running'")   # crash recovery
     event(c, "runner", "runner.started")

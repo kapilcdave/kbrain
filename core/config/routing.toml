@@ -6,7 +6,7 @@
 # see [providers]), shell (deterministic).  api models can't touch files: use for text-only roles.
 
 [limits]
-min_mem_mb = 1200            # ~8GB box: don't launch agents under memory pressure
+min_mem_mb = 900             # ~8GB box: don't launch agents under memory pressure
 max_queued = 50
 max_depth = 3                # chief -> worker -> worker
 rate_limit_backoff_s = 1800
