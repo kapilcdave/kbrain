@@ -327,11 +327,7 @@ function drawAgent(a) {
   const pal = {h:a.m.hair, k:a.m.skin, e:"#111", m:"#7a3b2e", s:a.m.shirt, a:a.m.acc, p:"#2d3446", b:"#141414"};
   const rows = BODY.concat(LEGS[a.moving ? Math.floor(a.walkT / 160) % 2 : 0]);
   if (THEME === "minimal" && (clock + Object.keys(ROLE).indexOf(a.role) * 977) % 4300 < 130) pal.e = pal.k;   // blink
-  if (THEME === "minimal") {                         // contrast on black: lift the darkest colors, then rim the silhouette
-    Object.assign(pal, {p:"#4d5672", b:"#3b3f4c", h:mix(a.m.hair, .22, [150, 150, 160])});
-    for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2]])
-      rows.forEach((row, ry) => { for (let rx = 0; rx < 12; rx++) if (row[rx] !== ".") px(ox + rx * SS + dx, oy + ry * SS + dy, SS, SS, "#6b6f80"); });
-  }
+  if (THEME === "minimal") Object.assign(pal, {p:"#4d5672", b:"#3b3f4c", h:mix(a.m.hair, .22, [150, 150, 160])});   // lift darkest colors on black
   rows.forEach((row, ry) => { for (let rx = 0; rx < 12; rx++) { const ch = row[rx]; if (ch !== ".") px(ox + rx * SS, oy + ry * SS, SS, SS, pal[ch]); } });
   ctx.globalAlpha = 1;
   if (a.mood === "sleep") text("z", a.x + 14, a.y - 60 - (clock / 30 % 14), 8, "#b48cff");
