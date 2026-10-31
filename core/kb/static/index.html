@@ -39,12 +39,12 @@ header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 18px
 main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;padding:14px}
 @media (max-width:1100px){main{grid-template-columns:1fr}}
 .world{border:3px solid var(--line);background:#000;position:relative}
-.pop{position:absolute;display:none;z-index:4;width:290px;background:#0d0e12;color:#f2f2f2;border:3px solid #e6e6e6;padding:10px 13px 11px;
-  font:18px/1.15 var(--mono);box-shadow:5px 5px 0 #000}
+.pop{position:absolute;display:none;z-index:4;width:340px;background:#0d0e12;color:#f2f2f2;border:3px solid #e6e6e6;padding:10px 13px 11px;
+  font:21px/1.15 var(--mono);box-shadow:5px 5px 0 #000}
 .pop:before,.pop:after{content:"";position:absolute;background:#e6e6e6;width:7px;height:7px}
 .pop:before{left:-10px;top:22px}.pop:after{left:-17px;top:29px}
 .pop.flip:before{left:auto;right:-10px}.pop.flip:after{left:auto;right:-17px}
-.pop .who{font-family:var(--px);font-size:9px;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+.pop .who{font-family:var(--px);font-size:11px;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
 .pop .t{color:#8a8d99}.pop .doing{margin:2px 0 6px}.pop .sum{border-top:1px dashed #2a2d38;margin-top:7px;padding-top:6px;color:#c9cbd3}
 .pop a{color:#e0b040;cursor:pointer;text-decoration:none}.pop .row{display:flex;justify-content:space-between;margin-top:8px}
 canvas{display:block;width:100%;height:auto;image-rendering:pixelated;cursor:pointer}
@@ -148,7 +148,7 @@ const PIPE = {beltY:285, st:{chief:130, researcher:310, backtester:490, skeptic:
 const STAGE_X = {idea:130, prereg:310, backtest:490, review:670};
 const GATE = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#f4c542"};
 const HCOL = {idea:"#8d8fa8", prereg:"#5aa9ff", backtest:"#5fd068", review:"#f4c542", validated:"#f4c542", rejected:"#ef5b5b", parked:"#555a78"};
-const MIN = {chief:{x:150, y:190}, researcher:{x:560, y:160}, backtester:{x:250, y:360}, skeptic:{x:650, y:380}, curator:{x:420, y:540}};
+const MIN = {chief:{x:110, y:200}, researcher:{x:560, y:170}, backtester:{x:200, y:400}, skeptic:{x:640, y:420}, curator:{x:400, y:575}};
 const MINCOL = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#ef6b6b", curator:"#b48cff"};
 function homeOf(role) {
   if (THEME === "minimal") return MIN[role];
@@ -188,7 +188,11 @@ class Agent {
     if (this.moodT > 0 && (this.moodT -= dt) <= 0) this.mood = null;
   }
   setMood(m, ms) { this.mood = m; this.moodT = ms; }
-  hit(px, py) { return Math.abs(px - this.x) < 26 && py > this.y - 66 && py < this.y + 8; }
+  hit(px, py) {
+    const big = THEME === "minimal", b = this.bub;
+    if (Math.abs(px - this.x) < (big ? 34 : 26) && py > this.y - (big ? 86 : 66) && py < this.y + (big ? 26 : 8)) return true;
+    return big && !!b && px >= b.x - 12 && px <= b.x + b.w + 12 && py >= b.y && py <= b.y + b.h;
+  }
 }
 const agents = Object.keys(ROLE).map(r => new Agent(r));
 const byRole = Object.fromEntries(agents.map(a => [a.role, a]));
@@ -321,7 +325,7 @@ function lights() {                                  // lamplight: a warm pool o
 
 function drawAgent(a) {
   const sitting = a.task && !a.moving, bob = sitting ? (Math.floor(clock / 220) % 2) : 0;
-  const SS = THEME === "minimal" ? 4 : S, ox = a.x - 6 * SS, oy = a.y - 16 * SS + bob;
+  const SS = THEME === "minimal" ? 5 : S, ox = a.x - 6 * SS, oy = a.y - 16 * SS + bob;
   if (THEME === "lamplight" && !a.task) ctx.globalAlpha = .45;
   ctx.fillStyle = THEME === "blueprint" ? "#06182c" : "#00000055"; ctx.beginPath(); ctx.ellipse(a.x, a.y + 1, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
   const pal = {h:a.m.hair, k:a.m.skin, e:"#111", m:"#7a3b2e", s:a.m.shirt, a:a.m.acc, p:"#2d3446", b:"#141414"};
@@ -432,34 +436,36 @@ function wrap(str, n, max = 3) {
   return out;
 }
 function speech(a, lines, sub, faint) {
-  const lh = 15, padX = 10, padY = 8;
-  ctx.font = fontFor(7); let tw = Math.max(...lines.map(l => ctx.measureText(l).width));
-  if (sub) { ctx.font = fontFor(6); tw = Math.max(tw, ctx.measureText(sub).width); }
-  const w = Math.ceil(tw) + padX * 2, h = lines.length * lh + (sub ? 13 : 0) + padY * 2 - 3;
-  let x = a.x + 40; const y = a.y - 76, right = x + w <= W - 6;
-  if (!right) x = a.x - 40 - w;
+  const lh = 19, padX = 11, padY = 9;
+  ctx.font = fontFor(9); let tw = Math.max(...lines.map(l => ctx.measureText(l).width));
+  if (sub) { ctx.font = fontFor(7); tw = Math.max(tw, ctx.measureText(sub).width); }
+  const w = Math.ceil(tw) + padX * 2, h = lines.length * lh + (sub ? 16 : 0) + padY * 2 - 4;
+  let x = a.x + 46; const y = Math.max(4, a.y - 96), right = x + w <= W - 6;
+  if (!right) x = a.x - 46 - w;
+  a.bub = {x, y, w, h};
   const bd = faint ? "#3a3d48" : "#e6e6e6";
   px(x + 3, y, w - 6, h, bd); px(x, y + 3, w, h - 6, bd);            // pixel-rounded border
   px(x + 3, y + 3, w - 6, h - 6, "#0d0e12");
   const ty = y + h - 14;                                              // tail toward the dude
   if (right) { px(x - 5, ty, 5, 5, bd); px(x - 10, ty + 5, 5, 5, bd); } else { px(x + w, ty, 5, 5, bd); px(x + w + 5, ty + 5, 5, 5, bd); }
-  lines.forEach((l, i) => text(l, x + padX, y + padY + i * lh, 7, faint ? "#8a8d99" : "#f2f2f2"));
-  if (sub) text(sub, x + padX, y + padY + lines.length * lh + 1, 6, "#8a8d99");
+  lines.forEach((l, i) => text(l, x + padX, y + padY + i * lh, 9, faint ? "#9a9ca8" : "#f2f2f2"));
+  if (sub) text(sub, x + padX, y + padY + lines.length * lh + 2, 7, "#9a9ca8");
 }
 function drawMinimal() {
   px(0, 0, W, H, "#060709");
   const online = STATE && STATE.runner_age_s !== null && STATE.runner_age_s < 45;
   [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
   for (const a of agents) {
-    text(a.m.name.toLowerCase(), a.x, a.y + 10, 7, "#8a8d99", "center");
+    text(a.m.name.toLowerCase(), a.x, a.y + 12, 8, "#9a9ca8", "center");
+    a.bub = null;
     if (POP.agent === a) continue;                    // the open popup speaks for this one
     let lines, sub = null, faint = false;
-    if (a.note && a.note.until > clock) lines = wrap(a.note.text, 30, 2);
+    if (a.note && a.note.until > clock) lines = wrap(a.note.text, 26, 2);
     else if (!STATE) lines = ["…"], faint = true;
     else if (STATE.stop) lines = ["stopped"];
-    else if (!online) { lines = ["offline"]; faint = true; if (a.role === "chief") { lines = ["zzz… the runner is off"]; sub = "start it: kb serve"; faint = false; } }
-    else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 30); sub = (a.task.model || "").split(":").pop() || "starting…"; }
-    else if (a.mood === "sleep") lines = ["napping · rate limited"];
+    else if (!online) { lines = ["offline"]; faint = true; if (a.role === "chief") { lines = ["zzz… the runner is off"]; sub = "start it: kb serve"; } }
+    else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 26); sub = (a.task.model || "").split(":").pop() || "starting…"; }
+    else if (a.mood === "sleep") lines = ["napping · rate limited"], faint = true;
     else lines = ["idle"], faint = true;
     speech(a, lines, sub, faint);
   }
@@ -493,10 +499,10 @@ function placePop() {
   const el = $("#pop"), b = cv.getBoundingClientRect(), wr = cv.parentElement.getBoundingClientRect();
   const k = Math.min(b.width / W, b.height / H), ox = b.left - wr.left + (b.width - W * k) / 2, oy = b.top - wr.top + (b.height - H * k) / 2;
   const a = POP.agent, sx = ox + a.x * k, sy = oy + a.y * k, pw = el.offsetWidth;
-  const flip = sx + 44 * k + pw > wr.width - 8;
+  const flip = sx + 50 * k + pw > wr.width - 8;
   el.classList.toggle("flip", flip);
-  el.style.left = `${flip ? sx - 44 * k - pw : sx + 44 * k}px`;
-  el.style.top = `${Math.max(8, sy - 80 * k)}px`;
+  el.style.left = `${flip ? sx - 50 * k - pw : sx + 50 * k}px`;
+  el.style.top = `${Math.max(8, Math.min(wr.height - el.offsetHeight - 8, sy - 96 * k))}px`;
 }
 function note(role, s, c) { const a = byRole[role]; if (a) a.note = {text:s, c, until:clock + 4000}; }
 function animateMinimal(e) {
