@@ -1,0 +1,18 @@
+[Unit]
+Description=kbrain-core runner
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/proj/kbrain/core
+ExecStart=%h/proj/kbrain/core/bin/kb serve
+Restart=always
+RestartSec=20
+# keep agents from starving the desktop on an 8GB machine
+MemoryHigh=3G
+MemoryMax=4G
+CPUWeight=50
+Nice=10
+
+[Install]
+WantedBy=default.target
