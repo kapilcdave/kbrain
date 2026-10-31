@@ -14,6 +14,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono)
 button,input,select{font:inherit;color:inherit}
 header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 18px;border-bottom:3px solid var(--line);background:var(--panel)}
 :root[data-theme=lamplight]{--bg:#07080c;--panel:#0d0f15;--panel2:#131620;--line:#1f2230;--gold:#e8c468}
+:root[data-theme=pipeline]{--bg:#07080c;--panel:#0c0d12;--panel2:#13151c;--line:#1f2230;--gold:#f4c542}
 :root[data-theme=blueprint]{--bg:#071c33;--panel:#0a2540;--panel2:#0e2f52;--line:#24578a;--ink:#e6f1ff;--dim:#8fb3d9;--gold:#ffd166}
 .themes{display:flex;gap:2px;padding:2px 4px}.themes button{background:none;border:0;color:var(--dim);cursor:pointer;font-family:var(--px);font-size:8px;padding:4px 6px}
 .themes button.on{color:var(--gold)}
@@ -64,7 +65,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#07080f;border:2px sol
 <header>
   <div class="logo">KBRAIN HQ<small>RESEARCH ENGINE · KAPIL'S AGENTS</small></div>
   <div class="chips">
-    <span class="chip themes" id="themes"><button data-theme-btn="classic">CLASSIC</button><button data-theme-btn="lamplight">LAMPLIGHT</button><button data-theme-btn="blueprint">BLUEPRINT</button></span>
+    <span class="chip themes" id="themes"><button data-theme-btn="classic">CLASSIC</button><button data-theme-btn="lamplight">LAMPLIGHT</button><button data-theme-btn="blueprint">BLUEPRINT</button><button data-theme-btn="pipeline">PIPELINE</button></span>
     <span class="chip"><span class="dot" id="runnerDot"></span><span id="runnerTxt">runner</span></span>
     <span class="chip" id="runsChip">runs —</span>
     <span class="chip" id="memChip">mem —</span>
@@ -125,7 +126,18 @@ const ROOMS = [
   {name:"MAILROOM · QUEUE", f1:"#2c2c30", f2:"#333338", wall:"#46464e"},
 ].map((r, i) => ({...r, x:(i % 3) * 320, y:Math.floor(i / 3) * 300}));
 const MAIL = ROOMS[5];
-const roomCenter = i => ({x:ROOMS[i].x + 160, y:ROOMS[i].y + 200});
+const PIPE = {beltY:285, st:{chief:130, researcher:310, backtester:490, skeptic:670}, exitX:860,
+              binX:770, binY:430, shelf:{x0:150, x1:440, y:455}, curator:{x:575, y:485}, inbox:{x:70, y:70}};
+const STAGE_X = {idea:130, prereg:310, backtest:490, review:670};
+const GATE = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#f4c542"};
+const HCOL = {idea:"#8d8fa8", prereg:"#5aa9ff", backtest:"#5fd068", review:"#f4c542", validated:"#f4c542", rejected:"#ef5b5b", parked:"#555a78"};
+function homeOf(role) { return role === "curator" ? PIPE.curator : {x:PIPE.st[role], y:PIPE.beltY - 30}; }
+const roomCenter = i => {
+  if (THEME !== "pipeline") return {x:ROOMS[i].x + 160, y:ROOMS[i].y + 200};
+  if (i === 5) return {x:PIPE.inbox.x, y:PIPE.inbox.y + 20};
+  const h = homeOf(Object.keys(ROLE)[i]); return {x:h.x, y:h.y - 20};
+};
+const mailPos = () => THEME === "pipeline" ? {x:PIPE.inbox.x, y:PIPE.inbox.y + 20} : {x:MAIL.x + 230, y:MAIL.y + 200};
 
 const BODY = ["...hhhhhh...","..hhhhhhhh..","..hkkkkkkh..","..kekkkkek..","..kkkkkkkk..","...kkmmkk...","....kkkk....",
               "..ssssssss..",".sssssassss.","ksssssassssk","k.ssssssss.k","..pppppppp.."];
@@ -138,11 +150,12 @@ class Agent {
     this.tx = this.x; this.ty = this.y; this.wait = 0; this.walkT = 0; this.moving = false;
     this.task = null; this.mood = null; this.moodT = 0;
   }
-  desk() { return {x:this.r.x + 160, y:this.r.y + 126}; }
+  desk() { return THEME === "pipeline" ? homeOf(this.role) : {x:this.r.x + 160, y:this.r.y + 126}; }
   update(dt) {
     if (this.task) { const d = this.desk(); this.tx = d.x; this.ty = d.y; }
     else if (Math.hypot(this.tx - this.x, this.ty - this.y) < 1 && (this.wait -= dt) <= 0) {
-      this.tx = this.r.x + 40 + Math.random() * 240; this.ty = this.r.y + 195 + Math.random() * 80;
+      if (THEME === "pipeline") { const h = homeOf(this.role); this.tx = h.x + (Math.random() - .5) * 44; this.ty = h.y - Math.random() * 6; }
+      else { this.tx = this.r.x + 40 + Math.random() * 240; this.ty = this.r.y + 195 + Math.random() * 80; }
       this.wait = 1500 + Math.random() * 3500;
     }
     const dx = this.tx - this.x, dy = this.ty - this.y, dist = Math.hypot(dx, dy);
@@ -165,13 +178,21 @@ ctx.imageSmoothingEnabled = false;
 
 // ---------- themes ----------
 const BP = {bg:"#0a2540", grid:"#0f3156", line:"#a9d1f7", faint:"#3a73aa", hi:"#ffd166"};
-const DIMC = {classic:"#8d8fa8", lamplight:"#4a4f60", blueprint:"#5d8fc4"};
+const DIMC = {classic:"#8d8fa8", lamplight:"#4a4f60", blueprint:"#5d8fc4", pipeline:"#4a4f60"};
 let THEME = "classic";
 try { THEME = localStorage.getItem("kb-theme") || "classic"; } catch (_) {}
 THEME = new URLSearchParams(location.search).get("theme") || THEME;
-if (!["classic", "lamplight", "blueprint"].includes(THEME)) THEME = "classic";
+if (!["classic", "lamplight", "blueprint", "pipeline"].includes(THEME)) THEME = "classic";
+function placeAgents() {                           // start everyone at their post for the current layout
+  for (const a of agents) {
+    if (THEME === "pipeline") { const h = homeOf(a.role); a.x = h.x + (Math.random() - .5) * 30; a.y = h.y; }
+    else { a.x = a.r.x + 60 + Math.random() * 200; a.y = a.r.y + 230; }
+    a.tx = a.x; a.ty = a.y;
+  }
+}
 function setTheme(t) {
-  THEME = t; document.documentElement.dataset.theme = t;
+  const relayout = (t === "pipeline") !== (THEME === "pipeline");
+  THEME = t; if (relayout) placeAgents(); document.documentElement.dataset.theme = t;
   try { localStorage.setItem("kb-theme", t); } catch (_) {}
   document.querySelectorAll("[data-theme-btn]").forEach(b => b.classList.toggle("on", b.dataset.themeBtn === t));
 }
@@ -292,7 +313,8 @@ function bubble(a) {
   else return text(THEME === "classic" ? a.m.name.toUpperCase() : a.m.name.toLowerCase(), a.x, a.y - 62, 6, DIMC[THEME], "center");
   l1 = l1.length > 30 ? l1.slice(0, 29) + "…" : l1;
   const sty = {classic:{bg:"#ece8d6", bd:null, t1:"#111", t2:"#2b6cb0"}, lamplight:{bg:"#15171d", bd:"#e8c468", t1:"#ece8d6", t2:"#8d8fa8"},
-               blueprint:{bg:BP.bg, bd:BP.hi, t1:"#e6f1ff", t2:BP.line}}[THEME];
+               blueprint:{bg:BP.bg, bd:BP.hi, t1:"#e6f1ff", t2:BP.line},
+               pipeline:{bg:"#13151c", bd:GATE[a.role] || "#b48cff", t1:"#ece8d6", t2:"#8d8fa8"}}[THEME];
   ctx.font = fontFor(7);
   const lh = THEME === "classic" ? 12 : 14, w = Math.max(ctx.measureText(l1).width, ctx.measureText(l2).width) + 14, h = l2 ? lh * 2 + 8 : lh + 8;
   const bx = Math.max(4, Math.min(W - w - 4, a.x - w / 2)), by = a.y - 66 - h;
@@ -306,14 +328,88 @@ function burst(x, y, colors, n = 26) { for (let k = 0; k < n; k++) particles.pus
 function float(x, y, s, c, size = 9) { floats.push({x, y, s, c, size, life:2200}); }
 function fly(from, to, seal) { letters.push({...from, x1:to.x, y1:to.y, x0:from.x, y0:from.y, t:0, dur:1300, seal}); }
 
+// ---------- pipeline layout: hypotheses are crates on an assembly line ----------
+const crates = new Map();
+function crateTargets() {
+  if (!STATE) return;
+  const groups = {}, seen = new Set();
+  for (const h of STATE.hypotheses.slice(0, 80)) (groups[h.status] ||= []).push(h);
+  for (const [st, list] of Object.entries(groups)) list.forEach((h, k) => {
+    let tx, ty;
+    if (STAGE_X[st] !== undefined) { tx = STAGE_X[st] - 54 - (k % 3) * 24; ty = PIPE.beltY - 14 - Math.floor(k / 3) * 15; }
+    else if (st === "validated") { tx = PIPE.exitX - 12 + (k % 2) * 24; ty = PIPE.beltY - 14 - Math.floor(k / 2) * 15; }
+    else if (st === "rejected") { tx = PIPE.binX - 33 + (k % 4) * 22; ty = PIPE.binY + 30 - Math.floor(k / 4) * 15; }
+    else { tx = PIPE.shelf.x0 + 14 + (k % 12) * 24; ty = PIPE.shelf.y - 14 - Math.floor(k / 12) * 15; }
+    let c = crates.get(h.slug);
+    if (!c) { c = {x:-30, y:PIPE.beltY - 14}; crates.set(h.slug, c); }          // new crates roll in from the left
+    Object.assign(c, {slug:h.slug, status:st, reason:h.reason, k, tx, ty}); seen.add(h.slug);
+  });
+  for (const k of [...crates.keys()]) if (!seen.has(k)) crates.delete(k);
+}
+function moveCrates(dt) {
+  const f = Math.min(1, dt * 0.004);
+  for (const c of crates.values()) {
+    const offBelt = c.status === "rejected" || c.status === "parked";
+    if (offBelt && Math.abs(c.tx - c.x) > 3 && c.y < PIPE.beltY) c.x += (c.tx - c.x) * f;   // ride the belt first, then drop
+    else { c.x += (c.tx - c.x) * f; c.y += (c.ty - c.y) * f * (offBelt ? 1.6 : 1); }
+  }
+}
+function drawCrates() {
+  for (const c of crates.values()) {
+    const col = HCOL[c.status] || "#8d8fa8", x = Math.round(c.x) - 10, y = Math.round(c.y);
+    if (c.status === "validated") { ctx.globalAlpha = .25 + .2 * Math.sin(clock / 300); px(x - 3, y - 3, 26, 20, col); ctx.globalAlpha = 1; }
+    px(x, y, 20, 14, "#1d1f28"); ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.strokeRect(x + .5, y + .5, 19, 13);
+    px(x + 7, y + 4, 6, 6, col);
+    if (c.k === 0 && STAGE_X[c.status] !== undefined) text(c.slug.length > 13 ? c.slug.slice(0, 12) + "…" : c.slug, c.x, y - 13, 6, "#8d8fa8", "center");
+  }
+}
+function drawPipeline() {
+  const y = PIPE.beltY, n = st => STATE ? STATE.hypotheses.filter(h => h.status === st).length : 0;
+  px(0, 0, W, H, "#0c0d12");
+  // inbox
+  const q = STATE ? (STATE.counts.queued || 0) : 0, ib = PIPE.inbox;
+  ctx.strokeStyle = "#2c2f3b"; ctx.lineWidth = 1; ctx.strokeRect(ib.x - 40.5, ib.y - 6.5, 80, 28);
+  for (let k = 0; k < Math.min(q, 10); k++) px(ib.x - 32, ib.y + 14 - k * 4, 64, 2, k % 2 ? "#ece8d6" : "#8d8fa8");
+  text("inbox", ib.x, ib.y + 32, 7, q ? "#ece8d6" : "#4a4f60", "center"); text(`${q} queued`, ib.x, ib.y + 46, 6, q ? "#f4c542" : "#4a4f60", "center");
+  // belt
+  px(20, y, 880, 18, "#15171e"); px(20, y, 880, 1, "#2c2f3b"); px(20, y + 17, 880, 1, "#2c2f3b");
+  for (let x0 = 0; x0 < 880; x0 += 26) px(20 + ((x0 + clock * 0.02) % 880), y + 8, 10, 2, "#23262f");
+  for (const rx of [20, 900]) { ctx.strokeStyle = "#2c2f3b"; ctx.beginPath(); ctx.arc(rx, y + 9, 9, 0, Math.PI * 2); ctx.stroke(); }
+  // stage labels
+  for (const [st, sx] of Object.entries(STAGE_X)) { text(st, sx, y + 30, 7, HCOL[st], "center"); text(String(n(st)), sx, y + 44, 6, "#4a4f60", "center"); }
+  // exit pad, reject chute + bin, parked shelf, curator desk
+  px(PIPE.exitX - 30, y + 18, 60, 3, "#f4c542"); text("validated", PIPE.exitX, y + 30, 7, "#f4c542", "center"); text(String(n("validated")), PIPE.exitX, y + 44, 6, "#4a4f60", "center");
+  ctx.setLineDash([3, 4]); ctx.strokeStyle = "#5a2a2e"; ctx.beginPath(); ctx.moveTo(PIPE.binX + .5, y + 18); ctx.lineTo(PIPE.binX + .5, PIPE.binY - 12); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = "#ef5b5b"; ctx.strokeRect(PIPE.binX - 45.5, PIPE.binY - 10.5, 92, 58);
+  text(`rejected ${n("rejected")}`, PIPE.binX, PIPE.binY + 54, 7, "#ef5b5b", "center");
+  px(PIPE.shelf.x0, PIPE.shelf.y, PIPE.shelf.x1 - PIPE.shelf.x0, 3, "#2c2f3b");
+  text(`parked ${n("parked")}`, (PIPE.shelf.x0 + PIPE.shelf.x1) / 2, PIPE.shelf.y + 10, 7, "#555a78", "center");
+  px(PIPE.curator.x - 34, PIPE.curator.y - 16, 68, 3, byRole.curator.task ? ROLE.curator.shirt : "#2c2f3b");
+  text("archive", PIPE.curator.x, PIPE.curator.y + 14, 7, "#4a4f60", "center");
+  if (STATE && !(STATE.runner_age_s !== null && STATE.runner_age_s < 45)) text("runner offline: start it with kb serve", 24, 20, 7, "#ef5b5b");
+}
+function drawGates() {
+  const y = PIPE.beltY;
+  for (const [role, x] of Object.entries(PIPE.st)) {
+    const on = !!byRole[role].task, c = on ? GATE[role] : "#262935";
+    px(x - 38, y - 84, 3, 102, c); px(x + 35, y - 84, 3, 102, c); px(x - 38, y - 84, 76, 3, c);
+    if (on) { ctx.globalAlpha = .35; px(x - 34 + ((clock / 7) % 68), y - 80, 2, 98, GATE[role]); ctx.globalAlpha = 1; }
+  }
+}
+
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(64, now - last); last = now; clock += dt;
-  ROOMS.forEach(drawRoom);
   agents.forEach(a => a.update(dt));
-  [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
-  for (let i = 0; i < 5; i++) drawDesk(i);
-  walls(); lights();
+  if (THEME === "pipeline") {
+    drawPipeline(); [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
+    moveCrates(dt); drawCrates(); drawGates();
+  } else {
+    ROOMS.forEach(drawRoom);
+    [...agents].sort((p, q) => p.y - q.y).forEach(drawAgent);
+    for (let i = 0; i < 5; i++) drawDesk(i);
+    walls(); lights();
+  }
   letters = letters.filter(l => (l.t += dt) < l.dur);
   for (const l of letters) { const t = l.t / l.dur, x = l.x0 + (l.x1 - l.x0) * t, y = l.y0 + (l.y1 - l.y0) * t - Math.sin(Math.PI * t) * 60; envelope(x - 7, y - 4, l.seal); }
   particles = particles.filter(p => (p.life -= dt) > 0);
@@ -338,8 +434,8 @@ function animate(e) {
   switch (e.kind) {
     case "task.created": { const src = e.actor === "heartbeat" ? roomCenter(0) : (e.actor.startsWith("user") ? {x:W / 2, y:H} : e.actor === "lifecycle" ? roomCenter(4) : roomCenter(0));
       if (e.actor === "heartbeat") float(src.x, src.y - 80, "⏰ HEARTBEAT", "#f4c542", 8);
-      fly(src, {x:MAIL.x + 230, y:MAIL.y + 200}, ROLE[d.role] ? ROLE[d.role].shirt : "#f4c542"); break; }
-    case "run.started": if (a) fly({x:MAIL.x + 230, y:MAIL.y + 200}, a.desk(), a.m.shirt); break;
+      fly(src, mailPos(), ROLE[d.role] ? ROLE[d.role].shirt : "#f4c542"); break; }
+    case "run.started": if (a) fly(mailPos(), a.desk(), a.m.shirt); break;
     case "task.done": if (a) { burst(a.x, a.y - 50, ["#f4c542", "#5fd068", "#5aa9ff", "#ef5b5b"]); float(a.x, a.y - 90, "✓ DONE", "#5fd068"); } break;
     case "task.failed": case "task.crashed": if (a) float(a.x, a.y - 90, "✗ FAILED", "#ef5b5b"); break;
     case "task.retry": if (a) float(a.x, a.y - 90, "↻ RETRY", "#f4c542", 8); break;
@@ -385,6 +481,7 @@ async function pollState() {
   $("#stopBtn").textContent = s.stop ? "RESUME" : "STOP"; $("#stopBtn").className = "btn " + (s.stop ? "go" : "stop");
   $("#ackBtn").style.display = s.stalled ? "" : "none"; $("#stallBar").style.display = s.stalled ? "block" : "none";
   for (const a of agents) a.task = s.running.find(t => t.role === a.role) || null;
+  crateTargets();
 
   $("#board").innerHTML = HSTAGES.map(([st, col]) => {
     const hs = s.hypotheses.filter(h => h.status === st);
@@ -421,7 +518,9 @@ function openAgent(a) {
 }
 cv.addEventListener("click", ev => {
   const b = cv.getBoundingClientRect(), x = (ev.clientX - b.left) * W / b.width, y = (ev.clientY - b.top) * H / b.height;
-  const a = agents.find(a => a.hit(x, y)); if (a) openAgent(a);
+  const a = agents.find(a => a.hit(x, y)); if (a) return openAgent(a);
+  if (THEME === "pipeline") for (const c of crates.values()) if (Math.abs(x - c.x) < 13 && y > c.y - 2 && y < c.y + 16)
+    return openDrawer(c.slug, `<p>stage: <b style="color:${HCOL[c.status]}">${esc(c.status)}</b></p>${c.reason ? `<p class="muted">${esc(c.reason)}</p>` : ""}`);
 });
 document.addEventListener("click", ev => {
   const el = ev.target.closest("[data-task],[data-open]"); if (!el) return;
@@ -456,7 +555,7 @@ $("#cmd").onsubmit = async e => {
 $("#stopBtn").onclick = async () => { await api(STATE && STATE.stop ? "/api/resume" : "/api/stop", {}); pollState(); };
 $("#ackBtn").onclick = async () => { await api("/api/ack", {}); pollState(); };
 
-setTheme(THEME);
+placeAgents(); setTheme(THEME);
 pollState(); pollEvents();
 setInterval(pollState, 2000); setInterval(pollEvents, 2000);
 requestAnimationFrame(frame);
