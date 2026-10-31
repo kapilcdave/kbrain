@@ -19,7 +19,7 @@ base_url = "https://openrouter.ai/api/v1"
 key_env = "OPENROUTER_API_KEY"
 
 [roles.chief]                # chief of staff: reads the digest, emits tasks, never executes work
-models = ["claude:claude-sonnet-5-5", "codex:", "agy:gemini-3.8-flash-medium"]
+models = ["claude:claude-sonnet-5-5", "opencode:opencode/big-pickle", "codex:", "agy:gemini-3.8-flash-medium"]
 timeout_s = 900
 tools = ["Read", "Write"]
 can_spawn = true
@@ -36,13 +36,13 @@ timeout_s = 600
 tools = ["Read", "Write", "Edit"]
 
 [roles.backtester]           # writes + runs code; blocked without a complete prereg
-models = ["claude:claude-sonnet-5-5", "codex:", "agy:gemini-3.8-flash-medium"]
+models = ["claude:claude-sonnet-5-5", "codex:", "opencode:opencode/big-pickle", "agy:gemini-3.8-flash-medium"]
 timeout_s = 1800
 tools = ["Read", "Write", "Edit", "Bash(python3:*)"]
 requires_prereg = true
 
 [roles.skeptic]              # prefers a different backend family than the backtester's
-models = ["codex:", "agy:gemini-3.8-flash-medium", "claude:claude-sonnet-5-5"]
+models = ["codex:", "opencode:opencode/big-pickle", "claude:claude-sonnet-5-5", "agy:gemini-3.8-flash-medium"]
 timeout_s = 1200
 tools = ["Read", "Write", "Bash(python3:*)"]
 independent_of = "backtester"
