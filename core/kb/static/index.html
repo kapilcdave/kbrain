@@ -637,7 +637,7 @@ cv.addEventListener("click", ev => {
   const b = cv.getBoundingClientRect(), k = Math.min(b.width / W, b.height / H);
   const x = (ev.clientX - b.left - (b.width - W * k) / 2) / k, y = (ev.clientY - b.top - (b.height - H * k) / 2) / k;
   const a = agents.find(a => a.hit(x, y));
-  if (a) return THEME === "minimal" ? openPop(a) : openAgent(a);
+  if (a) return THEME !== "minimal" ? openAgent(a) : POP.agent === a ? closePop() : openPop(a);   // click again to collapse
   closePop();
   if (THEME === "pipeline") for (const c of crates.values()) if (Math.abs(x - c.x) < 13 && y > c.y - 2 && y < c.y + 16)
     return openDrawer(c.slug, `<p>stage: <b style="color:${HCOL[c.status]}">${esc(c.status)}</b></p>${c.reason ? `<p class="muted">${esc(c.reason)}</p>` : ""}`);
