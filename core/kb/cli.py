@@ -3,32 +3,60 @@ from datetime import datetime
 from .db import STATE, connect, add_task, event
 from . import runner, lifecycle
 
-LOGO = r"""
- ██╗  ██╗██████╗ ██████╗  █████╗ ██╗███╗   ██╗
- ██║ ██╔╝██╔══██╗██╔══██╗██╔══██╗██║████╗  ██║
- █████╔╝ ██████╔╝██████╔╝███████║██║██╔██╗ ██║
- ██╔═██╗ ██╔══██╗██╔══██╗██╔══██║██║██║╚██╗██║
- ██║  ██╗██████╔╝██║  ██║██║  ██║██║██║ ╚████║
- ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝"""
+# Mark: a rising chart in half-block pixels, money green -> blue (in the style of agy's banner).
+MARK = ["..........####", "...........###", "..........#.##", ".........#...#", "..##....#.....",
+        ".####..#......", "##..####......", "#....##.......", "..............", "##############"]
+STOPS = [(10, 92, 54), (20, 128, 72), (16, 122, 120), (28, 92, 190), (47, 111, 235)]
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
-GRAD = [214, 215, 179, 143, 107, 71]
+TRUECOLOR = os.environ.get("COLORTERM", "") in ("truecolor", "24bit")
+
+def grad(t):
+    t = max(0.0, min(1.0, t)) * (len(STOPS) - 1); i = min(int(t), len(STOPS) - 2); f = t - i
+    return tuple(round(a + (b - a) * f) for a, b in zip(STOPS[i], STOPS[i + 1]))
+
+def sgr(rgb, bg=False):
+    if TRUECOLOR:
+        return f"{48 if bg else 38};2;{rgb[0]};{rgb[1]};{rgb[2]}"
+    q = lambda v: 0 if v < 48 else 1 if v < 115 else (v - 35) // 40      # nearest xterm-256 cube cell
+    return f"{48 if bg else 38};5;{16 + 36 * q(rgb[0]) + 6 * q(rgb[1]) + q(rgb[2])}"
 
 def c(code, s):
     return f"\033[{code}m{s}\033[0m" if COLOR else s
 
-def banner():
-    for i, line in enumerate(LOGO.strip("\n").splitlines()):
-        print(c(f"38;5;{GRAD[i % len(GRAD)]};1", line))
-    print(c("2", "        r e s e a r c h   e n g i n e   ·   kapil's agents\n"))
+def mark_lines():
+    h, w, out = len(MARK), len(MARK[0]), []
+    for r in range(0, h, 2):
+        line = ""
+        for x in range(w):
+            top, bot = MARK[r][x] == "#", r + 1 < h and MARK[r + 1][x] == "#"
+            ct, cb = grad(x / w * .7 + r / h * .3), grad(x / w * .7 + (r + 1) / h * .3)
+            if not COLOR:
+                line += "█" if top and bot else "▀" if top else "▄" if bot else " "
+            elif top and bot: line += c(f"{sgr(ct)};{sgr(cb, True)}", "▀")
+            elif top: line += c(sgr(ct), "▀")
+            elif bot: line += c(sgr(cb), "▄")
+            else: line += " "
+        out.append(line)
+    return out
 
-STATUS_COLOR = {"queued": "33", "running": "36;1", "done": "32", "failed": "31", "blocked": "35",
-                "idea": "37", "prereg": "36", "backtest": "34", "review": "33", "validated": "32;1",
+def banner():
+    word = "kbrain"
+    wm = "".join(c(f"1;{sgr(grad(i / (len(word) - 1)))}", ch) for i, ch in enumerate(word))
+    side = ["", wm + c("2", "  research engine"), c("2", "kapil's agents"), "", ""]
+    print()
+    for m, t in zip(mark_lines(), side):
+        print("  " + m + "   " + t)
+    print()
+
+GREEN, TEAL, BLUE = sgr((40, 160, 90)), sgr((22, 150, 150)), sgr((70, 130, 240))
+STATUS_COLOR = {"queued": "33", "running": f"1;{BLUE}", "done": GREEN, "failed": "31", "blocked": "35",
+                "idea": "37", "prereg": TEAL, "backtest": BLUE, "review": "33", "validated": f"1;{GREEN}",
                 "rejected": "31", "parked": "2"}
 
 def status(conn, cfg):
     alive = runner.ALIVE.stat().st_mtime if runner.ALIVE.exists() else 0
     age = time.time() - alive if alive else None
-    light = (c("32", "● " + runner.ALIVE.read_text()[:60]) if age is not None and age < 45
+    light = (c(GREEN, "● " + runner.ALIVE.read_text()[:60]) if age is not None and age < 45
              else c("31", "○ not running (start: kb serve, or systemctl --user start kb-runner)"))
     stalled, _ = lifecycle.stalled(conn, cfg)
     print(f" runner {light}   STOP {c('31;1','ON') if runner.STOP.exists() else 'off'}   "
@@ -94,7 +122,7 @@ def main(argv=None):
             rows = conn.execute("SELECT * FROM (SELECT * FROM events WHERE id>? ORDER BY id DESC LIMIT ?) ORDER BY id", (last, args.n)).fetchall()
             for r in rows:
                 last = r["id"]
-                print(c("2", datetime.fromtimestamp(r["ts"]).strftime("%H:%M:%S")), c("36", r["actor"]), r["kind"], r["task_id"] or "", r["data"][:140])
+                print(c("2", datetime.fromtimestamp(r["ts"]).strftime("%H:%M:%S")), c(BLUE, r["actor"]), r["kind"], r["task_id"] or "", r["data"][:140])
             if not args.f: break
             args.n = 1000; time.sleep(2)
 
