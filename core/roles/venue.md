@@ -26,4 +26,16 @@ Your spec says which job this is:
    `repo/desks/<venue>/deploy-<slug>.md`: what to run, on which box, in DRY mode first, the exact command,
    resources, kill rule, and what evidence would justify arming. Commit.
 
+4) `kind: shift` (your venue is HOT: its markets are trading now, and you work it continuously, shift after
+   shift): produce real numbers from the live market every shift. Use `./kbssh <box> '<cmd>'` to read the
+   tapes and the dry quoter on the box (pull small slices with `tar czf -`, score them locally with python3;
+   never load a whole tape into memory, never score next to a live runner). Pick the ONE most valuable step:
+   a) score a bet or prereg that has enough data now (say how many independent windows you have vs need);
+   b) measure the live market: spreads, depth, fill opportunities our dry quoter saw, edge vs fees per window;
+   c) fix or extend a tape/collector/dry run on the box so tomorrow's test has the data;
+   d) if the numbers suggest a testable edge, write it as a prereg-ready idea in your dossier's queue and put
+      it in result.json as "new_tasks": [{"role":"<venue>","hypothesis":"<slug>","title":"Prereg: ...",
+      "spec":{"domain":"<venue>","idea":"...","mechanism":"...","data":"..."}}] (one at most).
+   Update the dossier (dated, numbers first) and commit. Never arm: say what would justify arming.
+
 Commit in repo/ as `<venue>: ...`. result.json: {"status","summary"(<=60 words, numbers first),"artifacts"}.

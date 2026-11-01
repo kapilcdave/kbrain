@@ -15,7 +15,7 @@ min_mem_mb = 900
 max_queued = 20
 max_depth = 8                # chief -> venue -> backtester -> engineer -> backtester -> skeptic -> venue -> chief
 rate_limit_backoff_s = 1800
-heartbeat_s = 1800           # pipeline idle 30 min with a free slot -> the chief picks the next idea itself
+heartbeat_s = 300            # a free slot for 5 min -> the chief picks the next idea itself (no idling)
 max_runs_per_day = 1000000   # uncapped (operator 2026-11-01); quotas are handled by the rate-limit watchdog
 stall_runs = 30
 dedup_days = 14
@@ -85,14 +85,18 @@ worktree = true
 
 [roles.gemini]
 venue_bro = true
+desk = true                  # HOT VENUE (operator 2026-11-01: Gemini markets are trading): continuous live shifts
 standing_orders = false
+can_spawn = true             # a shift may hand one prereg-ready idea to the pipeline
+spawnable = ["gemini"]
 focus = "Gemini prediction markets: recurring BTC/ETH 5M/15M contracts (basis taker, dry maker/quoter, depth/trade/strike/lead tapes). Box: geminibot (us-east-1), code ~/proj/geminibot."
 models = ["codex:gpt-5.6-luna", "codex:gpt-5.6-terra", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
 timeout_s = 1200
-tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)"]
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "Bash(./kbssh:*)"]
 with_priors = true
 with_corpus = true
 with_fleet = true
+with_data = true
 worktree = true
 
 [roles.polymarket]
