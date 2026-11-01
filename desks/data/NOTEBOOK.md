@@ -1,5 +1,18 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP decision tape remains access-blocked
+
+Measured: the current generic tape auditor passes all six focused regression tests,
+including the timestamped-gap causal-clock fixture. A fresh read-only rustmaker
+attempt still exits 255 before connecting: the workspace has no
+`/home/kapil/.ssh/kbro_ed25519` identity (and the system SSH config also reports a
+permissions error). The completed KAP tape therefore remains unseen.
+
+Inference: no tape-health or executable-gap verdict is possible from this workspace.
+The access failure is independent of the repaired audit control. The existing operator
+request remains the shortest path to the 2026-11-02 decision; do not rerun or replace
+the completed tape.
+
 ## 2026-11-01 — gap-clock audit repair
 
 Measured: review's exact three-row reproducer (`book recv_ns=N+10`, timestamped `gap N+20`,
@@ -54,8 +67,7 @@ flat-memory requirements before the tape is scored; it does not estimate an edge
 
 ## Queue
 
-1. Ask review to recheck the gap-clock repair; once read-only box access is restored, inspect and
-   pull the completed KAP tape. Preserve and
+1. Once read-only box access is restored, inspect and pull the completed KAP tape. Preserve and
    score the existing tape with its frozen scorer. Run the schema-aware auditor first; report its
    seconds-valued receive-time and missing Kalshi venue-time violations as limitations, and require
    `time.time_ns()` plus exchange timestamps in the next recorder run.
