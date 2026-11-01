@@ -125,6 +125,28 @@ contracts. Measured facts are labelled; an inference is not an executable edge._
 
 ## Verdicts
 
+### 2026-11-01 — 08:15Z live-market measurement; still underpowered
+
+Measured on `geminibot` at 08:15Z: 537 MB available RAM and 28 GB free disk;
+all five declared services remained active and the quoter remained DRY. The
+open 08Z depth tape contained 14,473 two-sided Gemini book rows across 13
+symbols. Per-symbol width medians were BTC15M 8c (4,176 rows), ETH15M 12c
+(4,643), SOL15M 12c (1,157), and XRP15M 22c (1,322); these are observed
+book widths, not executable fills or P&L. Since 08:00Z the dry quoter logged
+847 orders, 843 cancels, and zero fills; cumulative log counts were 9,039
+orders and 18,074 cancels. `gb-record` totals reached 188,134 book,
+2,833,252 depth, 31,144 index, 1,098 status, and 662 trade records; the
+strike poller remained at 80 records.
+
+The 08Z file is still open, the known incomplete 06Z interval remains
+excluded, and the frozen BTC clip-10 test still needs 222 independent
+windows. Conclusion: the tape is healthy and the measured market remains
+wide, but there is no maker-fill evidence and the basis test is underpowered;
+continue complete post-recovery collection and do not arm. The workspace
+`./kbssh geminibot` wrapper still fails before connection on the known SSH
+config-permission error; direct read-only SSH was used. [source: 2026-11-01
+remote service journals and `/home/ec2-user/gemdepth/tape_2026110108.jsonl`]
+
 ### 2026-11-01 — 08:13Z collection-health shift; still underpowered
 
 Measured on `geminibot` at 08:13Z: 530 MB available RAM and 28 GB free disk;
