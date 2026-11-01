@@ -161,8 +161,9 @@ Single-substitution assays contain predefined 5-fold cross-validation columns:
 
 Our compute boundary (8 CPU cores, ~7 GB RAM, ~160 GB disk, no GPU) dictates our strategic edge: we do not train large models from scratch; we leverage published zero-shot scores, small CPU-viable PLMs (ESM2-8M/35M), analytical MSA algorithms, and rigorous statistical calibration.
 
-1. **Cheap Zero-Shot Ensembling (Candidate C1)**:
-   - *Question*: Can an unweighted rank average or regularized blend of cheap CPU-computable published scores (GEMME, Site-Independent, EVmutation, VESPA, ESM2-35M) outperform GEMME alone on the 217 ProteinGym substitution assays?
+1. **Pruned Cheap Zero-Shot Ensembling (Candidate C1b, Follow-up to C1)**:
+   - *Status / Finding*: Naive 5-model unweighted rank ensembling (C1) was tested and **rejected** (Task #172/177: net mean $+0.0066$, 95% CI $[-0.0014, +0.0140]$ vs GEMME). Site-Independent profile PSSMs acted as negative drag.
+   - *Open Question*: Does a pruned 4-model ensemble excluding Site-Independent (GEMME + EVmutation + VESPA + ESM2-35M, which showed $+0.0176$, CI $[+0.0094, +0.0257]$ in post-hoc ablation) statistically significantly outperform GEMME across independent protein units under a fresh preregistered test?
    - *Feasibility*: Published scores are fully precomputed on disk (`data/proteingym/zero_shot/`). Evaluating linear or rank blends across 217 assays runs in minutes on CPU.
 2. **Label-Efficient Model Selection at $N=24$ (Candidate C2)**:
    - *Question*: Given only 24 experimental mutant labels for a target protein, can a simple selection rule (e.g. small-sample Spearman or cross-validated ranking) accurately identify whether an MSA model (GEMME) or a PLM (ESM) will perform better on the remaining unobserved mutants?
@@ -192,6 +193,30 @@ Our compute boundary (8 CPU cores, ~7 GB RAM, ~160 GB disk, no GPU) dictates our
 ---
 
 ## Verdicts (Ours, Dated, Newest First)
+
+### 2026-11-01: cheap-zero-shot-ensemble — REJECTED (Null Result vs GEMME)
+- **Hypothesis**: An unweighted 5-model rank-average ensemble of cheap CPU-runnable zero-shot models (GEMME, EVmutation, Site-Independent, VESPA, ESM2-35M) statistically significantly outperforms the best individual member (GEMME) across 217 ProteinGym v1.3 DMS substitution assays evaluated by independent protein target (186 UniProt proteins).
+- **Preregistration**: `inputs/cheap-zero-shot-ensemble.md` (Task #172 / #177).
+- **Evaluator**: `lab/proteingym.py` + `kbstats.py` (2,000 cluster bootstrap resamples, $B=2,000$, $\alpha=0.05$, seed=7).
+- **Result**: **REJECTED (Null Result / Falsified)**
+- **Measured**:
+  - Independent Protein Units ($N = 186$): Net mean per-protein Spearman improvement $\Delta \bar{\rho} = +0.0066$, 95% cluster bootstrap CI $[-0.0014, +0.0140]$. Net mean excluding top unit: $+0.0007$.
+  - Rejection Criterion: $\text{ci\_low} = -0.0014 \le 0.0000$, failing the preregistered threshold for acceptance.
+  - Secondary Per-Assay Units ($N = 217$): Net mean $\Delta \bar{\rho} = +0.0095$, 95% CI $[+0.0021, +0.0166]$. (Naive assay-level evaluation gave false positive significance due to repeated assays per protein).
+  - Absolute Benchmark Metrics: 5-model ensemble achieved mean Spearman $\bar{\rho} = 0.4838$ and aggregate $\bar{\rho}_{\text{agg}} = 0.4668$ (vs GEMME: $\bar{\rho} = 0.4743$, $\bar{\rho}_{\text{agg}} = 0.4547$).
+  - Permutation Control: Shuffled score ranks yielded $\Delta = -0.4798$, 95% CI $[-0.5024, -0.4574]$ ($\bar{\rho} \approx 0.0$).
+  - Leave-One-Out Ablations ($N = 186$ proteins):
+    - Dropping `Site-Independent`: $\Delta = +0.0176$, 95% CI $[+0.0094, +0.0257]$ (**strictly positive**).
+    - Dropping `EVmutation`: $\Delta = +0.0064$, 95% CI $[-0.0020, +0.0144]$ (spans zero).
+    - Dropping `ESM2 (35M)`: $\Delta = +0.0053$, 95% CI $[-0.0017, +0.0117]$ (spans zero).
+    - Dropping `GEMME`: $\Delta = -0.0132$, 95% CI $[-0.0236, -0.0034]$ (strictly negative).
+    - Dropping `VESPA`: $\Delta = -0.0146$, 95% CI $[-0.0237, -0.0061]$ (strictly negative).
+- **Inference**:
+  - Equal-weight rank averaging across diverse cheap models fails to reliably improve upon the best individual member (GEMME). Low-fidelity first-order conservation models (`Site-Independent` PSSM log-odds, standalone $\bar{\rho}=0.3688$) inject uncorrelated noise that dilutes high-order epistatic signal.
+  - Clustering by independent biological target (`UniProt_ID`) is essential to avoid false edges: naive assay-level analysis produces a false-positive edge ($+0.0095$, CI $[+0.0021, +0.0166]$), whereas protein-level clustering correctly reveals the CI crossing zero ($[-0.0014, +0.0140]$).
+- **Field Impact**:
+  - Unweighted ensembles should not blindly include simple profile PSSMs when combining epistatic MSA models and PLMs.
+  - Motivates a targeted pruned ensemble hypothesis (GEMME + EVmutation + VESPA + ESM2-35M), which showed $+0.0176$ per-protein gain in post-hoc ablation and warrants formal preregistration.
 
 ### 2026-11-01: Lab Validation — Exact Reproduction of ProteinGym v1.3 Leaderboard
 - **Evaluator**: `lab/proteingym.py`
