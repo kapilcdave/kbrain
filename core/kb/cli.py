@@ -4,8 +4,8 @@ from .db import STATE, connect, add_task, event
 from . import runner, lifecycle
 
 # Mark: a rising chart in half-block pixels, money green -> blue (in the style of agy's banner).
-MARK = ["..........####", "...........###", "..........#.##", ".........#...#", "#.......#.....",
-        ".#.....#......", "..#...#.......", "...#.#........", "....#.........", "##############"]
+MARK = ["..........#####", "...........####", "..........#####", ".........##..##", "##......##.....",
+        ".##....##......", "..##..##.......", "...####........", "....##.........", "###############"]
 STOPS = [(10, 92, 54), (20, 128, 72), (16, 122, 120), (28, 92, 190), (47, 111, 235)]
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 TRUECOLOR = os.environ.get("COLORTERM", "") in ("truecolor", "24bit")
@@ -23,13 +23,17 @@ def sgr(rgb, bg=False):
 def c(code, s):
     return f"\033[{code}m{s}\033[0m" if COLOR else s
 
-def mark_lines():
+def wave(t, phase):
+    """Cyclic gradient position: phase 0 is the resting look, any phase blends smoothly (no seam)."""
+    return 1 - abs((t + phase) % 2 - 1)
+
+def mark_lines(phase=0.0):
     h, w, out = len(MARK), len(MARK[0]), []
     for r in range(0, h, 2):
         line = ""
         for x in range(w):
             top, bot = MARK[r][x] == "#", r + 1 < h and MARK[r + 1][x] == "#"
-            ct, cb = grad(x / w * .7 + r / h * .3), grad(x / w * .7 + (r + 1) / h * .3)
+            ct, cb = grad(wave(x / w * .7 + r / h * .3, phase)), grad(wave(x / w * .7 + (r + 1) / h * .3, phase))
             if not COLOR:
                 line += "█" if top and bot else "▀" if top else "▄" if bot else " "
             elif top and bot: line += c(f"{sgr(ct)};{sgr(cb, True)}", "▀")
@@ -39,13 +43,21 @@ def mark_lines():
         out.append(line)
     return out
 
-def banner():
+def banner(animate=True, phase=0.0):
+    """Print the mark. On a colour tty it plays a short gradient sweep and settles on `phase`."""
     word = "kbrain"
-    wm = "".join(c(f"1;{sgr(grad(i / (len(word) - 1)))}", ch) for i, ch in enumerate(word))
-    side = ["", wm + c("2", "  research engine"), c("2", "kapil's agents"), "", ""]
+    def frame(ph):
+        wm = "".join(c(f"1;{sgr(grad(wave(i / (len(word) - 1), ph)))}", ch) for i, ch in enumerate(word))
+        side = ["", wm + c("2", "  research engine"), c("2", "kapil's agents"), "", ""]
+        return ["  " + m + "   " + t for m, t in zip(mark_lines(ph), side)]
     print()
-    for m, t in zip(mark_lines(), side):
-        print("  " + m + "   " + t)
+    if animate and COLOR:
+        steps = 16
+        for i in range(steps):
+            lines = frame(phase + 2 * (1 - i / steps))
+            print("\n".join(lines) + f"\033[{len(lines) - 1}A\r", end="", flush=True)
+            time.sleep(0.03)
+    print("\n".join(frame(phase)))
     print()
 
 GREEN, TEAL, BLUE = sgr((40, 160, 90)), sgr((22, 150, 150)), sgr((70, 130, 240))
@@ -102,7 +114,7 @@ def main(argv=None):
     elif args.cmd == "top":
         try:
             while True:
-                print("\033[2J\033[H", end=""); banner(); status(conn, load_config()); time.sleep(2)
+                print("\033[2J\033[H", end=""); banner(animate=False, phase=time.time() / 8 % 2); status(conn, load_config()); time.sleep(2)
         except KeyboardInterrupt:
             pass
     elif args.cmd == "add":
