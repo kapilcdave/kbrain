@@ -102,7 +102,15 @@ def run_agy(model, prompt, workdir, timeout, log_path, tools):
     allow = ["command(cat)", "command(ls)", "command(echo)"]
     if any(t.startswith("Bash(") for t in tools):          # roles with a shell get the ordinary dev toolbox
         allow += [f"command({c})" for c in ("git", "grep", "rg", "find", "head", "tail", "wc", "sort", "uniq", "sed",
-                  "awk", "cut", "diff", "jq", "mkdir", "cp", "mv", "touch", "date", "pwd", "tar", "gzip", "zcat", "file", "stat")]
+                  "awk", "cut", "diff", "jq", "mkdir", "cp", "mv", "touch", "date", "pwd", "tar", "gzip", "zcat", "file", "stat",
+                  "python", "curl", "wget", "unzip", "gunzip", "tee", "xargs", "tr", "printf", "basename", "dirname",
+                  "realpath", "which", "test", "du", "df", "nproc", "free")]
+    if any(t in ("WebFetch", "WebSearch") for t in tools):                 # web roles fetch papers and APIs
+        allow += ["read_url(api.biorxiv.org)", "read_url(export.arxiv.org)", "read_url(arxiv.org)",
+                  "read_url(eutils.ncbi.nlm.nih.gov)", "read_url(www.ncbi.nlm.nih.gov)", "read_url(huggingface.co)",
+                  "read_url(proteingym.org)", "read_url(github.com)", "read_url(raw.githubusercontent.com)",
+                  "read_url(www.biorxiv.org)", "read_url(rest.uniprot.org)", "read_url(www.ebi.ac.uk)",
+                  "read_url(alphafold.ebi.ac.uk)", "read_url(www.rcsb.org)", "read_url(pubmed.ncbi.nlm.nih.gov)"]
     for t in tools:
         if t.startswith("Bash(") and t.endswith(":*)"):
             allow.append(f"command({t[5:-3]})")
