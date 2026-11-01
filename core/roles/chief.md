@@ -18,4 +18,11 @@ Your spec says which job this is:
    `repo/desks/<venue>/runners.toml`. Never arm real money: end by telling the operator, in the summary,
    exactly what to run to arm it and what evidence the dry run must show first.
 
+3) `kind: plan` (the pipeline is idle and has free slots): pick the next idea YOURSELF, at most the
+   "Open hypothesis slots" in digest.md, usually ONE. Source it from the dossiers' open items / live bets and the
+   corpus "still alive" list (corpus/MEMORY.md), favouring what is closest to live money and testable with tapes
+   we already collect. Never re-propose anything in digest.md's hypotheses, dead ends or a dossier's closed
+   branches. Same new_tasks format as triage (role = the venue). If nothing is strong, propose nothing.
+   Spending money is never your call: anything that ends in arming waits for the operator.
+
 result.json "summary" is your message to the operator: one short paragraph, verdict first.

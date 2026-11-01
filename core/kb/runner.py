@@ -116,7 +116,7 @@ def heartbeat(c, cfg):
     last = c.execute("SELECT MAX(created) FROM tasks WHERE role='chief'").fetchone()[0] or 0
     has_work = lifecycle.open_slots(c, cfg) > 0 or c.execute("SELECT 1 FROM ideas WHERE status='new'").fetchone()
     if starving and has_work and time.time() - last >= lim(cfg, "heartbeat_s", 900):
-        add_task(c, "chief", "heartbeat: review state and plan next tasks", {}, actor="heartbeat")
+        add_task(c, "chief", "Pick the next idea (pipeline idle)", {"kind": "plan"}, actor="heartbeat")
 
 def runs_last_day(c):
     """Runs counted against max_runs_per_day: the last 24 h, or since the last `kb budget-reset` if later."""

@@ -80,9 +80,10 @@ def admit(c, cfg, parent, nt):
             return "a prereg task needs a new kebab-case hypothesis slug"
         if (h := hyp(c, slug)):
             return f"hypothesis {slug} already exists ({h['status']})"
-        if open_slots(c, cfg) <= 0:
+        operator_idea = json.loads(parent["spec"] or "{}").get("kind") == "idea"
+        if not operator_idea and open_slots(c, cfg) <= 0:
             return "no open hypothesis slots; finish existing work first"
-        if (w := waiting_on_data(c)) >= L(cfg, "limits", "max_waiting_on_data", 3):
+        if not operator_idea and (w := waiting_on_data(c)) >= L(cfg, "limits", "max_waiting_on_data", 3):
             return f"{w} hypotheses are waiting on data; unblock or close them before starting new ones"
     elif slug:
         if (h := hyp(c, slug)) and h["status"] in TERMINAL:
@@ -134,7 +135,7 @@ def on_result(c, cfg, task, result, workdir):
                          "brief": f"repo/desks/{task['role']}/deploy-{slug}.md"})
             c.execute("UPDATE tasks SET not_before=? WHERE id=?", (time.time() + 180, tid))
         return
-    if kind in ("deploy", "seed", "idea"):
+    if kind in ("deploy", "seed", "idea", "plan"):
         return
     before = hyp(c, slug) if slug else None
     _route(c, cfg, task, result, workdir)
