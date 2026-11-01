@@ -1,5 +1,19 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP tape still blocked; no local recovery artifact
+
+Measured: a fresh read-only `./kbssh rustmaker` attempt again failed before any
+connection because `/home/kapil/.ssh/kbro_ed25519` is absent and the system SSH
+configuration reports a permissions error. The workspace's `data/` tree contains no
+files, including no failed-job log or partial KAP payload that could be audited as a
+fallback. Review has independently accepted the six-test gap-clock auditor repair.
+
+Inference: this shift adds no tape-health or edge evidence. Recollecting would replace
+the frozen three-hour decision sample and is therefore not an admissible workaround.
+The existing operator request to restore read-only box access remains the only causal
+next step; the finished tape should then be streamed through the schema-aware auditor
+and its frozen scorer off-box.
+
 ## 2026-11-01 — KAP scoring blocked; altspot live runner down
 
 Measured: a post-08:02Z read-only rustmaker check still fails locally before
