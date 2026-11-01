@@ -142,18 +142,18 @@ const ROLE = {
   skeptic:    {name:"Skeptic",        room:3, shirt:"#8a2b2b", acc:"#f0d0d0", hair:"#a8a8a8", skin:"#ffdbac", blurb:"Assumes every passing backtest is wrong and tries to prove it."},
   curator:    {name:"Curator",        room:4, shirt:"#7d55b8", acc:"#e5d4ff", hair:"#c46a2a", skin:"#8d5524", blurb:"Compacts memory: indexes results and dead ends."},
   engineer:   {name:"Data Engineer",  room:5, shirt:"#1f9e89", acc:"#c8f5ec", hair:"#5a3a1a", skin:"#d9a066", blurb:"Writes data collectors; the harness runs them in the background so nobody waits on data."},
-  kalshi:     {name:"Kalshi Desk",    room:2, shirt:"#2fa36b", acc:"#0e3d26", hair:"#2a1a0e", skin:"#e8b98a", blurb:"Standing desk: Kalshi recurring 15M/hourly crypto. Works nonstop, commits to git."},
-  hyperliquid:{name:"Hyperliquid Desk",room:1, shirt:"#36c2c2", acc:"#0d3b3b", hair:"#d8c27a", skin:"#f1c27d", blurb:"Standing desk: Hyperliquid perps, the Tokyo tapes and maker cells."},
-  predx:      {name:"PredX Desk",     room:1, shirt:"#d9534f", acc:"#ffe0de", hair:"#121212", skin:"#a86b3c", blurb:"Standing desk: Gemini and Polymarket US 5M/15M crypto, cross-venue with Kalshi."},
-  data:       {name:"Data Desk",      room:5, shirt:"#e08a2a", acc:"#3b2508", hair:"#6b3a1a", skin:"#d9a066", blurb:"Standing desk: WebSocket-first collectors and tape health; serves the other desks."},
-  review:     {name:"Review Desk",    room:3, shirt:"#5b6bd8", acc:"#dfe3ff", hair:"#4a4a4a", skin:"#ffdbac", blurb:"Standing desk: audits the other desks' newest claims against the estimator traps."},
+  kalshi:     {name:"Kalshi",    room:2, shirt:"#2fa36b", acc:"#0e3d26", hair:"#2a1a0e", skin:"#e8b98a", blurb:"Standing desk: Kalshi recurring 15M/hourly crypto. Works nonstop, commits to git."},
+  hyperliquid:{name:"Hyperliquid",room:1, shirt:"#36c2c2", acc:"#0d3b3b", hair:"#d8c27a", skin:"#f1c27d", blurb:"Standing desk: Hyperliquid perps, the Tokyo tapes and maker cells."},
+  predx:      {name:"PredX",     room:1, shirt:"#d9534f", acc:"#ffe0de", hair:"#121212", skin:"#a86b3c", blurb:"Standing desk: Gemini and Polymarket US 5M/15M crypto, cross-venue with Kalshi."},
+  data:       {name:"Data",      room:5, shirt:"#e08a2a", acc:"#3b2508", hair:"#6b3a1a", skin:"#d9a066", blurb:"Standing desk: WebSocket-first collectors and tape health; serves the other desks."},
+  review:     {name:"Review",    room:3, shirt:"#5b6bd8", acc:"#dfe3ff", hair:"#4a4a4a", skin:"#ffdbac", blurb:"Standing desk: audits the other desks' newest claims against the estimator traps."},
 };
-// open-plan office: seat positions (feet) per role, and places idle bros wander to
-const OFFICE = {chief:{x:118,y:236}, kalshi:{x:300,y:236}, hyperliquid:{x:440,y:236}, predx:{x:580,y:236},
-  data:{x:300,y:380}, review:{x:440,y:380}, researcher:{x:580,y:380},
-  backtester:{x:300,y:524}, skeptic:{x:440,y:524}, engineer:{x:580,y:524}, curator:{x:118,y:524}};
-const POI = [{x:812,y:150,n:"board"}, {x:880,y:250,n:"coffee"}, {x:760,y:360,n:"couch"}, {x:840,y:372,n:"couch"},
-  {x:900,y:470,n:"rack"}, {x:760,y:540,n:"mail"}, {x:60,y:380,n:"books"}, {x:200,y:440,n:"window"}];
+// office: the v1 rooms as one floor with no walls. Seats (feet) per role, grouped by zone.
+const ZONE = {chief:0, researcher:1, hyperliquid:1, predx:1, backtester:2, kalshi:2, skeptic:3, review:3, curator:4, engineer:5, data:5};
+const OFFICE = {chief:{x:160,y:150}, researcher:{x:390,y:150}, hyperliquid:{x:500,y:150}, predx:{x:610,y:150},
+  backtester:{x:750,y:150}, kalshi:{x:870,y:150}, skeptic:{x:90,y:450}, review:{x:230,y:450},
+  curator:{x:440,y:450}, engineer:{x:690,y:440}, data:{x:800,y:440}};
+const POI = [{x:150,y:260}, {x:470,y:250}, {x:820,y:250}, {x:160,y:560}, {x:480,y:560}, {x:880,y:560}, {x:330,y:300}, {x:640,y:300}];
 const ROOMS = [
   {name:"CHIEF'S OFFICE", f1:"#3b2f2a", f2:"#43352f", wall:"#5a3f2c"},
   {name:"LIBRARY",        f1:"#23324a", f2:"#283a55", wall:"#2f4466"},
@@ -199,21 +199,31 @@ class Agent {
     this.tx = this.x; this.ty = this.y; this.wait = 0; this.walkT = 0; this.moving = false;
     this.task = null; this.mood = null; this.moodT = 0;
   }
-  desk() { return THEME === "office" ? OFFICE[this.role] : layoutOf(THEME) !== "rooms" ? homeOf(this.role) : {x:this.r.x + 160, y:this.r.y + 126}; }
+  desk() { return THEME === "office" ? {x:OFFICE[this.role].x, y:OFFICE[this.role].y + 34} : layoutOf(THEME) !== "rooms" ? homeOf(this.role) : {x:this.r.x + 160, y:this.r.y + 126}; }
   update(dt) {
     if (this.task) { const d = this.desk(); this.tx = d.x; this.ty = d.y; }
     else if (Math.hypot(this.tx - this.x, this.ty - this.y) < 1 && (this.wait -= dt) <= 0) {
-      if (THEME === "office") {                     // wander: coffee, the board, the couch, a colleague's desk
-        const r = Math.random(), others = Object.keys(OFFICE).filter(k => k !== this.role);
-        const t = r < .55 ? POI[Math.floor(Math.random() * POI.length)]
-                : r < .85 ? (o => ({x:o.x + 34, y:o.y + 18}))(OFFICE[others[Math.floor(Math.random() * others.length)]])
-                : {x:OFFICE[this.role].x + 30, y:OFFICE[this.role].y + 22};
-        this.tx = t.x + (Math.random() - .5) * 24; this.ty = t.y + (Math.random() - .5) * 10;
+      if (THEME === "office") {                     // interact: walk over to a colleague, or roam the floor
+        if (this.visit) { this.visit = null; }
+        const r = Math.random(), others = agents.filter(o => o !== this);
+        if (r < .65) {
+          const o = others[Math.floor(Math.random() * others.length)];
+          this.visit = o; this.tx = o.x + (o.x > this.x ? -26 : 26); this.ty = o.y + 4;
+        } else {
+          const t = r < .9 ? POI[Math.floor(Math.random() * POI.length)] : {x:OFFICE[this.role].x + 30, y:OFFICE[this.role].y + 26};
+          this.tx = t.x + (Math.random() - .5) * 30; this.ty = t.y + (Math.random() - .5) * 14;
+        }
       }
       else if (layoutOf(THEME) !== "rooms") { const h = homeOf(this.role), r = THEME === "minimal" ? 12 : 44; this.tx = h.x + (Math.random() - .5) * r; this.ty = h.y - Math.random() * (THEME === "minimal" ? 3 : 6); }
       else { this.tx = this.r.x + 40 + Math.random() * 240; this.ty = this.r.y + 195 + Math.random() * 80; }
       this.wait = 1500 + Math.random() * 3500;
     }
+    if (THEME === "office" && this.visit && !this.task) {           // follow a moving colleague; chat on arrival
+      const o = this.visit, side = o.x > this.x ? -26 : 26;
+      this.tx = o.x + side; this.ty = o.y + 4;
+      if (Math.hypot(this.tx - this.x, this.ty - this.y) < 3 && !this.chatT) { this.chatT = 3500 + Math.random() * 2500; o.chatT = Math.max(o.chatT || 0, this.chatT); this.wait = this.chatT; }
+    }
+    if (this.chatT && (this.chatT -= dt) <= 0) { this.chatT = 0; if (this.visit) this.visit = null; }
     const dx = this.tx - this.x, dy = this.ty - this.y, dist = Math.hypot(dx, dy);
     const sp = (this.task ? 0.14 : 0.05) * dt * (this.mood === "sleep" ? 0 : 1);
     this.moving = dist > 1 && sp > 0;
@@ -318,65 +328,53 @@ function drawRoom(r, i) {
 // ---------- open-plan office ----------
 const hash = n => { n = (n ^ 61) ^ (n >>> 16); n = n + (n << 3); n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); return ((n ^ (n >>> 15)) >>> 0) / 4294967296; };
 function drawOffice() {
-  const hr = new Date().getHours(), night = hr >= 19 || hr < 6, dusk = hr === 18 || hr === 6;
-  px(0, 0, W, 104, "#3a3245"); px(0, 0, W, 6, "#2a2433");                        // back wall
-  for (let k = 0; k < 4; k++) {                                                    // windows onto the city
-    const wx = 22 + k * 168, wy = 14, ww = 148, wh = 72;
-    const sky = night ? ["#0b1030", "#18204a"] : dusk ? ["#3b2a5a", "#c86a4a"] : ["#5aa0d8", "#a6d0f0"];
-    for (let r = 0; r < wh; r += 4) px(wx, wy + r, ww, 4, r < wh / 2 ? sky[0] : sky[1]);
-    if (night) for (let st = 0; st < 6; st++) px(wx + hash(k * 31 + st) * ww, wy + hash(k * 17 + st * 3) * 26, 1, 1, "#fff");
-    for (let b = 0; b < 9; b++) {                                                  // skyline with lit windows
-      const bw = 12 + hash(k * 9 + b) * 14, bh = 18 + hash(k * 13 + b * 7) * 44, bx = wx + b * 17;
-      if (bx + bw > wx + ww) break;
-      px(bx, wy + wh - bh, bw, bh, night ? "#141a33" : "#4a5a78");
-      for (let lx = 2; lx < bw - 2; lx += 4) for (let ly = 4; ly < bh - 2; ly += 5)
-        if (hash(k * 1000 + b * 100 + lx * 7 + ly) > (night ? .55 : .85) && ((clock / 4000 + hash(b + lx + ly)) % 1) > .08)
-          px(bx + lx, wy + wh - bh + ly, 2, 2, night ? "#f4d27a" : "#c8d6e8");
-    }
-    px(wx - 4, wy - 4, ww + 8, 4, "#e8e2d0"); px(wx - 4, wy + wh, ww + 8, 6, "#e8e2d0");
-    px(wx - 4, wy, 4, wh, "#e8e2d0"); px(wx + ww, wy, 4, wh, "#e8e2d0"); px(wx + ww / 2 - 1, wy, 3, wh, "#e8e2d0");
-  }
-  px(0, 98, W, 8, "#241f2c");                                                      // skirting
-  for (let y = 106, row = 0; y < H; y += 16, row++) {                              // wood floor
-    px(0, y, W, 16, row % 2 ? "#6b4a2e" : "#73502f"); px(0, y + 15, W, 1, "#4e3420");
-    for (let x = ((row * 53) % 120) - 120; x < W; x += 120) px(x, y, 1, 15, "#4e3420");
-  }
-  px(56, 196, 140, 84, "#6e2f3a"); px(62, 202, 128, 72, "#83404b");                // chief's rug
-  px(250, 300, 380, 4, "#00000022");
-  // the board (whiteboard): one sticky per desk, bright while that desk works
-  px(712, 14, 214, 76, "#d8d4c4"); px(716, 18, 206, 68, "#f4f1e6");
-  Object.keys(OFFICE).forEach((r, i) => { const busy = byRole[r] && byRole[r].task, sx = 722 + (i % 6) * 33, sy = 24 + Math.floor(i / 6) * 30;
-    px(sx, sy, 26, 22, busy ? ROLE[r].shirt : mix(ROLE[r].shirt, .65, [244, 241, 230])); px(sx + 3, sy + 6, 18, 2, "#00000033"); px(sx + 3, sy + 12, 12, 2, "#00000033"); });
-  px(712, 90, 214, 4, "#9a9584");
-  // wall clock with the real time
-  const now = new Date(), cx = 684, cy = 46; ctx.fillStyle = "#e8e2d0"; ctx.beginPath(); ctx.arc(cx, cy, 15, 0, 7); ctx.fill();
-  ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, cy);
-  const ha = ((now.getHours() % 12) + now.getMinutes() / 60) / 12 * 6.283 - 1.571, ma = now.getMinutes() / 60 * 6.283 - 1.571;
-  ctx.lineTo(cx + Math.cos(ha) * 8, cy + Math.sin(ha) * 8); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ma) * 12, cy + Math.sin(ma) * 12); ctx.stroke();
-  // coffee bar
-  px(842, 196, 108, 40, "#5a3a24"); px(842, 192, 108, 6, "#c9b58f"); px(842, 236, 108, 6, "#3b2616");
-  px(856, 166, 24, 26, "#2a2a30"); px(860, 172, 16, 8, "#e04a3a"); px(898, 180, 10, 12, "#efe8d8"); px(914, 180, 10, 12, "#5aa9ff");
-  for (let k = 0; k < 3; k++) { const t = (clock / 900 + k / 3) % 1; px(866 + Math.sin(t * 6 + k) * 3, 160 - t * 18, 2, 2, `rgba(255,255,255,${(1 - t) * .5})`); }
-  // lounge: couch, side table, plants
-  px(722, 318, 150, 14, "#3a5f8a"); px(722, 332, 150, 22, "#2f4f75"); px(716, 322, 10, 32, "#3a5f8a"); px(868, 322, 10, 32, "#3a5f8a");
-  px(800, 372, 34, 14, "#7a5232");
-  plant(700, 300); plant(936, 300); plant(30, 586); plant(690, 586); plant(36, 220);
-  // bookshelves
-  for (let sh = 0; sh < 2; sh++) { const bx = 14, by = 290 + sh * 44; px(bx, by, 76, 40, "#4a2e1a");
-    for (let b = 0; b < 11; b++) px(bx + 4 + b * 6.5, by + 6 + (b % 3), 5, 30 - (b % 3), ["#c44","#4a8","#48c","#cc4","#a6c","#e83"][(b + sh * 2) % 6]); }
-  // server rack: one row per VM; green = reachable, red = not; blinking lights = runners up
-  const fl = STATE && STATE.fleet, rx = 878, ry = 396;
-  px(rx, ry, 64, 104, "#1a1d24"); px(rx + 2, ry + 2, 60, 100, "#23272f");
-  (fl ? fl.boxes : [{}, {}, {}]).slice(0, 4).forEach((b, i) => {
-    const y = ry + 8 + i * 24, up = fl && fl.runners.filter(r => r.box === b.name && r.status === "running").length, down = fl && fl.runners.some(r => r.box === b.name && r.status === "DOWN");
-    px(rx + 6, y, 52, 18, "#14161b");
-    px(rx + 10, y + 6, 6, 6, !fl ? "#444" : !b.reachable || down ? (Math.floor(clock / 300) % 2 ? "#ef5b5b" : "#5a1a1d") : "#5fd068");
-    for (let k = 0; k < Math.min(up || 0, 6); k++) px(rx + 22 + k * 6, y + 7, 3, 3, (Math.floor(clock / 120 + k * 3 + i) % 4) ? "#5aa9ff" : "#1c2430");
+  ROOMS.forEach((r, i) => {                                   // v1 checkered floors, no name plates, no walls
+    for (let ty = 0; ty < 300; ty += 20) for (let tx = 0; tx < 320; tx += 20)
+      px(r.x + tx, r.y + ty, 20, 20, ((tx + ty) / 20) % 2 ? r.f1 : r.f2);
+    if (r.y === 0) { px(r.x, 0, 320, 56, r.wall); px(r.x, 56, 320, 4, "#00000055"); }   // back wall only along the top
   });
-  // mail cart: the queue
+  for (let k = 0; k < 4; k++) {                               // soft seams where zones meet (floor change, not walls)
+    px(320 * (k % 2 + 1) - 1, 60, 2, 540, "#00000018");
+  }
+  px(0, 299, W, 2, "#00000018");
+  const R = ROOMS;
+  // chief's office: rug, plant, and the board (one sticky per desk, bright while that desk works)
+  box(R[0].x + 60, 186, 200, 96, "#5a2f2f"); box(R[0].x + 66, 192, 188, 84, "#6e3a3a"); plant(R[0].x + 292, 250);
+  box(R[0].x + 14, 8, 186, 44, "#e8e6d9");
+  Object.keys(OFFICE).forEach((r, i) => { const busy = byRole[r] && byRole[r].task, sx = R[0].x + 20 + (i % 6) * 30, sy = 12 + Math.floor(i / 6) * 20;
+    px(sx, sy, 24, 16, busy ? ROLE[r].shirt : mix(ROLE[r].shirt, .65, [232, 230, 217])); px(sx + 3, sy + 5, 14, 2, "#00000033"); });
+  // library: bookshelves along the wall, reading table
+  for (let sh = 0; sh < 6; sh++) { const sx = R[1].x + 14 + sh * 50; box(sx, 6, 44, 48, "#4a2e1a");
+    for (let b = 0; b < 7; b++) box(sx + 3 + b * 6, 10 + (b % 2) * 2, 5, 18, ["#c44","#4a8","#48c","#cc4","#a6c","#e83"][(b + sh) % 6]);
+    for (let b = 0; b < 7; b++) box(sx + 3 + b * 6, 32, 5, 18, ["#48c","#cc4","#c44","#e83","#4a8","#a6c"][(b + sh) % 6]); }
+  box(R[1].x + 110, 236, 100, 26, "#7a5232"); box(R[1].x + 114, 240, 92, 4, "#9b6a35");
+  // backtest lab: chart board, server rack = the VMs (green ok, red down, blue = runners up)
+  box(R[2].x + 20, 10, 140, 40, "#e8e6d9"); ctx.strokeStyle = "#2b7a3d"; ctx.lineWidth = 2; ctx.beginPath();
+  for (let k = 0; k <= 12; k++) { const yy = 40 - (Math.sin(k * .9 + clock / 300) * 9 + k * 1.1); k ? ctx.lineTo(R[2].x + 26 + k * 10.5, yy) : ctx.moveTo(R[2].x + 26, yy); } ctx.stroke();
+  const fl = STATE && STATE.fleet, rx = R[2].x + 262, ry = 196;
+  box(rx, ry, 46, 92, "#1a1d24");
+  (fl ? fl.boxes : [{}, {}, {}]).slice(0, 4).forEach((b, i) => {
+    const y = ry + 8 + i * 26, up = fl ? fl.runners.filter(r => r.box === b.name && r.status === "running").length : 0,
+          down = fl && fl.runners.some(r => r.box === b.name && r.status === "DOWN");
+    px(rx + 4, y, 38, 20, "#14161b");
+    px(rx + 8, y + 7, 5, 5, !fl ? "#444" : !b.reachable || down ? (Math.floor(clock / 300) % 2 ? "#ef5b5b" : "#5a1a1d") : "#5fd068");
+    for (let k = 0; k < Math.min(up, 4); k++) px(rx + 18 + k * 6, y + 8, 3, 3, (Math.floor(clock / 120 + k * 3 + i) % 4) ? "#5aa9ff" : "#1c2430");
+  });
+  // skeptic's court: the bench with scales, benches for the room
+  box(R[3].x + 180, 316, 120, 34, "#4a2a18"); box(R[3].x + 186, 322, 108, 6, "#6b3e22"); text("⚖", R[3].x + 232, 330, 10, "#f4c542");
+  box(R[3].x + 30, 556, 80, 8, "#4a2a18"); box(R[3].x + 190, 556, 80, 8, "#4a2a18");
+  // archive: filing cabinets, a coffee corner
+  for (let k = 0; k < 5; k++) { box(R[4].x + 140 + k * 34, 312, 30, 50, "#55606e"); for (let d = 0; d < 3; d++) { box(R[4].x + 142 + k * 34, 315 + d * 15, 26, 12, "#6b7787"); box(R[4].x + 152 + k * 34, 320 + d * 15, 6, 2, "#333"); } }
+  box(R[4].x + 24, 520, 70, 30, "#5a3a24"); box(R[4].x + 24, 516, 70, 6, "#c9b58f"); box(R[4].x + 34, 496, 18, 20, "#2a2a30"); box(R[4].x + 37, 500, 12, 6, "#e04a3a");
+  for (let k = 0; k < 3; k++) { const t = (clock / 900 + k / 3) % 1; px(R[4].x + 42 + Math.sin(t * 6 + k) * 3, 490 - t * 16, 2, 2, `rgba(255,255,255,${(1 - t) * .5})`); }
+  plant(R[4].x + 300, 590);
+  // mailroom: sorting shelves and the queue bin
+  box(R[5].x + 20, 324, 120, 12, "#5a5a64"); box(R[5].x + 20, 356, 120, 12, "#5a5a64");
+  for (let k = 0; k < 10; k++) { box(R[5].x + 24 + k * 11, 314, 9, 10, "#ece8d6"); box(R[5].x + 24 + k * 11, 346, 9, 10, k % 3 ? "#ece8d6" : "#f4c542"); }
   const q = STATE ? (STATE.counts.queued || 0) : 0;
-  px(726, 516, 72, 26, "#5a5a64"); px(730, 520, 64, 18, "#3a3a44"); px(730, 544, 6, 6, "#222"); px(788, 544, 6, 6, "#222");
-  for (let k = 0; k < Math.min(q, 12); k++) envelope(732 + (k % 4) * 15, 524 - Math.floor(k / 4) * 8, "#f4c542");
+  box(R[5].x + 200, 520, 100, 70, "#3a3a44"); box(R[5].x + 204, 524, 92, 62, "#25252c");
+  for (let k = 0; k < Math.min(q, 30); k++) envelope(R[5].x + 210 + (k % 5) * 17, 572 - Math.floor(k / 5) * 11, "#f4c542");
+  plant(R[5].x + 300, 300);
   if (STATE && !(STATE.runner_age_s !== null && STATE.runner_age_s < 45)) { px(0, H - 18, W, 18, "#5a1a1dcc"); text("RUNNER OFFLINE", W / 2, H - 14, 7, "#ffb0b0", "center"); }
 }
 function drawOfficeDesk(role) {
@@ -447,11 +445,16 @@ function drawAgent(a) {
   rows.forEach((row, ry) => { for (let rx = 0; rx < 12; rx++) { const ch = row[rx]; if (ch !== ".") px(ox + rx * SS, oy + ry * SS, SS, SS, pal[ch]); } });
   ctx.globalAlpha = 1;
   if (a.mood === "sleep") text("z", a.x + 14, a.y - 60 - (clock / 30 % 14), 8, "#b48cff");
+  if (THEME === "office" && a.chatT > 0 && !a.task) {                // little speech bubble while two bros talk
+    const bx = a.x + 8, by = a.y - 70; px(bx, by, 26, 14, "#ece8d6"); px(bx + 4, by + 14, 4, 4, "#ece8d6");
+    for (let k = 0; k < 3; k++) px(bx + 5 + k * 7, by + 6, 3, 3, (Math.floor(clock / 250) % 3) === k ? "#2b6cb0" : "#555");
+  }
 }
 function bubble(a) {
   let l1, l2;
   if (a.task) { l1 = `#${a.task.id} ${a.task.title}`; l2 = (a.task.model || "").split(":").pop() || "starting…"; }
   else if (a.mood === "sleep") { l1 = "rate limited · napping"; l2 = ""; }
+  else if (THEME === "office" && a.chatT > 0) return;
   else return text((THEME === "classic" || THEME === "office") ? a.m.name.toUpperCase() : a.m.name.toLowerCase(), a.x, a.y - 62, 6, DIMC[THEME], "center");
   l1 = l1.length > 30 ? l1.slice(0, 29) + "…" : l1;
   const sty = {classic:{bg:"#ece8d6", bd:null, t1:"#111", t2:"#2b6cb0"}, office:{bg:"#ece8d6", bd:null, t1:"#111", t2:"#2b6cb0"}, lamplight:{bg:"#15171d", bd:"#e8c468", t1:"#ece8d6", t2:"#8d8fa8"},
