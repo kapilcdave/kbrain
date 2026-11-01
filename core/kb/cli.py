@@ -3,9 +3,10 @@ from datetime import datetime
 from .db import STATE, connect, add_task, event
 from . import runner, lifecycle
 
-# Mark: a rising chart in half-block pixels, money green -> blue (in the style of agy's banner).
-MARK = ["..........####", "...........###", "..........#.##", ".........#...#", "..##....#.....",
-        ".####..#......", "##..####......", "#....##.......", "..............", "##############"]
+# Mark: a K rotated 90 degrees, money green -> blue (in the style of agy's banner). The baseline is the
+# K's upright; its two legs meet it at one point: a straight leg up-left, and a rising arrow up-right.
+MARK = ["............####", ".#...........###", "..#.........#.##", "...#.......#...#", "....#.....#.....",
+        ".....#...#......", "......#.#.......", ".......#........", ".......#........", "################"]
 STOPS = [(10, 92, 54), (20, 128, 72), (16, 122, 120), (28, 92, 190), (47, 111, 235)]
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 TRUECOLOR = os.environ.get("COLORTERM", "") in ("truecolor", "24bit")
