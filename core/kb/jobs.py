@@ -10,7 +10,8 @@ from .adapters import clean_env
 from .db import STATE, event
 
 DATA = STATE / "data"
-PY = str(Path.home() / ".local/share/kbrain/venv/bin/python") if (Path.home() / ".local/share/kbrain/venv/bin/python").exists() else "python3"   # collector venv (websockets)
+PY = next((str(p) for p in (Path.home() / ".local/share/kbrain/sci/bin/python", Path.home() / ".local/share/kbrain/venv/bin/python")
+           if p.exists()), "python3")             # collector env: the science venv
 _procs = {}                                # job id -> Popen (this process only)
 
 def _limits(mem_mb):

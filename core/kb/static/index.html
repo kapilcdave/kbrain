@@ -105,14 +105,14 @@ pre{white-space:pre-wrap;word-break:break-word;background:#07080f;border:2px sol
     <canvas id="cv" width="1920" height="1200" aria-label="kbrain office: one room per agent role"></canvas>
     <form class="cmd" id="cmd">
       <select id="cmdRole" aria-label="venue">
-        <option value="">idea → chief (any venue)</option>
-        <option value="kalshi">idea → chief · Kalshi</option>
-        <option value="hyperliquid">idea → chief · Hyperliquid</option>
-        <option value="gemini">idea → chief · Gemini</option>
-        <option value="polymarket">idea → chief · Polymarket US</option>
+        <option value="">idea → chief (any field)</option>
+        <option value="genomics">idea → chief · Genomics</option>
+        <option value="proteins">idea → chief · Proteins</option>
+        <option value="cells">idea → chief · Cells</option>
+        <option value="clinic">idea → chief · Clinic</option>
       </select>
       <input class="slug" id="cmdSlug" placeholder="hypothesis-slug" pattern="[a-z0-9][a-z0-9-]{2,60}">
-      <input class="text" id="cmdText" placeholder="A trade idea for the chief…" maxlength="300" required>
+      <input class="text" id="cmdText" placeholder="A research idea for the chief…" maxlength="300" required>
       <button class="btn go" type="submit">SEND</button>
     </form>
   </section>
@@ -139,13 +139,14 @@ const api = (p, body) => fetch(p, body === undefined ? {} : {method:"POST", head
 const W = 960, H = 600, S = 3;
 const ROLE = {
   chief:      {name:"Chief of Staff", room:0, shirt:"#c8902a", acc:"#7a1f1f", hair:"#3a2a1a", skin:"#e0ac69", blurb:"Reads the state digest, proposes new hypotheses, never does the work itself."},
-  backtester: {name:"Backtester",     room:2, shirt:"#e8ecef", acc:"#3a9a5a", hair:"#7a4a20", skin:"#f1c27d", blurb:"Implements the frozen prereg. Code grades its metrics, not its opinion."},
+  backtester: {name:"Experimenter",     room:2, shirt:"#e8ecef", acc:"#3a9a5a", hair:"#7a4a20", skin:"#f1c27d", blurb:"Implements the frozen prereg. Code grades its metrics, not its opinion."},
   skeptic:    {name:"Skeptic",        room:3, shirt:"#8a2b2b", acc:"#f0d0d0", hair:"#a8a8a8", skin:"#ffdbac", blurb:"Assumes every passing backtest is wrong and tries to prove it."},
   engineer:   {name:"Data Engineer",  room:5, shirt:"#1f9e89", acc:"#c8f5ec", hair:"#5a3a1a", skin:"#d9a066", blurb:"Writes data collectors; the harness runs them in the background so nobody waits on data."},
-  kalshi:     {name:"Kalshi Desk",    room:2, shirt:"#2fa36b", acc:"#0e3d26", hair:"#2a1a0e", skin:"#e8b98a", blurb:"Standing desk: Kalshi recurring 15M/hourly crypto. Works nonstop, commits to git."},
-  hyperliquid:{name:"Hyperliquid Desk",room:1, shirt:"#36c2c2", acc:"#0d3b3b", hair:"#d8c27a", skin:"#f1c27d", blurb:"Standing desk: Hyperliquid perps, the Tokyo tapes and maker cells."},
-  gemini:     {name:"Gemini Desk",    room:1, shirt:"#ffcf4a", acc:"#3b2f08", hair:"#121212", skin:"#a86b3c", blurb:"Standing desk: Gemini recurring BTC/ETH 5M/15M: basis taker, dry quoter, the geminibot tapes."},
-  polymarket: {name:"Polymarket US Desk", room:1, shirt:"#f06292", acc:"#3b0f1f", hair:"#2a1a0e", skin:"#e8b98a", blurb:"Standing desk: Polymarket US recurring 5M/15M and the cross-venue twin with Kalshi (KAP paired books)."},
+  scout:      {name:"Scout",          room:1, shirt:"#e08a2a", acc:"#3b2508", hair:"#6b3a1a", skin:"#d9a066", blurb:"Continuous field intelligence: new papers, models and datasets, candidate experiments, opportunities."},
+  genomics:   {name:"Genomics",       room:2, shirt:"#2fa36b", acc:"#0e3d26", hair:"#2a1a0e", skin:"#e8b98a", blurb:"Field bro: DNA, regulatory genomics, DNA language models, variant effects. Owns the genomics dossier."},
+  proteins:   {name:"Proteins",       room:2, shirt:"#36c2c2", acc:"#0d3b3b", hair:"#d8c27a", skin:"#f1c27d", blurb:"Field bro: structure, protein language models, design, mutation effects. Owns the proteins dossier."},
+  cells:      {name:"Cells",          room:1, shirt:"#f06292", acc:"#3b0f1f", hair:"#121212", skin:"#a86b3c", blurb:"Field bro: single-cell and omics, cell atlases, perturbation prediction. Owns the cells dossier."},
+  clinic:     {name:"Clinic",         room:3, shirt:"#ffcf4a", acc:"#3b2f08", hair:"#4a4a4a", skin:"#ffdbac", blurb:"Field bro: drug discovery, targets, trials and biotech catalysts. Owns the clinic dossier."},
 };
 // open-plan office: seat positions (feet) per role, and places idle bros wander to
 const OFFICE = {chief:{x:118,y:236}, kalshi:{x:300,y:236}, hyperliquid:{x:440,y:236}, gemini:{x:580,y:236}, polymarket:{x:118,y:380},
@@ -167,8 +168,8 @@ const PIPE = {beltY:285, st:{chief:130, researcher:310, backtester:490, skeptic:
 const STAGE_X = {idea:130, prereg:310, backtest:490, review:670};
 const GATE = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#f4c542"};
 const HCOL = {data:"#1f9e89", idea:"#8d8fa8", prereg:"#5aa9ff", backtest:"#5fd068", review:"#f4c542", validated:"#f4c542", rejected:"#ef5b5b", parked:"#555a78"};
-const MIN = {chief:{x:400, y:118},                  // chief on top, venue bros in the middle, specialists below
-  kalshi:{x:70, y:298}, hyperliquid:{x:290, y:298}, gemini:{x:510, y:298}, polymarket:{x:730, y:298},
+const MIN = {chief:{x:260, y:118}, scout:{x:560, y:118},   // chief + scout on top, field bros, then specialists
+  genomics:{x:70, y:298}, proteins:{x:290, y:298}, cells:{x:510, y:298}, clinic:{x:730, y:298},
   engineer:{x:90, y:478}, backtester:{x:440, y:478}, skeptic:{x:740, y:478}};
 const MINCOL = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#ef6b6b", curator:"#b48cff", engineer:"#1f9e89",
   kalshi:"#2fa36b", hyperliquid:"#36c2c2", gemini:"#ffcf4a", polymarket:"#f06292", data:"#e08a2a", review:"#5b6bd8"};

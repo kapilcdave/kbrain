@@ -4,9 +4,14 @@ from pathlib import Path
 
 SECRET_ENV = re.compile(r"(KEY|TOKEN|SECRET|PASSWORD|COOKIE|PRIVATE|SEED|MNEMONIC)", re.I)
 
+SCI_BIN = Path.home() / ".local/share/kbrain/sci/bin"   # numpy/pandas/scipy/sklearn/biopython/torch-cpu
+
 def clean_env():
-    """Agents never inherit credentials from the daemon's environment."""
-    return {k: v for k, v in os.environ.items() if not SECRET_ENV.search(k)}
+    """Agents never inherit credentials from the daemon's environment. Their `python3` is the science venv."""
+    env = {k: v for k, v in os.environ.items() if not SECRET_ENV.search(k)}
+    if SCI_BIN.is_dir():
+        env["PATH"] = f"{SCI_BIN}:{env.get('PATH', '')}"
+    return env
 
 # Quota/rate-limit text some CLIs print and then silently retry on forever (opencode free tier does).
 # Only the CLIs' OWN quota errors. Never generic words like "rate limit" or "429": agents read trading notes
@@ -78,7 +83,7 @@ def run_codex(model, prompt, workdir, timeout, log_path, tools):
         argv += ["-m", name]
     if effort:
         argv += ["-c", f'model_reasoning_effort="{effort}"']
-    if any("kbssh" in t for t in tools):
+    if any(k in t for t in tools for k in ("kbssh", "WebFetch", "WebSearch")):
         argv += ["-c", "sandbox_workspace_write.network_access=true"]
     if (Path(workdir) / "repo").exists():
         argv += ["--add-dir", str(KB_GIT_DIR)]

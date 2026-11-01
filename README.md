@@ -1,69 +1,39 @@
 # kbrain
 
-The brain of my trading: what I have built, tested, learned, rejected, and what is running now.
+My research brain for **bio x AI**: genomics and DNA, proteins, single-cell and omics, and drug discovery.
 
-A small team of agents (the pixel bros) tests my trade ideas: I give the chief of staff an idea
-(`core/bin/kb idea "..."`), a venue bro (Kalshi, Hyperliquid, Gemini, Polymarket US) preregisters it
-with its venue's dossier, the data engineer, backtester and skeptic test it, and winners go back to the
-chief to run dry on the box before I arm them. Nothing runs without an idea in flight.
-Numbers, fills and P&L live here. Credentials, keys and raw tape data never do.
+A small team of agents (the pixel bros) does three things:
 
-## Start Here
+1. **Experiments.** Preregistered computational experiments on public data: an idea, a fixed held-out split,
+   a strong baseline, code-graded results per independent unit, then a skeptic tries to break it.
+2. **Field intelligence.** A living map of what is real in the field: models, datasets, labs, companies,
+   with a hype-versus-evidence call on each.
+3. **Opportunities.** Things worth building, betting on, or doing next, each with evidence.
+
+## Start here
 
 - **AI agents: read [AGENTS.md](AGENTS.md) first.**
-
-- [About](ABOUT.md)
 - [What I am focused on now](NOW.md)
-- [Project index](PROJECTS.md)
-- [Research methodology](METHODOLOGY.md)
-- [2026 timeline](timeline/2026.md)
+- [Knowledge index](knowledge/INDEX.md): fields, models, datasets, labs, candidates, opportunities, findings
+- [Methodology](METHODOLOGY.md) and [lessons](lessons/)
 
-## Main Threads
+## How it runs
 
-### Research
+```
+idea (me: core/bin/kb idea "...", or the chief when idle)
+  -> chief triage -> field bro (genomics | proteins | cells | clinic) writes the prereg with its dossier
+  -> data engineer -> experimenter -> skeptic -> field bro records the verdict
+  -> chief writes the finding and the opportunity; anything that costs money comes to me
+scout: works continuously on field intelligence and candidate experiments
+```
 
-- [Options Research](projects/options-research.md)
-- [Prediction Market Research](projects/prediction-market-research.md)
-- [Weather Markets](projects/weather-markets.md)
-- [Sports Markets](projects/sports-markets.md)
-- [DEX and Crypto Research](projects/dex-and-crypto-research.md)
-- [Perpetual Maker Study](projects/perpetual-maker-study.md)
+Engine, roles and routing live in [`core/`](core/README.md). `core/bin/kb web` shows the bros at work.
+The machine is 8 CPU cores, ~7 GB RAM and no GPU, so experiments are sized for that until I approve cloud runs.
 
-### Durable Findings
+## Archive
 
-- [Market Efficiency](research/market-efficiency.md)
-- [Fees and Adverse Selection](research/fees-and-adverse-selection.md)
-- [Capacity Versus Edge](research/capacity-versus-edge.md)
-- [Weather Station Proximity and the Tarmac Effect](research/weather-station-proximity.md)
-- [Fake Edges From Data Bugs](lessons/fake-edges-from-data-bugs.md)
-- [Preregistration](lessons/preregistration.md)
-- [Production Safety](lessons/production-safety.md)
-- [Secret Handling for Agents](lessons/secret-handling.md)
-- [Negative Results](lessons/negative-results.md)
-
-## Principles
-
-1. The market price is a baseline to beat, not just another feature.
-2. A backtest is a hypothesis generator until causal timing is established.
-3. Executable prices, fees, fill selection, and capacity are part of the model.
-4. Holdouts are consumable. Once viewed, they are no longer independent.
-5. Nulls and retractions stay visible.
-6. Credentials and raw data never enter git; everything else we learn does.
-
-## Status Labels
-
-- `active`: current work or a question still collecting evidence.
-- `maintained`: usable project receiving occasional care.
-- `experimental`: working system without validated outcome claims.
-- `prototype`: proof of concept, not production infrastructure.
-- `completed`: question answered for the tested scope.
-- `closed`: frozen after a predefined failure condition.
-- `archived`: retained for provenance rather than active development.
-
-## Venues
-
-Each venue bro keeps `desks/<venue>/DOSSIER.md`: venue facts, our box and runners, closed branches and every
-verdict. Deploy briefs for validated ideas sit next to it. `core/bin/kb web` shows the bros at work.
+My earlier trading research (Kalshi, Hyperliquid, Gemini, Polymarket US) is kept in
+[`archive/trading/`](archive/trading/).
 
 ## License
 
@@ -71,4 +41,4 @@ Unless a page says otherwise, original prose in this repository is licensed
 under [CC BY 4.0](LICENSE.md). Linked source repositories retain their own
 licenses.
 
-Nothing here is financial advice.
+Nothing here is medical advice.

@@ -76,7 +76,8 @@ def inline_files(task, workdir, inline):
 def digest(c, cfg):
     """Compact state snapshot for the chief, so it never needs the whole history."""
     lines = ["# State digest", ""]
-    if (fl := fleet.cached_md()):            # live VMs, runners and bets come first: that is the money path
+    uses_fleet = any(r.get("with_fleet") for r in cfg.get("roles", {}).values())
+    if uses_fleet and (fl := fleet.cached_md()):   # live VMs, runners and bets (trading setups only)
         lines += [fl, ""]
     waiting = lifecycle.waiting_on_data(c)
     lines += [f"Open hypothesis slots: {lifecycle.open_slots(c, cfg)}",
@@ -96,7 +97,10 @@ def digest(c, cfg):
     lines += [f"- {r['slug']}: {r['status']}. {r['reason'] or ''}"
               for r in c.execute("SELECT * FROM hypotheses ORDER BY updated DESC LIMIT 60")]
     lines += ["", "## Recent results (newest first)"]
-    for r in c.execute("SELECT id,role,status,title,hypothesis,result FROM tasks WHERE status IN ('done','blocked','failed') ORDER BY updated DESC LIMIT 15"):
+    roles = list(cfg.get("roles", {}))
+    for r in c.execute(f"SELECT id,role,status,title,hypothesis,result FROM tasks WHERE status IN ('done','blocked','failed') "
+                       f"AND role IN ({','.join('?' * len(roles))}) AND (hypothesis IS NULL OR hypothesis IN (SELECT slug FROM hypotheses)) AND COALESCE(json_extract(result,'$.summary'),'') NOT LIKE 'stopped by operator%' "
+                       "ORDER BY updated DESC LIMIT 15", roles):
         summ = (json.loads(r["result"]).get("summary", "") if r["result"] else "")[:300]
         lines.append(f"- #{r['id']} [{r['role']}/{r['status']}] {r['hypothesis'] or '-'}: {r['title']} :: {summ}")
     for f in (STATE / "dead-ends.md", ROOT / "knowledge" / "dead-ends.md", ROOT.parent / "lessons" / "negative-results.md", ROOT / "GOAL.md"):
@@ -198,7 +202,7 @@ def prepare(task, role, workdir, cfg, c):
             v = task["role"] if role.get("venue_bro") else lifecycle.venue_of(c, cfg_all, task["hypothesis"])
             mine = [v] if v else []
         for v in mine:
-            text = gitops.git("show", f"origin/main:desks/{v}/DOSSIER.md", check=False)
+            text = gitops.git("show", f"origin/main:fields/{v}/DOSSIER.md", check=False)
             if text:
                 dest = workdir / "dossiers" / f"{v}.md" if role.get("with_dossiers") else workdir / "dossier.md"
                 dest.parent.mkdir(parents=True, exist_ok=True); dest.write_text(text)

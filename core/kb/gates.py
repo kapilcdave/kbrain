@@ -3,14 +3,14 @@ import re
 from pathlib import Path
 
 # Section -> regexes; any match per section satisfies it.
-PREREG_REQUIRED = {
+PREREG_REQUIRED = {                                  # trading and experiment wording both accepted
     "hypothesis":  [r"hypothesis"],
-    "universe":    [r"universe"],
-    "dates":       [r"evaluation (window|dates)", r"\bdates?\b", r"holdout"],
-    "rules":       [r"entry", r"exit"],
-    "costs":       [r"fees?", r"slippage", r"costs?"],
-    "unit":        [r"independent (sampling )?unit", r"cluster"],
-    "endpoint":    [r"primary endpoint", r"endpoint"],
+    "universe":    [r"universe", r"\bdata(set)?s?\b", r"cohort", r"samples?"],
+    "dates":       [r"evaluation (window|dates|split)", r"\bdates?\b", r"holdout", r"held[- ]out", r"test (set|split)"],
+    "rules":       [r"entry", r"exit", r"\bmethods?\b", r"\bmodel\b", r"procedure"],
+    "costs":       [r"fees?", r"slippage", r"costs?", r"compute", r"budget"],
+    "unit":        [r"independent (sampling )?unit", r"cluster", r"\bfolds?\b"],
+    "endpoint":    [r"primary endpoint", r"endpoint", r"primary metric"],
     "controls":    [r"controls?", r"baseline"],
     "outcomes":    [r"\bpass\b", r"\bfail\b", r"underpowered", r"blocked"],
 }

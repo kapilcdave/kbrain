@@ -1,53 +1,40 @@
-# Every pixel bro reads this first
+# Every bro reads this first
 
-kbrain is the operator's trading firm, run as an idea pipeline. The operator brings a trade idea; the chief
-triages it; the venue bro (kalshi, hyperliquid, gemini or polymarket) writes the prereg with its venue's
-dossier; the data engineer, backtester and skeptic test it; the venue bro records the verdict; a validated
-idea goes back to the chief to run DRY on its box. Nothing runs without an idea in flight, so every run must
-count: no busywork, no exploring beyond your task.
+kbrain is the operator's research brain for **bio x AI**: genomics, DNA and regulatory sequence, proteins,
+single-cell and omics, and drug discovery. It produces three things:
+1. **Real experiments** on public data, preregistered, run on our machine, attacked by a skeptic.
+2. **Field intelligence**: a living, honest map of papers, models, datasets, labs and companies.
+3. **Opportunities**: things worth building, betting on, or doing next, each with evidence.
 
-## Focus (operator, 2026-11-01)
-- RECURRING, short-horizon markets that can go live soon: Kalshi 15M / hourly crypto (and other recurring
-  Kalshi series), Hyperliquid perps (maker/taker on the Tokyo box), Gemini and Polymarket US 5M/15M crypto (one desk each: kalshi, hyperliquid, gemini, polymarket).
-- NOT long-dated markets (CPI, FOMC, elections, weather seasons, treasury auctions, season-long sports).
-- Judge edges, not $/day. Never arm on a venue-average edge: score OUR fill set first. Our speed is
-  second-tier (~8.5 ms feed lag, no FIX): do not propose races we would lose.
+How work flows: the operator (or the chief, when idle) brings an idea; the chief triages it; the FIELD BRO
+(genomics, proteins, cells or clinic) writes the prereg with its field's dossier; the data engineer gets the
+data; the experimenter runs it; the skeptic attacks it; the field bro records the verdict; the chief turns
+validated results into findings and opportunities. The SCOUT works continuously on field intelligence.
 
-## The corpus (read before you propose, test or reopen anything)
-- `corpus/MEMORY.md`: index of ~650 findings. Start with `corpus/topics-*.md` for your area:
-  topics-15m-crypto-seat, topics-maker-seat-mechanics, topics-latency-and-feed-races, topics-venue-facts,
-  topics-live-arming-and-plumbing, topics-estimator-and-inference-traps (READ BEFORE ANY TEST),
-  topics-closed-branches (READ BEFORE REOPENING).
-- `projects/`: the operator's trading code and handoffs (`projects/INDEX.md`, `projects/HANDOFF-ASTRA.md`).
-  The live code lives in ~/proj/rustmaker (Kalshi), ~/proj/hypephil (Hyperliquid), ~/proj/geminibot
-  (Gemini), ~/proj/kap (KAP / Polymarket US). Read them; do not edit them (they are other repos).
-- `priors.md`: the distilled short list of closed branches and traps.
-- `repo/core/knowledge/`, `repo/desks/`, `repo/research/`, `repo/lessons/`: what kbrain already knows.
+## Where things are
+- `knowledge/`: the field map (INDEX.md links everything). `fields/<field>/DOSSIER.md`: one per field.
+- `METHODOLOGY.md`, `lessons/`: rigor rules (preregistration, fake effects from data bugs, negative results).
+- `archive/trading/`: the operator's old trading work. Not your focus; ignore unless asked.
+- `data/` in your workspace: datasets the engineer has collected (catalog in your prompt when relevant).
 
-## Machines and money
-- The VMs are yours to work on: `./kbssh <box> '<shell command>'` gives a full shell with sudo
-  (rustmaker = Kalshi, us-east-2; hypephil = Hyperliquid, Tokyo; geminibot = Gemini, us-east-1).
-  Deploy code, start/stop/restart collectors and tapes, run dry runs and paper quoters, install deps, pull
-  data (`./kbssh hypephil 'tar czf - data/X' > x.tgz`). Every command is logged on the box.
-- EVERYTHING EXCEPT ARMING (operator policy): never start anything that places real orders (`--armed`,
-  starting altspot, live mmlive/quoters) and never stop or modify a LIVE runner. Post `[to:operator] arm X
-  because Y (evidence: ...)` in your OUTBOX instead. Trading keys live only on the VMs: programs may use them,
-  you never print or copy them. The box refuses the obvious violations; the rest is on your honour.
-- Before you start, restart or stop anything on a box, check fleet.md: never touch another desk's runner
-  without asking on the board. Boxes are small (t3.micro, 1 GB RAM; hypephil has an 8 GB disk): check
-  `free -m` and `df -h` first, cap memory, and never score big tapes on the box next to a live runner.
-- Declare every runner you start in `repo/desks/<desk>/runners.toml` (`[[runner]]` with name, box, unit or
-  proc, mode = "dry" or "tape", until, decides) and remove it when you stop it. The harness then monitors it.
+## Compute and money
+- Our machine: 8 CPU cores, ~7 GB RAM, NO GPU, ~160 GB free disk. `python3` has numpy, pandas, scipy,
+  scikit-learn, biopython, pyfaidx, matplotlib and CPU PyTorch. Design experiments that fit: subsample,
+  use small models, cache features, stream big files. Say the compute budget in every prereg.
+- Anything that SPENDS MONEY (cloud GPUs, paid APIs or data, AWS resources) needs the operator's approval:
+  write a costed proposal with `[to:operator]` in your summary. Never create cloud resources yourself.
+- Never download controlled-access human data (dbGaP, UK Biobank individual-level); public/open data only.
 
-## Git (you are in a worktree; the harness merges)
-- `repo/` is your own git worktree of kbrain on a fresh branch from main. Make your changes there and
-  `git -C repo add ... && git -C repo commit -m "<desk>: <what changed and why>"`. Small, real commits.
-- Do NOT push, rebase, merge, reset or switch branches. When your task ends, the harness runs the tests
-  and a secret scan, rebases onto main and pushes. If that fails, your branch is kept and you hear about it.
-- Never commit credentials, keys, tokens or raw tape data (data stays in state/data or on the boxes).
-  Numbers, fills, P&L and findings are fine: the repo is our working brain.
-- Edit only your own area (your venue's folder `desks/<venue>/`, or the files your task names).
+## Rigor (what makes this worth anything)
+- Beat a stated BASELINE on a HELD-OUT split chosen before you look. Report per independent unit
+  (gene, protein family, donor, chromosome, fold), not per row; split to prevent leakage (by chromosome,
+  sequence similarity, donor or time, not random rows when items are related).
+- Grade with `kbstats.evaluate({unit: improvement_over_baseline})`: the harness passes only a CI above zero.
+- Distinguish measured result, inference and conclusion. Nulls and retractions stay written down.
+- Cite sources (paper DOI/arXiv/bioRxiv id, dataset accession) for every claim in a dossier or knowledge page.
 
-## Honesty
-Distinguish measured result, inference and conclusion. Count independent windows, not rows. Keep
-retractions next to what they replace. A null result written down is progress; a vague "promising" is not.
+## Git (roles that commit work in a worktree; the harness merges)
+- `repo/` is your own git worktree on a fresh branch from main. Commit there:
+  `git -C repo add ... && git -C repo commit -m "<role>: <what and why>"`. Never push, rebase or reset.
+- Never commit credentials or raw data (data stays in data/). Small text, code and figures are fine.
+- Edit only your area (your field's folder, knowledge pages your task names).

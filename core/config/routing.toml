@@ -1,41 +1,42 @@
-# kbrain routing: an idea pipeline, not a standing firm. NOTHING runs unless an operator idea is in flight.
+# kbrain routing: bio x AI research (genomics, DNA, proteins, single-cell, drug discovery).
 #
-#   you --idea--> CHIEF (triage, pick venue, kill early)
-#                   -> VENUE BRO (kalshi | hyperliquid | gemini | polymarket): prereg with only its venue's dossier
-#                   -> DATA ENGINEER (only if data is missing) -> BACKTESTER -> SKEPTIC     (code routes these)
-#                   -> VENUE BRO (verdict into its dossier; deploy brief if validated)
-#                   -> CHIEF (deploys DRY on the box) -> you arm live
+#   you / chief --idea--> CHIEF triage -> FIELD BRO (genomics | proteins | cells | clinic) writes the prereg with its
+#   dossier -> DATA ENGINEER (if data is missing) -> EXPERIMENTER (role id: backtester) -> SKEPTIC     (code routes these)
+#   -> FIELD BRO (verdict into its dossier, write-up if validated) -> CHIEF (finding + opportunity; costed proposals
+#   for anything that spends money go to the operator)
+#   SCOUT: the one continuous bro, on cheap models: field intelligence + candidate experiments + opportunities.
 #
-# Models: judgement steps get the strong models (chief: codex gpt-5.6-sol medium; skeptic: Claude Sonnet 4.6 via
-# agy, Google's quota). Mechanical steps get cheap ones (gpt-5.6-luna / terra, agy Gemini 3.8 Flash, free opencode).
-# No Claude from the operator's own quota. A model that reports a usage limit is killed within seconds and cools down.
+# Models: judgement steps get strong models (chief: codex gpt-5.6-sol medium; skeptic: Claude Sonnet 4.6 via agy);
+# mechanical steps and the scout get cheap ones (gpt-5.6-luna / terra, agy Gemini 3.8 Flash, free opencode).
+# A model that reports a usage limit is killed within seconds and cools down; the next model takes over.
 
 [limits]
 min_mem_mb = 900
 max_queued = 20
-max_depth = 8                # chief -> venue -> backtester -> engineer -> backtester -> skeptic -> venue -> chief
+max_depth = 8
 rate_limit_backoff_s = 1800
-heartbeat_s = 300            # a free slot for 5 min -> the chief picks the next idea itself (no idling)
-max_runs_per_day = 1000000   # uncapped (operator 2026-11-01); quotas are handled by the rate-limit watchdog
+heartbeat_s = 300            # a free slot for 5 min -> the chief picks the next experiment itself
+max_runs_per_day = 1000000   # uncapped (operator 2026-11-01)
 stall_runs = 30
 dedup_days = 14
 max_tasks_per_hypothesis = 10
-max_open_hypotheses = 3      # ideas in flight at once
+max_open_hypotheses = 3      # experiments in flight at once
 max_waiting_on_data = 3
 max_workers = 3
 launch_spacing_s = 8
-max_jobs = 3
+desk_gap_s = 600             # the scout's pause between shifts
+max_jobs = 2
 max_job_s = 14400
-job_mem_mb = 1024
+job_mem_mb = 2048
 
-[venues]
-list = ["kalshi", "hyperliquid", "gemini", "polymarket"]
+[venues]                     # the fields (internal name kept: "venues")
+list = ["genomics", "proteins", "cells", "clinic"]
 
 [domains]
-list = ["kalshi", "hyperliquid", "gemini", "polymarket"]
+list = ["genomics", "proteins", "cells", "clinic"]
 
 [gates]
-min_units = 30
+min_units = 30               # independent units (genes, protein families, donors, folds), not rows
 max_prereg_attempts = 2
 max_data_attempts = 2
 
@@ -48,97 +49,82 @@ standing_orders = false
 heartbeat_only = true
 models = ["codex:gpt-5.6-sol@medium", "agy:gemini-3.8-flash-high", "opencode:opencode/big-pickle"]
 timeout_s = 1200
-tools = ["Read", "Write", "Edit", "Bash(./kbssh:*)", "Bash(git:*)", "Bash(python3:*)"]
-with_priors = true
-with_fleet = true
-with_corpus = true
-with_dossiers = true         # every venue's dossier, for triage
-digest = true                # state: slots, hypotheses, verdicts, dead ends
+tools = ["Read", "Write", "Edit", "Bash(git:*)", "Bash(python3:*)", "WebFetch", "WebSearch"]
+with_dossiers = true
+digest = true
 worktree = true
 can_spawn = true
-spawnable = ["kalshi", "hyperliquid", "gemini", "polymarket"]
+spawnable = ["genomics", "proteins", "cells", "clinic"]
 
-# venue bros: own a dossier; write the prereg and the verdict for their venue's ideas
-[roles.kalshi]
+[roles.scout]                # continuous field intelligence on cheap models
+desk = true
+standing_orders = false
+focus = "bio x AI field intelligence: new papers/models/datasets in genomics, DNA language models, regulatory genomics, proteins, single-cell, drug discovery; candidate experiments; opportunities."
+models = ["agy:gemini-3.8-flash-medium", "codex:gpt-5.6-luna", "opencode:opencode/big-pickle", "opencode:opencode/glm-5.3-flash-free"]
+timeout_s = 900
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
+worktree = true
+
+# field bros: own a dossier; write the prereg and the verdict for their field's experiments
+[roles.genomics]
 venue_bro = true
 standing_orders = false
-focus = "Kalshi recurring short-horizon markets (15M / hourly crypto and other recurring series). Box: rustmaker (us-east-2), code ~/proj/rustmaker and ~/proj/kap."
+focus = "Genomics and DNA: sequence-to-function models (Enformer/Borzoi-style), DNA language models (Evo, Nucleotide Transformer, HyenaDNA, Caduceus), regulatory variants and eQTLs, variant effect prediction, gnomAD constraint, ENCODE/GTEx."
 models = ["codex:gpt-5.6-luna", "codex:gpt-5.6-terra", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
-timeout_s = 1200
-tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)"]
-with_priors = true
-with_corpus = true
-with_fleet = true
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
 worktree = true
 
-[roles.hyperliquid]
+[roles.proteins]
 venue_bro = true
 standing_orders = false
-focus = "Hyperliquid perps: maker cells (main, HIP-3 growth, wide sweep), taker ideas, per-market fees. Box: hypephil (Tokyo), code ~/proj/hypephil."
+focus = "Proteins: structure prediction (AlphaFold, ESMFold), protein language models (ESM-2/3), design (RFdiffusion, ProteinMPNN), fitness and mutation effect (ProteinGym, deep mutational scans), UniProt/PDB/AlphaFold DB."
 models = ["codex:gpt-5.6-terra", "codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
-timeout_s = 1200
-tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)"]
-with_priors = true
-with_corpus = true
-with_fleet = true
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
 worktree = true
 
-[roles.gemini]
+[roles.cells]
 venue_bro = true
-desk = true                  # HOT VENUE (operator 2026-11-01: Gemini markets are trading): continuous live shifts
 standing_orders = false
-can_spawn = true             # a shift may hand one prereg-ready idea to the pipeline
-spawnable = ["gemini"]
-focus = "Gemini prediction markets: recurring BTC/ETH 5M/15M contracts (basis taker, dry maker/quoter, depth/trade/strike/lead tapes). Box: geminibot (us-east-1), code ~/proj/geminibot."
+focus = "Cells and omics: single-cell RNA/ATAC, cell atlases (CZ CELLxGENE, Human Cell Atlas), single-cell foundation models (scGPT, Geneformer) vs simple baselines, perturbation prediction (Perturb-seq), spatial omics."
 models = ["codex:gpt-5.6-luna", "codex:gpt-5.6-terra", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
-timeout_s = 1200
-tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "Bash(./kbssh:*)"]
-with_priors = true
-with_corpus = true
-with_fleet = true
-with_data = true
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
 worktree = true
 
-[roles.polymarket]
+[roles.clinic]
 venue_bro = true
 standing_orders = false
-focus = "Polymarket US recurring BTC/ETH 5M/15M (twin of Kalshi KXBTC15M: same settle and strike) and cross-venue with Kalshi (KAP paired books on rustmaker). WebSocket only; REST /book lags ~20 s. Code ~/proj/kap, ~/repos/proj/polymarket-us-mm, pmus-5m."
+focus = "Drug discovery and the clinic: target identification, molecular property and binding prediction (ChEMBL, MoleculeNet, TDC), genetic support for targets, clinical trials (ClinicalTrials.gov) and biotech catalysts, the bio x AI company landscape."
 models = ["codex:gpt-5.6-terra", "codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
-timeout_s = 1200
-tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)"]
-with_priors = true
-with_corpus = true
-with_fleet = true
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
 worktree = true
 
-# shared specialists: get the idea's venue dossier staged
+# shared specialists: get the experiment's field dossier staged
 [roles.engineer]
 standing_orders = false
-collector_rules = true
 models = ["codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "codex:gpt-5.6-terra", "opencode:opencode/big-pickle"]
 timeout_s = 1500
-tools = ["Read", "Write", "Edit", "WebFetch", "WebSearch", "Bash(python3:*)", "Bash(./kbssh:*)"]
+tools = ["Read", "Write", "Edit", "WebFetch", "WebSearch", "Bash(python3:*)"]
 with_data = true
-with_fleet = true
 with_dossier = true
 
-[roles.backtester]
+[roles.backtester]           # the EXPERIMENTER
 standing_orders = false
-with_priors = true
 models = ["codex:gpt-5.6-terra", "codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
-timeout_s = 1800
+timeout_s = 3600
 tools = ["Read", "Write", "Edit", "Bash(python3:*)"]
 requires_prereg = true
 with_stats = true
 with_data = true
 with_dossier = true
 
-[roles.skeptic]              # strong model, different family from the backtester
+[roles.skeptic]              # strong model, different family from the experimenter
 standing_orders = false
-with_priors = true
-with_corpus = true
 models = ["agy:claude-sonnet-4-6", "codex:gpt-5.6-sol@medium", "agy:gemini-3.8-flash-high"]
-timeout_s = 1200
+timeout_s = 1500
 tools = ["Read", "Write", "Bash(python3:*)"]
 independent_of = "backtester"
 with_stats = true

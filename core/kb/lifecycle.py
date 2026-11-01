@@ -132,7 +132,7 @@ def on_result(c, cfg, task, result, workdir):
             # the brief is merged to main by the venue bro's worktree; start after that merge has landed
             tid = spawn(c, task, "chief", f"Deploy {slug} in DRY mode",
                         {"kind": "deploy", "venue": task["role"], "slug": slug,
-                         "brief": f"repo/desks/{task['role']}/deploy-{slug}.md"})
+                         "brief": f"repo/fields/{task['role']}/deploy-{slug}.md"})
             c.execute("UPDATE tasks SET not_before=? WHERE id=?", (time.time() + 180, tid))
         return
     if kind in ("deploy", "seed", "idea", "plan"):
