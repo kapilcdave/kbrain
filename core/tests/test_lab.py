@@ -19,7 +19,7 @@ class Lab(unittest.TestCase):
         self.root = Path(tempfile.mkdtemp())
         (self.root / "dms" / "DMS").mkdir(parents=True)
         (self.root / "cv_folds" / "cv").mkdir(parents=True)
-        (self.root / "zero_shot" / "scores" / "ESM2_35M").mkdir(parents=True)
+        (self.root / "zero_shot").mkdir(parents=True)
         rng = np.random.default_rng(1)
         ref, lb = [], []
         for i, aid in enumerate(["P1_A", "P1_B", "P2_A"]):
@@ -31,8 +31,8 @@ class Lab(unittest.TestCase):
             folds = df.assign(fold_random_5=np.arange(n) % 5, fold_modulo_5=np.arange(n) % 5,
                               fold_contiguous_5=np.arange(n) * 5 // n)
             folds.to_csv(self.root / "cv_folds" / "cv" / f"{aid}.csv", index=False)
-            pd.DataFrame({"mutant": df.mutant, "DMS_score": truth, "esm2_35M_score": truth + rng.normal(size=n)}) \
-                .to_csv(self.root / "zero_shot" / "scores" / "ESM2_35M" / f"{aid}.csv", index=False)
+            pd.DataFrame({"mutant": df.mutant, "DMS_score": truth, "ESM2_35M": truth + rng.normal(size=n),
+                          "Site_Independent": rng.normal(size=n)}).to_csv(self.root / "zero_shot" / f"{aid}.csv", index=False)
             ref.append({"DMS_id": aid, "UniProt_ID": aid.split("_")[0], "selection_type": "Activity" if i < 2 else "Stability",
                         "target_seq": "M" * 10, "DMS_number_single_mutants": n})
             lb.append({"DMS ID": aid, "ESM2 (35M)": 0.3, "Site-Independent": 0.1})

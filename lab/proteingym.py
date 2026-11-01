@@ -82,49 +82,37 @@ def leaderboard():
     return lb.set_index(key)
 
 
-def published_models():
-    base = _zs_base()
-    return sorted(p.name for p in base.iterdir() if p.is_dir()) if base else []
+_META = {"mutant", "mutated_sequence", "DMS_score", "DMS_score_bin"}
 
 
-def _zs_base():
-    root = _root() / "zero_shot"
-    if not root.is_dir():
-        return None
-    subs = [p for p in root.iterdir() if p.is_dir()]
-    # the archive may hold the model folders directly or inside one wrapper folder
-    if len(subs) == 1 and not list(subs[0].glob("*.csv")) and any(q.is_dir() for q in subs[0].iterdir()):
-        return subs[0]
-    return root
+def _norm(name):
+    return "".join(ch for ch in str(name).lower() if ch.isalnum())
 
 
-def _model_dir(model):
-    base = _zs_base()
-    if base is None:
-        raise FileNotFoundError("published zero-shot scores are not downloaded")
-    norm = lambda s: "".join(ch for ch in s.lower() if ch.isalnum())
-    want = norm(model)
-    for p in base.iterdir():
-        if p.is_dir() and norm(p.name) == want:
-            return p
-    for p in base.rglob("*"):
-        if p.is_dir() and norm(p.name) == want:
-            return p
-    raise KeyError(f"no published scores for model {model!r}; see published_models()")
+@lru_cache(maxsize=8)
+def _scores_table(aid):
+    """ProteinGym v1.3 ships one file per assay with every published model as a column."""
+    f = _root() / "zero_shot" / f"{aid}.csv"
+    if not f.is_file():
+        raise FileNotFoundError(f"no published zero-shot scores for {aid}")
+    return pd.read_csv(f).set_index("mutant")
+
+
+def published_models(aid=None):
+    """Model columns available in the published score files (e.g. ESM2_35M, GEMME, Site_Independent)."""
+    aid = aid or assays()[0]
+    return [c for c in _scores_table(aid).columns if c not in _META]
 
 
 def published_scores(aid, model):
-    """A leaderboard model's per-mutant zero-shot score for one assay, as a Series indexed by mutant."""
-    d = _model_dir(model)
-    hits = list(d.rglob(f"{aid}.csv"))
-    if not hits:
-        raise KeyError(f"{model} has no scores for {aid}")
-    df = pd.read_csv(hits[0])
-    skip = {"mutant", "mutated_sequence", "DMS_score", "DMS_score_bin", "mutated_seq", "target_seq"}
-    cols = [c for c in df.columns if c not in skip and pd.api.types.is_numeric_dtype(df[c])]
-    if not cols:
-        raise ValueError(f"cannot find a score column in {hits[0]}")
-    return df.set_index("mutant")[cols[-1]].rename(model)
+    """A published model's per-mutant zero-shot score for one assay, as a Series indexed by mutant.
+    Accepts the score-file name (ESM2_35M) or the leaderboard name (ESM2 (35M))."""
+    t = _scores_table(aid)
+    want = _norm(model)
+    for c in t.columns:
+        if c not in _META and _norm(c) == want:
+            return t[c].rename(c)
+    raise KeyError(f"no published model {model!r} for {aid}; see published_models()")
 
 
 def _as_series(preds):

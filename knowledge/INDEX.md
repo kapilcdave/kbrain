@@ -14,4 +14,4 @@ The map of our niche: protein mutation-effect prediction. The scout keeps this c
 ## Pipeline
 - [Candidate experiments](CANDIDATES.md): the chief picks from here.
 - [Opportunities](OPPORTUNITIES.md): things to build, bet on or do next.
-- [Findings](findings/): validated experiments, one page each.
+- [Findings](findings/): validated experiments, one page each. First: [lab validation](findings/lab-validation.md)
