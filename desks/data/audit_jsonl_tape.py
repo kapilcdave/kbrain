@@ -11,8 +11,13 @@ from pathlib import Path
 from typing import Any, Iterator, TextIO
 
 
-RECV_KEYS = ("recv_ns", "local_recv_ns", "received_ns", "t_ns")
-VENUE_KEYS = ("venue_ts", "venue_ts_ms", "transactTime", "exchange_ts", "ts")
+RECV_PATHS = (("recv_ns",), ("local_recv_ns",), ("received_ns",), ("t_ns",), ("rx",))
+VENUE_PATHS = (
+    ("venue_ts",), ("venue_ts_ms",), ("transactTime",), ("exchange_ts",), ("ts",),
+    # Polymarket US market-data messages put the exchange timestamp below the
+    # raw message envelope used by the KAP paired-book recorder.
+    ("m", "marketData", "transactTime"),
+)
 
 
 def open_text(path: Path) -> TextIO:
@@ -33,10 +38,16 @@ def files(paths: list[Path]) -> Iterator[Path]:
             yield path
 
 
-def first(row: dict[str, Any], keys: tuple[str, ...]) -> tuple[str | None, Any]:
-    for key in keys:
-        if key in row and row[key] is not None:
-            return key, row[key]
+def first_path(row: dict[str, Any], paths: tuple[tuple[str, ...], ...]) -> tuple[str | None, Any]:
+    for path in paths:
+        value: Any = row
+        for key in path:
+            if not isinstance(value, dict) or key not in value:
+                break
+            value = value[key]
+        else:
+            if value is not None:
+                return ".".join(path), value
     return None, None
 
 
@@ -72,7 +83,7 @@ def audit(paths: list[Path]) -> tuple[dict[str, Any], int]:
                 kinds[kind] += 1
                 if kind == "gap":
                     counts["gaps"] += 1
-                    recv_key, recv = first(row, RECV_KEYS)
+                    recv_key, recv = first_path(row, RECV_PATHS)
                     if recv_key is None:
                         counts["gap_missing_recv_ts"] += 1
                     else:
@@ -85,8 +96,8 @@ def audit(paths: list[Path]) -> tuple[dict[str, Any], int]:
                                 counts["gap_recv_not_ns"] += 1
                     continue
 
-                recv_key, recv = first(row, RECV_KEYS)
-                venue_key, _venue = first(row, VENUE_KEYS)
+                recv_key, recv = first_path(row, RECV_PATHS)
+                venue_key, _venue = first_path(row, VENUE_PATHS)
                 if recv_key is None:
                     counts["missing_recv_ts"] += 1
                 else:

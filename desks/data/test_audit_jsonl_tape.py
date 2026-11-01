@@ -61,6 +61,20 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertEqual(report["counts"]["recv_regressions"], 1)
 
+    def test_kap_envelope_is_classified_not_treated_as_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "kap.jsonl"
+            write_rows(path, [{
+                "v": "pm",
+                "rx": 1_800_000_000.25,
+                "m": {"marketData": {"transactTime": "1800000000123"}},
+            }])
+            report, status = audit([path])
+        self.assertEqual(status, 1)
+        self.assertEqual(report["counts"]["recv_not_ns"], 1)
+        self.assertNotIn("missing_recv_ts", report["counts"])
+        self.assertNotIn("missing_venue_ts", report["counts"])
+
 
 if __name__ == "__main__":
     unittest.main()
