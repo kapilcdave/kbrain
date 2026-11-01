@@ -3,9 +3,12 @@ from datetime import datetime
 from .db import STATE, connect, add_task, event
 from . import runner, lifecycle
 
-# Mark: a rising chart in half-block pixels, money green -> blue (in the style of agy's banner).
-MARK = ["..........####", "...........###", "..........#.##", ".........#...#", "..##....#.....",
-        ".####..#......", "##..####......", "#....##.......", "..............", "##############"]
+# Mark: a candlestick K. The upright is a tall candle (the price axis), a small candle sits at the joint,
+# and the arms are a green (up) candle top-right and a red (down) candle bottom-right: both sides of a trade.
+# Pixels: '#' = green->blue gradient, 'g' = green, 'r' = red, '.' = empty. Two pixel rows per terminal line.
+MARK = [".#......g.", "###....ggg", "###....ggg", "###..#..g.", "###.###...",
+        "###.###...", "###..#..r.", "###....rrr", "###....rrr", ".#......r."]
+FIXED = {"g": (46, 170, 92), "r": (214, 64, 69)}
 STOPS = [(10, 92, 54), (20, 128, 72), (16, 122, 120), (28, 92, 190), (47, 111, 235)]
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 TRUECOLOR = os.environ.get("COLORTERM", "") in ("truecolor", "24bit")
@@ -25,16 +28,16 @@ def c(code, s):
 
 def mark_lines():
     h, w, out = len(MARK), len(MARK[0]), []
+    px = lambda r, x: FIXED.get(MARK[r][x]) or grad(r / h)       # gradient runs top to bottom
     for r in range(0, h, 2):
         line = ""
         for x in range(w):
-            top, bot = MARK[r][x] == "#", r + 1 < h and MARK[r + 1][x] == "#"
-            ct, cb = grad(x / w * .7 + r / h * .3), grad(x / w * .7 + (r + 1) / h * .3)
+            top, bot = MARK[r][x] != ".", r + 1 < h and MARK[r + 1][x] != "."
             if not COLOR:
                 line += "█" if top and bot else "▀" if top else "▄" if bot else " "
-            elif top and bot: line += c(f"{sgr(ct)};{sgr(cb, True)}", "▀")
-            elif top: line += c(sgr(ct), "▀")
-            elif bot: line += c(sgr(cb), "▄")
+            elif top and bot: line += c(f"{sgr(px(r, x))};{sgr(px(r + 1, x), True)}", "▀")
+            elif top: line += c(sgr(px(r, x)), "▀")
+            elif bot: line += c(sgr(px(r + 1, x)), "▄")
             else: line += " "
         out.append(line)
     return out
