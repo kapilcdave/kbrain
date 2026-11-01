@@ -119,12 +119,14 @@ It does not authorize an armed runner._
 
 ## Live / open bets
 
-- **Thin-alt spot gap:** the operator-owned Kalshi `altspot` live runner is
-  down; its successor `altlive-dry` is running on `rustmaker` in DRY mode
-  through 2026-11-01T08:30Z.  The frozen question is whether a correctly chosen
-  lead-venue fair value predicts the Kalshi book; Coinbase was rejected as the
-  fair for the currently tested alts.  Decision date: 2026-11-08.  _Source:
-  `fleet.md`._
+- **Thin-alt spot gap / lead-venue fair (`kalshi-thin-alt-lead-venue-fair`):**
+  preregistration frozen 2026-11-01 testing Hyperliquid (HYPE) and Binance spot
+  (NEAR, ZEC) lead feeds against `altlive-dry` resting quotes. Offline scoring
+  parked at 0/150 windows because Kalshi retains no historical resting depth or
+  causal receive times. `altlive-dry` is active on `rustmaker` in DRY mode
+  through 2026-11-01T08:30Z; forward collector script staged. Adjudication
+  awaits signed Kalshi L2 and journal collection through 2026-11-08. _Sources:
+  `fleet.md`, `inputs/kalshi-thin-alt-lead-venue-fair.md`, `inputs/result.json`._
 - **PM US/Kalshi paired-book preflight:** `kap-poly15-ws` is a tape-only
   recorder on `rustmaker` through 2026-11-01T08:02Z.  It is a shared-index,
   post-fee executable-gap check, not a license for the already-closed generic
@@ -137,6 +139,24 @@ It does not authorize an armed runner._
   `corpus/sports-parent-lead-taker-closed-level-not-move.md`._
 
 ## Verdicts
+
+### 2026-11-01 — Verdict: kalshi-thin-alt-lead-venue-fair parked (0/150 windows scored)
+
+**Tested:** `kalshi-thin-alt-lead-venue-fair` evaluated asset-specific external
+lead-venue pricing for recurring Kalshi `KXHYPE15M` (Hyperliquid perp),
+`KXNEAR15M` (Binance spot), and `KXZEC15M` (Binance spot) versus the unvalidated
+Coinbase baseline and generic maker models.
+**Numbers:** 0 of 150 required independent contract windows scored (0/40 per
+asset). 0 postable treatment fills evaluated.
+**Why parked:** Engineer blocked: no required dataset exists in repo or archive.
+Public Kalshi historical REST endpoints retain no resting L2 depth, queue
+position, or causal receive timestamps; cataloged PM-US/Kalshi BTC tape was
+absent and inapplicable to alts. Offline scoring is impossible without forward
+data. A public collector (`collect_alt_lead_feeds.py`) was prepared, but
+adjudication is parked until the operator runs the signed Kalshi L2/trade/fee
+recorder on `rustmaker`, preserves the `altlive-dry` journal across holdout
+windows, and joins them for scoring. _Sources: `inputs/kalshi-thin-alt-lead-venue-fair.md`,
+`inputs/result.json` (task-152), `priors.md`._
 
 ### 2026-11-01 — Seed verdict: no new Kalshi arm
 
