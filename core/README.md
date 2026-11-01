@@ -34,10 +34,17 @@ with no hypothesis changing state, the chief pauses and HQ shows a STALL alert u
 Hermes is not required; the chief role replaces it.
 
 ## Free / cheap models
-Backends: `claude`, `codex`, `agy` (Antigravity; headless runs currently auto-deny shell commands, so it sits last in the chains), `opencode` (CLIs on your logins; `opencode models` lists the free ones), `api:<provider>/<model>` (tool-less call to any
-OpenAI-compatible endpoint; define it under `[providers]` in `config/routing.toml`). Keys go in
-`~/.config/kbrain/env` (chmod 600, never in the repo); the daemon loads them and strips them from every
-agent's environment. `max_runs_per_day` is a global circuit breaker. Compare models with `bin/kb stats`.
+The default chains start with OpenCode free models. Claude is absent from every chain, so a running
+daemon cannot use its five-hour quota unless you add it to `config/routing.toml`. Codex is a fallback
+for code tasks and the independent skeptic. Rate limits cool a model down across all tasks for
+`rate_limit_backoff_s`; other free models can pick up the work. The global `max_runs_per_day` cap is
+120. Use `bin/kb stats` to see successes, blocked tasks, invalid runs, and rate limits separately.
+
+Backends: `claude`, `codex`, `agy` (Antigravity; headless permissions are unresolved), `opencode`
+(run `opencode models` to check the current free catalog), `api:<provider>/<model>` (tool-less call to
+an OpenAI-compatible endpoint, configured under `[providers]`). API models cannot write files, so
+they only fit text-only roles without artifacts. Keys go in `~/.config/kbrain/env` (chmod 600, never
+in the repo); the daemon strips them from agent subprocesses.
 
 ## HQ (the LARP view)
 `bin/kb web` -> http://127.0.0.1:7777. Default view is MINIMAL: a dark screen with the agents, their names, and white text saying what each is doing (nothing else on screen; click an agent for a card beside it; press / to send a message; other layouts via ?theme=classic|lamplight|blueprint|pipeline). Other layouts: one pixel room per role; agents walk to their desks when they get a

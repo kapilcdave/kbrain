@@ -18,6 +18,8 @@ CREATE INDEX IF NOT EXISTS tasks_pick ON tasks(status, not_before, id);
 CREATE TABLE IF NOT EXISTS runs(
   id INTEGER PRIMARY KEY, task_id INTEGER NOT NULL, model TEXT NOT NULL,
   started REAL NOT NULL, ended REAL, rc INTEGER, outcome TEXT, log_path TEXT);
+CREATE TABLE IF NOT EXISTS model_cooldowns(
+  model TEXT PRIMARY KEY, until_ts REAL NOT NULL);
 CREATE TABLE IF NOT EXISTS events(
   id INTEGER PRIMARY KEY, ts REAL NOT NULL, actor TEXT NOT NULL,
   kind TEXT NOT NULL, task_id INTEGER, data TEXT NOT NULL DEFAULT '{}');

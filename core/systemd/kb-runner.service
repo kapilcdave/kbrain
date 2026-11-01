@@ -5,6 +5,7 @@ After=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=%h/proj/kbrain/core
+Environment=PATH=%h/.npm-global/bin:%h/.local/bin:/usr/local/bin:/usr/bin
 ExecStart=%h/proj/kbrain/core/bin/kb serve
 Restart=always
 RestartSec=20

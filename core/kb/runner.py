@@ -4,7 +4,7 @@ from . import adapters, gates, jobs, lifecycle
 from .db import ROOT, STATE, connect, event, add_task
 from .router import load_config, pick_model
 
-RATE_LIMIT = re.compile(r"(rate.?limit|usage limit|limit reached|too many requests|\b429\b|try again (in|at|later)|quota)", re.I)
+RATE_LIMIT = re.compile(r"(rate.?limit|usage limit|limit reached|(?:hit|reached) your .{0,30}limit|too many requests|\b429\b|try again (in|at|later)|quota)", re.I)
 STOP = STATE / "STOP"
 ALIVE = STATE / "runner.alive"
 STATUS = "starting"                       # what the runner is doing; published to ALIVE
@@ -162,10 +162,15 @@ def execute(c, cfg, task):
         if missing:
             finish(c, task, "blocked", {"status": "blocked", "summary": "prereg gate"}, missing=missing)
             return lifecycle.on_failed(c, task, "prereg gate: " + ", ".join(missing))
-    model, nmodels = pick_model(c, cfg, task)
+    model, nmodels, model_idx, next_at = pick_model(c, cfg, task)
+    if model is None:
+        c.execute("UPDATE tasks SET status='queued', not_before=?, updated=? WHERE id=?",
+                  (next_at, time.time(), task["id"]))
+        event(c, "runner", "task.model_cooldown", task["id"], until=next_at, role=task["role"])
+        return
     workdir = STATE / "workspaces" / f"task-{task['id']}"
     prepare(task, role, workdir, cfg, c)
-    log_path = workdir / f"run-{task['attempts'] + 1}.log"
+    log_path = workdir / f"run-{time.time_ns()}.log"
     c.execute("UPDATE tasks SET status='running', updated=? WHERE id=?", (time.time(), task["id"]))
     run_id = c.execute("INSERT INTO runs(task_id,model,started,log_path) VALUES(?,?,?,?)",
                        (task["id"], model, time.time(), str(log_path))).lastrowid
@@ -179,8 +184,12 @@ def execute(c, cfg, task):
     log_tail = log_path.read_text(errors="replace")[-4000:] if log_path.exists() else ""
     if result is None and RATE_LIMIT.search(log_tail) and not timed_out:
         outcome = "rate_limited"           # not the task's fault: wait, don't burn an attempt
+        cooldown_until = time.time() + lim(cfg, "rate_limit_backoff_s", 1800)
+        c.execute("INSERT INTO model_cooldowns(model,until_ts) VALUES(?,?) "
+                  "ON CONFLICT(model) DO UPDATE SET until_ts=max(until_ts,excluded.until_ts)",
+                  (model, cooldown_until))
         c.execute("UPDATE tasks SET status='queued', not_before=?, model_idx=?, updated=? WHERE id=?",
-                  (time.time() + lim(cfg, "rate_limit_backoff_s", 1800), min(task["model_idx"] + 1, nmodels - 1),
+                  (time.time() + 30, model_idx + 1 if model_idx + 1 < nmodels else 0,
                    time.time(), task["id"]))
         event(c, "runner", "task.rate_limited", task["id"], model=model, role=task["role"])
     elif result is not None and result["status"] in ("ok", "blocked"):
@@ -199,7 +208,7 @@ def execute(c, cfg, task):
             lifecycle.on_failed(c, task, outcome)
         else:                              # escalate down the fallback chain
             c.execute("UPDATE tasks SET status='queued', attempts=?, model_idx=?, not_before=?, updated=? WHERE id=?",
-                      (attempts, min(task["model_idx"] + 1, nmodels - 1), time.time() + 30, time.time(), task["id"]))
+                      (attempts, min(model_idx + 1, nmodels - 1), time.time() + 30, time.time(), task["id"]))
             event(c, "runner", "task.retry", task["id"], model=model, reason=outcome, role=task["role"])
     c.execute("UPDATE runs SET ended=?, rc=?, outcome=? WHERE id=?", (time.time(), rc, outcome, run_id))
 

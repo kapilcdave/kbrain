@@ -1,4 +1,4 @@
-import tomllib
+import time, tomllib
 from .db import ROOT
 
 def load_config():
@@ -10,7 +10,7 @@ def family(model):          # "claude:claude-sonnet-5-5" -> "claude"; "api:groq/
     return f"api:{rest.split('/')[0]}" if b == "api" else b
 
 def pick_model(c, cfg, task):
-    """Fallback chain per role; `independent_of` role avoids the author's backend family."""
+    """Pick an available model, skipping shared rate-limit cooldowns."""
     role = cfg["roles"][task["role"]]
     models = list(role["models"])
     indep = role.get("independent_of")
@@ -23,5 +23,11 @@ def pick_model(c, cfg, task):
             other = [m for m in models if family(m) != family(row["model"])]
             if other:
                 models = other + [m for m in models if m not in other]
-    idx = min(task["model_idx"], len(models) - 1)
-    return models[idx], len(models)
+    now = time.time()
+    cooldowns = {r["model"]: r["until_ts"] for r in c.execute(
+        "SELECT model,until_ts FROM model_cooldowns WHERE until_ts>?", (now,))}
+    start = min(task["model_idx"], len(models) - 1)
+    for idx in range(start, len(models)):
+        if models[idx] not in cooldowns:
+            return models[idx], len(models), idx, None
+    return None, len(models), None, min((cooldowns[m] for m in models[start:]), default=now + 60)

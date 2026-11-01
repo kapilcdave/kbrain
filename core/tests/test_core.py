@@ -44,11 +44,16 @@ class Core(unittest.TestCase):
         self.runner.STOP.touch()
         self.assertEqual(self.runner.tick(self.c, self.cfg), "stopped")
         self.runner.STOP.unlink()
-        self.cfg["roles"]["curator"]["models"] = ["shell:sh -c 'echo usage limit reached'", "shell:true"]
+        limited = "shell:sh -c 'echo You have hit your 5-hour limit'"
+        self.cfg["roles"]["curator"]["models"] = [limited, "shell:true"]
         self.runner.tick(self.c, self.cfg)
-        row = self.c.execute("SELECT status,attempts,not_before FROM tasks").fetchone()
-        self.assertEqual((row["status"], row["attempts"]), ("queued", 0))
-        self.assertGreater(row["not_before"], time.time() + 50)
+        row = self.c.execute("SELECT status,attempts,model_idx,not_before FROM tasks").fetchone()
+        self.assertEqual((row["status"], row["attempts"], row["model_idx"]), ("queued", 0, 1))
+        self.assertGreater(row["not_before"], time.time() + 20)
+        self.assertGreater(self.c.execute("SELECT until_ts FROM model_cooldowns WHERE model=?", (limited,)).fetchone()[0], time.time() + 90)
+        self.db.add_task(self.c, "curator", "second")
+        self.runner.tick(self.c, self.cfg)
+        self.assertEqual(self.c.execute("SELECT model FROM runs ORDER BY id DESC LIMIT 1").fetchone()[0], "shell:true")
 
     def test_heartbeat_wakes_chief_when_idle_and_budget_stops(self):
         self.cfg["limits"]["heartbeat_s"] = 0

@@ -113,9 +113,11 @@ def main(argv=None):
     elif args.cmd == "once":
         print(runner.tick(conn, load_config()))
     elif args.cmd == "stats":
-        print(f"{'model':42}{'runs':>5}{'ok%':>6}{'avg_s':>7}")
-        for r in conn.execute("SELECT model, COUNT(*) n, 100.0*SUM(outcome='ok')/COUNT(*) ok, AVG(ended-started) s FROM runs WHERE ended IS NOT NULL GROUP BY model ORDER BY n DESC"):
-            print(f"{r['model'][:41]:42}{r['n']:>5}{r['ok']:>6.0f}{r['s'] or 0:>7.0f}")
+        print(f"{'model':42}{'runs':>5}{'ok':>5}{'blocked':>8}{'invalid':>8}{'limited':>8}{'avg_s':>7}")
+        for r in conn.execute("SELECT model, COUNT(*) n, SUM(outcome='ok') ok, SUM(outcome='blocked') blocked, "
+                              "SUM(outcome IN ('invalid','timeout')) invalid, SUM(outcome='rate_limited') limited, "
+                              "AVG(ended-started) s FROM runs WHERE ended IS NOT NULL GROUP BY model ORDER BY n DESC"):
+            print(f"{r['model'][:41]:42}{r['n']:>5}{r['ok']:>5}{r['blocked']:>8}{r['invalid']:>8}{r['limited']:>8}{r['s'] or 0:>7.0f}")
     elif args.cmd == "tail":
         last = 0
         while True:
