@@ -1,5 +1,22 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP post-cutoff pull/scoring preflight complete
+
+Measured at 07:24Z: the authoritative host unit `kap-poly15-ws.service` was still
+active with PID 79035 and the unchanged command
+`polyus_pair_ws.py --out .../pair_ws_20261101.jsonl --hours 3`; its start time was
+05:03:28Z, so the artifact was not yet complete and was not copied or scored. The
+host exposes the frozen WS scorer and its fee module. Their SHA-256 hashes are
+`cbf5529844ee001a09ee18a7f373d2e8651ac643e22a905068bece90c26337ae` and
+`72f778164780081b712843f06d81ae0eb40145393bf19889ca7359f4af98e353`,
+respectively. The scorer streams rows rather than accumulating the tape. Local disk
+has 163 GB free, and all six schema-aware auditor tests pass.
+
+Inference: the completed tape can be copied and scored locally without touching a
+live runner or risking the t3.micro, but doing so before the host unit exits would
+change the frozen sample. A read-only local watcher was stopped; no remote process
+or file was changed. This shift makes no gap/edge claim.
+
 ## 2026-11-01 — KAP tape access recovered; recorder healthy before cutoff
 
 Measured at 07:21Z: `./kbssh` remains broken by its missing `kbro_ed25519` and the
@@ -114,9 +131,10 @@ flat-memory requirements before the tape is scored; it does not estimate an edge
 
 ## Queue
 
-1. After the fixed KAP run ends around 08:03Z, pull the completed tape through the explicit
-   rustmaker SSH identity (the `kbssh` wrapper itself remains broken). Preserve and score the
-   existing tape with its frozen scorer. Run the schema-aware auditor first; report its
+1. After the host unit exits around 08:03Z, gzip-stream the completed
+   `/home/ec2-user/poly15/data/pair_ws_20261101.jsonl` through the explicit rustmaker SSH identity.
+   Verify gzip integrity, preserve the compressed original, run the schema-aware auditor, then
+   decompress locally and run the exact frozen scorer whose hashes are recorded above. Report its
    seconds-valued receive-time and missing Kalshi venue-time violations as limitations, and require
    `time.time_ns()` plus exchange timestamps in the next recorder run.
 2. Check the failed collector directories named in the next board request; do not retry all failed
