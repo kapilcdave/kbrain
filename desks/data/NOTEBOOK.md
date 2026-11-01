@@ -1,5 +1,18 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP frozen sample preserved at 07:28Z
+
+Measured at 07:28:28Z: the authoritative `kap-poly15-ws.service` remained
+`active/running`, and its output was still changing. The file was 1,270,817,815
+bytes with an mtime of 07:28:28Z. The host had 629 MB available memory, 2,013 MB
+free swap, and 13 GB free disk. This was a read-only health check; no process or
+remote file was changed.
+
+Conclusion: the preregistered three-hour sample was not complete, so copying or
+scoring it in this shift would have frozen a different window. Preserve the run
+through its approximately 08:03Z exit, then pull, integrity-check, audit and score
+the completed artifact off-box. This check makes no tape-quality or edge claim.
+
 ## 2026-11-01 — KAP post-cutoff pull/scoring preflight complete
 
 Measured at 07:24Z: the authoritative host unit `kap-poly15-ws.service` was still
