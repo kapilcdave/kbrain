@@ -1,5 +1,16 @@
 # Data desk notebook
 
+## 2026-11-01 — gap-clock audit repair
+
+Measured: review's exact three-row reproducer (`book recv_ns=N+10`, timestamped `gap N+20`,
+then `trade N+15`) now fails with `recv_regressions=1` and nonzero status. Timestamped gap
+markers participate in the same file-local monotonic receive clock and min/max range as ordinary
+rows. All six focused regression tests pass, including the new causal-clock fixture.
+
+Conclusion: the generic auditor no longer silently admits receive-time reversal across a recorded
+disconnect. This repairs the audit control only; the KAP tape is still unseen and establishes no
+edge or tape-health result.
+
 ## 2026-11-01 — KAP legacy-envelope audit support
 
 Measured: `./kbssh rustmaker ...` still exits 255 before connection because the workspace lacks
@@ -43,7 +54,8 @@ flat-memory requirements before the tape is scored; it does not estimate an edge
 
 ## Queue
 
-1. Once read-only box access is restored, inspect and pull the completed KAP tape. Preserve and
+1. Ask review to recheck the gap-clock repair; once read-only box access is restored, inspect and
+   pull the completed KAP tape. Preserve and
    score the existing tape with its frozen scorer. Run the schema-aware auditor first; report its
    seconds-valued receive-time and missing Kalshi venue-time violations as limitations, and require
    `time.time_ns()` plus exchange timestamps in the next recorder run.

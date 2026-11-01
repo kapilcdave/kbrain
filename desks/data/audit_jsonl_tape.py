@@ -94,6 +94,11 @@ def audit(paths: list[Path]) -> tuple[dict[str, Any], int]:
                         else:
                             if recv_i < 1_000_000_000_000_000_000:
                                 counts["gap_recv_not_ns"] += 1
+                            if previous_recv is not None and recv_i < previous_recv:
+                                counts["recv_regressions"] += 1
+                            previous_recv = recv_i
+                            recv_min = recv_i if recv_min is None else min(recv_min, recv_i)
+                            recv_max = recv_i if recv_max is None else max(recv_max, recv_i)
                     continue
 
                 recv_key, recv = first_path(row, RECV_PATHS)

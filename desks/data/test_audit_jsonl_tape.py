@@ -61,6 +61,18 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertEqual(report["counts"]["recv_regressions"], 1)
 
+    def test_regression_after_timestamped_gap_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "00.jsonl"
+            write_rows(path, [
+                {"k": "book", "recv_ns": NS + 10, "venue_ts": 1},
+                {"k": "gap", "recv_ns": NS + 20, "reason": "disconnect"},
+                {"k": "trade", "recv_ns": NS + 15, "venue_ts": 2},
+            ])
+            report, status = audit([path])
+        self.assertEqual(status, 1)
+        self.assertEqual(report["counts"]["recv_regressions"], 1)
+
     def test_kap_envelope_is_classified_not_treated_as_missing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kap.jsonl"
