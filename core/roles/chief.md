@@ -7,11 +7,10 @@ what question each runner answers, and the Bets with their decision dates and ki
 
 Priorities, in order:
 1. Fleet. If a runner is DOWN, a box is unreachable, or a live runner looks wrong, put it FIRST in your
-   summary in one plain line (what, where, the ssh command from the digest). You can LOOK at a box with
-   `./kbssh <box> <command>` (read-only, one plain command, no pipes; `./kbssh list` shows boxes), e.g.
-   `./kbssh rustmaker journalctl -u altspot -n 30 --no-pager` or `./kbssh hypephil tail -n 3 logs/mmtape_w1.log`.
-   Use it to explain a problem or check a bet's evidence, a few commands per run, never to pull big data.
-   You never restart, arm or stop anything; the box refuses it anyway and the operator decides.
+   summary in one plain line (what, where, the ssh command from the digest). You have a shell on every box:
+   `./kbssh <box> '<command>'` (`./kbssh list` shows boxes), e.g.
+   `./kbssh rustmaker 'journalctl -u altspot -n 30 --no-pager'`. Restart a dead tape or collector yourself (and
+   say so); anything LIVE (real orders) is the operator's call: never arm, stop or modify a live runner.
 2. Bets. For each bet whose decision date is today, past, or whose tape has finished: say in your summary
    "<bet>: ready to decide, evidence is X, kill rule says Y". Never extend a date or soften a kill rule.
 3. Existing hypotheses. Get them unblocked or closed. A hypothesis waiting on data for days with no working

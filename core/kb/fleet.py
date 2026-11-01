@@ -5,7 +5,7 @@ One read-only ssh per box; the check script is sent on stdin so `pgrep -f` canno
 Output: state/fleet.md (staged into the chief's digest), state/fleet.json (HQ), and alert.fleet events
 for runners that are down before their `until`, or boxes that are unreachable.
 """
-import json, os, shlex, subprocess, time, tomllib
+import json, os, re, shlex, subprocess, time, tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 from .db import STATE, event
@@ -15,6 +15,39 @@ FLEET_MD, FLEET_JSON = STATE / "fleet.md", STATE / "fleet.json"
 
 def load(path=OPS):
     return tomllib.loads(Path(path).read_text()) if Path(path).is_file() else {}
+
+UNIT_OK = re.compile(r"[A-Za-z0-9@._-]{1,80}")
+PROC_OK = re.compile(r"[A-Za-z0-9 ._/=:,-]{3,120}")
+
+def desk_runners(boxes):
+    """Runners the desks declared in desks/<desk>/runners.toml on origin/main, so what agents start gets watched.
+    Agent-written input: only a validated unit name or process substring is used (shell-quoted in the check);
+    no `probe` (that would run agent text with the operator's key), and never `live` mode."""
+    from .gitops import git
+    out = []
+    try:
+        git("fetch", "-q", "origin", "main", check=False, timeout=60)
+        files = [f for f in git("ls-tree", "-r", "--name-only", "origin/main", "desks/", check=False).splitlines()
+                 if f.endswith("/runners.toml")]
+        for f in files:
+            desk = f.split("/")[1]
+            for r in tomllib.loads(git("show", f"origin/main:{f}", check=False) or "").get("runner", []):
+                if not isinstance(r, dict) or r.get("box") not in boxes or not UNIT_OK.fullmatch(str(r.get("name", ""))):
+                    continue
+                unit, proc = str(r.get("unit", "")), str(r.get("proc", ""))
+                if not (UNIT_OK.fullmatch(unit) if unit else PROC_OK.fullmatch(proc)):
+                    continue
+                safe = {"name": f"{desk}/{r['name']}", "box": r["box"], "mode": r.get("mode") if r.get("mode") in ("dry", "tape") else "tape",
+                        "until": str(r.get("until", ""))[:25], "decides": f"[{desk} desk] " + str(r.get("decides", ""))[:200]}
+                safe["unit" if unit else "proc"] = unit or proc
+                try:
+                    _until_ts(safe)
+                except ValueError:
+                    safe["until"] = ""
+                out.append(safe)
+    except Exception:
+        pass
+    return out
 
 def _until_ts(r):
     u = r.get("until") or ""
@@ -69,7 +102,9 @@ def status_of(r, res, now):
 
 def refresh(c=None, ops=None, now=None):
     """Check every box, write fleet.md/json, emit alert.fleet on problems. Returns the snapshot dict."""
-    ops = load() if ops is None else ops
+    if ops is None:
+        ops = load()
+        ops["runner"] = ops.get("runner", []) + desk_runners({b["name"] for b in ops.get("box", [])})
     now = now or time.time()
     timeout = ops.get("fleet", {}).get("ssh_timeout_s", 20)
     boxes, snap = ops.get("box", []), {"ts": now, "boxes": [], "runners": [], "bets": ops.get("bet", [])}
@@ -97,8 +132,8 @@ def refresh(c=None, ops=None, now=None):
 def render(snap, ops):
     stamp = datetime.fromtimestamp(snap["ts"], timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     L = [f"# Fleet (checked {stamp})", "",
-         "The harness checks this every 15 min. Agents with ./kbssh may LOOK at boxes (read-only key,",
-         "enforced on the box); nobody but the operator starts, stops or arms anything. Report problems; the operator acts.", ""]
+         "The harness checks this every 15 min. Desks run the boxes with ./kbssh (deploy, tapes, dry runs);",
+         "only the operator arms real money or touches a live runner. Declare runners in desks/<desk>/runners.toml.", ""]
     if snap["bets"]:
         L += ["## Bets (the money path: these come before any new research idea)"]
         for b in snap["bets"]:

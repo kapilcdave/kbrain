@@ -8,7 +8,8 @@ Each shift:
 2. Pick the ONE most valuable next step you can finish in this shift, in this order:
    a. a request addressed to you on the board;
    b. evidence for a bet or live/dry runner of your desk (check it on the box with ./kbssh, read its logs,
-      pull and score a small slice of tape with python3);
+      pull and score a small slice of tape with python3), or keeping your desk's tapes/collectors/dry runs
+      healthy on the boxes (deploy, start, restart; declare them in your runners.toml);
    c. finishing an open item in your notebook queue (a scoring script, a test, an analysis);
    d. a NEW idea in your focus, only with a concrete mechanism that survives priors.md and the corpus,
       written as a short preregistration in your notebook (hypothesis, data, test, kill rule).

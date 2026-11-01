@@ -23,12 +23,19 @@ strategies toward live money, using the evidence we already have.
 - `repo/core/knowledge/`, `repo/desks/`, `repo/research/`, `repo/lessons/`: what kbrain already knows.
 
 ## Machines and money
-- Trading keys exist ONLY on the VMs. Agents never trade, arm, start, stop or restart anything. Only the
-  operator does that.
-- `fleet.md` (when staged) lists every box, every runner (live / dry / tape) and the bets with their decision
-  dates. With `./kbssh <box> <cmd>` you can LOOK at a box read-only (status, journalctl, tail, ls, and
-  `tar czf - <dir>` to pull tape data). The box refuses anything else.
-  rustmaker = Kalshi (us-east-2), hypephil = Hyperliquid (Tokyo), geminibot = Gemini (us-east-1).
+- The VMs are yours to work on: `./kbssh <box> '<shell command>'` gives a full shell with sudo
+  (rustmaker = Kalshi, us-east-2; hypephil = Hyperliquid, Tokyo; geminibot = Gemini, us-east-1).
+  Deploy code, start/stop/restart collectors and tapes, run dry runs and paper quoters, install deps, pull
+  data (`./kbssh hypephil 'tar czf - data/X' > x.tgz`). Every command is logged on the box.
+- EVERYTHING EXCEPT ARMING (operator policy): never start anything that places real orders (`--armed`,
+  starting altspot, live mmlive/quoters) and never stop or modify a LIVE runner. Post `[to:operator] arm X
+  because Y (evidence: ...)` in your OUTBOX instead. Trading keys live only on the VMs: programs may use them,
+  you never print or copy them. The box refuses the obvious violations; the rest is on your honour.
+- Before you start, restart or stop anything on a box, check fleet.md: never touch another desk's runner
+  without asking on the board. Boxes are small (t3.micro, 1 GB RAM; hypephil has an 8 GB disk): check
+  `free -m` and `df -h` first, cap memory, and never score big tapes on the box next to a live runner.
+- Declare every runner you start in `repo/desks/<desk>/runners.toml` (`[[runner]]` with name, box, unit or
+  proc, mode = "dry" or "tape", until, decides) and remove it when you stop it. The harness then monitors it.
 
 ## Git (you are in a worktree; the harness merges)
 - `repo/` is your own git worktree of kbrain on a fresh branch from main. Make your changes there and

@@ -186,7 +186,7 @@ def prepare(task, role, workdir, cfg, c):
     if role.get("worktree"):                           # own git worktree; harness merges at the end
         wt = gitops.create(task, workdir)
         (workdir / "board.md").write_text(gitops.board(wt))
-    if role.get("with_fleet"):                         # read-only box access + the fleet map
+    if role.get("with_fleet"):                         # ./kbssh (gated box shell) + the fleet map
         shutil.copyfile(ROOT / "bin" / "kbssh", workdir / "kbssh"); (workdir / "kbssh").chmod(0o755)
         if fleet.FLEET_MD.is_file():
             shutil.copyfile(fleet.FLEET_MD, workdir / "fleet.md")

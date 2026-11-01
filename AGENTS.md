@@ -8,7 +8,7 @@ The daemon (`core/bin/kb serve`, systemd `kb-runner`) runs standing desks contin
 hyperliquid, predx, data, review) plus pipeline roles that lifecycle code spawns. Each task gets a workspace
 under `core/state/workspaces/task-N/` with: `spec.json`, `repo/` (your own git worktree), `board.md` (every
 desk's notebook and requests), `fleet.md` (VMs, runners, bets), `corpus/` (~650 trading findings),
-`projects/` (trading code and handoffs), `priors.md`, `data/`, and `./kbssh` (read-only box access).
+`projects/` (trading code and handoffs), `priors.md`, `data/`, and `./kbssh` (full shell on the VMs, logged).
 Write `result.json` when done. `core/roles/_common.md` is the shared brief; your role file is your contract.
 
 ## Where things are
@@ -23,7 +23,8 @@ Write `result.json` when done. `core/roles/_common.md` is the shared brief; your
 | Engine, roles, routing | `core/README.md`, `core/roles/`, `core/config/routing.toml` |
 
 ## Hard rules
-1. Agents never trade, arm, start or stop anything. Trading keys live only on the VMs; the operator acts.
+1. Everything except arming: agents run the VMs (deploy, collectors, tapes, dry runs) but never place real
+   orders or touch a live runner; they ask `[to:operator]`. Keys live only on the VMs and are never printed.
 2. Never commit credentials, keys or tokens, or raw tape data. The harness scans every merge.
 3. Commit in your worktree; never push. The harness tests, rebases and merges to main.
 4. Engine code (`core/kb`, `core/config`, `core/roles`, `core/bin`, `core/ops`, `core/tests`) changes only

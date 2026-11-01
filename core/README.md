@@ -28,14 +28,16 @@ refused for 14 days; max 6 open hypotheses and no new ones while 3+ are waiting 
 with no hypothesis changing state, the chief pauses and HQ shows a STALL alert until you `kb ack`.
 
 ## Fleet (the VMs)
-The harness, never an agent, checks the trading VMs read-only over ssh every 15 min (`kb fleet` runs it now).
+The harness checks the trading VMs over ssh every 15 min (`kb fleet` runs it now).
 The map of boxes, runners (live/dry/tape, end time, the question each one answers) and bets (decision date,
 kill rule) lives in `~/.config/kbrain/ops.toml` (machine config next to the keys it names). The result is
 staged at the top of the chief's digest; a runner that dies before its `until`, or an unreachable box, raises
 `alert.fleet` in HQ. Update ops.toml whenever you start or stop something on a box.
-Roles with `with_fleet` (the chief) get `./kbssh <box> <cmd>`: a separate agents' key that each box locks to
-`ops/kbro_ro.py` (forced command: allowlisted read-only commands, no shell, no credential paths, tar only of
-subdirectories). Install or refresh it with `core/ops/install_kbro.sh` (operator-run). Agents get no MCP servers.
+Roles with `with_fleet` get `./kbssh <box> '<cmd>'`: a separate agents' key whose forced command is
+`ops/kbro_gate.py` (full shell incl. sudo, every command logged to `~/.kbro/audit.log`, tripwire on live arming
+and key dumping; policy: everything except arming). Desks declare runners they start in
+`desks/<desk>/runners.toml` and the fleet monitor picks them up. Install or refresh the key with
+`core/ops/install_kbro.sh` (operator-run). Agents get no MCP servers.
 
 ## Roles
 `chief` (chief of staff: wakes on a heartbeat when idle, reads a state digest, emits tasks) ·

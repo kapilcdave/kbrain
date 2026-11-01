@@ -52,7 +52,7 @@ def _spawn(argv, cwd, log_path, timeout, stdin_text=None):
 
 def run_claude(model, prompt, workdir, timeout, log_path, tools):
     """`claude-sonnet-5-5@low` -> --model claude-sonnet-5-5 --effort low. --strict-mcp-config: agents get
-    NO MCP servers (no AWS API); box access is only the read-only ./kbssh wrapper."""
+    NO MCP servers (no AWS API); box access is only through ./kbssh (gated, logged)."""
     name, _, effort = model.partition("@")
     argv = ["claude", "-p", "--model", name, *(["--effort", effort] if effort else []), "--strict-mcp-config",
             "--permission-mode", "acceptEdits", "--allowedTools", *tools, "--output-format", "text"]
