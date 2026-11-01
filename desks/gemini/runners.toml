@@ -1,0 +1,39 @@
+[[runner]]
+name = "gb-depthtape"
+box = "geminibot"
+unit = "gb-depthtape.service"
+mode = "tape"
+until = "2026-11-08T00:00:00Z"
+decides = "PREREG_gemflow_basis_taker_20261031 BTC depth/VWAP tape"
+
+[[runner]]
+name = "gb-record"
+box = "geminibot"
+unit = "gb-record.service"
+mode = "tape"
+until = "2026-11-08T00:00:00Z"
+decides = "Gemini crypto 05M/15M book, trade and oracle-stream provenance"
+
+[[runner]]
+name = "gb-strikepoll"
+box = "geminibot"
+unit = "gb-strikepoll.service"
+mode = "tape"
+until = "2026-11-08T00:00:00Z"
+decides = "Exact contiguous Gemini strike labels for the basis-taker prereg"
+
+[[runner]]
+name = "gb-leadfeed"
+box = "geminibot"
+unit = "gb-leadfeed.service"
+mode = "tape"
+until = "2026-11-08T00:00:00Z"
+decides = "Lead-venue spot-feed comparisons for Gemini basis reconstruction"
+
+[[runner]]
+name = "gb-quoter"
+box = "geminibot"
+unit = "gb-quoter.service"
+mode = "dry"
+until = "2026-11-02T06:00:00Z"
+decides = "Gemini BTC15M/ETH15M paper maker/quoter integration"
