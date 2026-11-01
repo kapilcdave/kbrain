@@ -22,7 +22,7 @@ while read -r name key dest user; do
   ssh -i "$key" -o BatchMode=yes -o LogLevel=ERROR "$dest" 'cat > ~/.kbro/kbro_gate.py && chmod 500 ~/.kbro/kbro_gate.py' < "$HERE/kbro_gate.py"
   printf '%s\n' "$LINE" | ssh -i "$key" -o BatchMode=yes -o LogLevel=ERROR "$dest" \
     'L=$(cat); cp -p ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak-kbro; grep -v -e "kbro-readonly" -e "kbro-agent" ~/.ssh/authorized_keys.bak-kbro > ~/.ssh/authorized_keys.new; printf "%s\n" "$L" >> ~/.ssh/authorized_keys.new; chmod 600 ~/.ssh/authorized_keys.new; if [ "$(grep -vc kbro-agent ~/.ssh/authorized_keys.new)" -ge 1 ] && grep -q kbro-agent ~/.ssh/authorized_keys.new; then mv ~/.ssh/authorized_keys.new ~/.ssh/authorized_keys; echo "  installed"; else rm -f ~/.ssh/authorized_keys.new; echo "  ABORTED: new file would drop your own key; nothing changed"; fi'
-  echo -n "  test (should print the hostname): "; "$HERE/../bin/kbssh" "$name" 'hostname | cut -d. -f1'
-  echo -n "  test (should be refused):         "; "$HERE/../bin/kbssh" "$name" 'echo --armed' 2>&1 || true
+  echo -n "  test (should print the hostname): "; "$HERE/../bin/kbssh" "$name" 'hostname | cut -d. -f1' < /dev/null
+  echo -n "  test (should be refused):         "; "$HERE/../bin/kbssh" "$name" 'echo --armed' < /dev/null 2>&1 || true
 done < /tmp/kbro_boxes.$$
 rm -f /tmp/kbro_boxes.$$
