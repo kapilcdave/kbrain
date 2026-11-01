@@ -115,7 +115,10 @@ def run_agy(model, prompt, workdir, timeout, log_path, tools):
         if t.startswith("Bash(") and t.endswith(":*)"):
             allow.append(f"command({t[5:-3]})")
     settings = json.dumps({"permissions": {"allow": allow}})      # session-only, never saved
-    argv = ["agy", "--sandbox", "--mode", "accept-edits", "--settings", settings, "--add-dir", str(workdir)]
+    # Operator-approved 2026-11-01: headless agy auto-approves its tools (it cannot prompt), kept inside --sandbox.
+    # The allowlist above still documents the expected commands.
+    argv = ["agy", "--sandbox", "--dangerously-skip-permissions", "--mode", "accept-edits", "--settings", settings,
+            "--add-dir", str(workdir)]
     if model:
         argv += ["--model", model]
     argv.append("--print=" + prompt)       # --print consumes the next token as the prompt
