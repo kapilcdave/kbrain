@@ -1,4 +1,4 @@
-import argparse, json, os, sys, time
+import argparse, json, math, os, sys, time
 from datetime import datetime
 from .db import STATE, connect, add_task, event
 from . import runner, lifecycle
@@ -27,36 +27,51 @@ def wave(t, phase):
     """Cyclic gradient position: phase 0 is the resting look, any phase blends smoothly (no seam)."""
     return 1 - abs((t + phase) % 2 - 1)
 
-def mark_lines(phase=0.0):
+def lit(rgb, k):
+    """Blend toward white by k in [0, 1]: the glint."""
+    return tuple(round(v + (255 - v) * k) for v in rgb)
+
+def mark_lines(phase=0.0, reveal=None, glint=None):
+    """Half-block render. `reveal`: only columns <= reveal are drawn (the line draws itself).
+    `glint`: column of a soft highlight travelling along the stroke."""
     h, w, out = len(MARK), len(MARK[0]), []
+    def on(r, x):
+        return r < h and MARK[r][x] == "#" and (reveal is None or x <= reveal)
+    def px(r, x):
+        rgb = grad(wave(x / w * .7 + r / h * .3, phase))
+        if glint is not None:
+            rgb = lit(rgb, .85 * math.exp(-((x - glint) / 1.6) ** 2))
+        return rgb
     for r in range(0, h, 2):
         line = ""
         for x in range(w):
-            top, bot = MARK[r][x] == "#", r + 1 < h and MARK[r + 1][x] == "#"
-            ct, cb = grad(wave(x / w * .7 + r / h * .3, phase)), grad(wave(x / w * .7 + (r + 1) / h * .3, phase))
+            top, bot = on(r, x), on(r + 1, x)
             if not COLOR:
                 line += "█" if top and bot else "▀" if top else "▄" if bot else " "
-            elif top and bot: line += c(f"{sgr(ct)};{sgr(cb, True)}", "▀")
-            elif top: line += c(sgr(ct), "▀")
-            elif bot: line += c(sgr(cb), "▄")
+            elif top and bot: line += c(f"{sgr(px(r, x))};{sgr(px(r + 1, x), True)}", "▀")
+            elif top: line += c(sgr(px(r, x)), "▀")
+            elif bot: line += c(sgr(px(r + 1, x)), "▄")
             else: line += " "
         out.append(line)
     return out
 
 def banner(animate=True, phase=0.0):
-    """Print the mark. On a colour tty it plays a short gradient sweep and settles on `phase`."""
-    word = "kbrain"
-    def frame(ph):
-        wm = "".join(c(f"1;{sgr(grad(wave(i / (len(word) - 1), ph)))}", ch) for i, ch in enumerate(word))
-        side = ["", wm + c("2", "  research engine"), c("2", "kapil's agents"), "", ""]
-        return ["  " + m + "   " + t for m, t in zip(mark_lines(ph), side)]
-    print()
+    """Print the mark. On a colour tty the line draws itself left to right, a glint runs up it, then it
+    settles on `phase` (about 0.6 s). Without colour it prints once, plain."""
+    word, w = "kbrain", len(MARK[0])
+    def frame(ph, reveal=None, glint=None, letters=len(word)):
+        wm = "".join(c(f"1;{sgr(grad(wave(i / (len(word) - 1), ph)))}", ch) for i, ch in enumerate(word[:letters]))
+        wm += " " * (len(word) - letters)
+        side = ["", wm + c("2", "  research engine" if letters == len(word) else " " * 17), c("2", "kapil's agents"), "", ""]
+        return ["  " + m + "   " + t for m, t in zip(mark_lines(ph, reveal, glint), side)]
+    frames = []
     if animate and COLOR:
-        steps = 16
-        for i in range(steps):
-            lines = frame(phase + 2 * (1 - i / steps))
-            print("\n".join(lines) + f"\033[{len(lines) - 1}A\r", end="", flush=True)
-            time.sleep(0.03)
+        frames += [frame(phase, reveal=x, letters=round(len(word) * x / (w - 1))) for x in range(w)]     # draw on
+        frames += [frame(phase, glint=g / 2) for g in range(-4, 2 * w + 6)]                            # glint
+    print()
+    for f in frames:
+        print("\n".join(f) + f"\033[{len(f) - 1}A\r", end="", flush=True)
+        time.sleep(0.012)
     print("\n".join(frame(phase)))
     print()
 
