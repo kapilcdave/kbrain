@@ -45,7 +45,14 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;padding:14p
 .pop.flip:before{left:auto;right:-10px}.pop.flip:after{left:auto;right:-17px}
 .pop .who{font-family:var(--px);font-size:11px;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
 .pop .t{color:#8a8d99}.pop .doing{margin:2px 0 6px}.pop .sum{border-top:1px dashed #2a2d38;margin-top:7px;padding-top:6px;color:#c9cbd3}
-.pop a{color:#e0b040;cursor:pointer;text-decoration:none}.pop .row{display:flex;justify-content:space-between;margin-top:8px}
+.pop a{color:#e0b040;cursor:pointer;text-decoration:none}
+.pop .ctl{border-top:1px dashed #2a2d38;margin-top:8px;padding-top:8px}
+.pop .btns{display:flex;gap:8px;margin:8px 0}
+.pop .pb{font:inherit;background:#0d0e12;color:#f2f2f2;border:2px solid #e6e6e6;padding:3px 10px;cursor:pointer;box-shadow:3px 3px 0 #000}
+.pop .pb:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}.pop .pb:disabled{opacity:.5}
+.pop .pb.go{border-color:#5fd068;color:#5fd068}.pop .pb.warn{border-color:#e0b040;color:#e0b040}
+.pop .msg{display:flex;gap:6px}.pop .msg input{flex:1;min-width:0;font:inherit;background:#060709;color:#f2f2f2;border:2px solid #3a3d48;padding:3px 6px}
+.pop .msg input:focus{outline:none;border-color:#e6e6e6}.pop .row{display:flex;justify-content:space-between;margin-top:8px}
 canvas{display:block;width:100%;height:auto;image-rendering:pixelated;cursor:pointer}
 .cmd{display:flex;gap:8px;padding:10px;background:var(--panel);border-top:3px solid var(--line);flex-wrap:wrap}
 .cmd select,.cmd input{background:var(--bg);border:2px solid var(--line);padding:6px 8px}
@@ -461,8 +468,8 @@ function drawMinimal() {
     let lines, sub = null, faint = false;
     if (a.note && a.note.until > clock) lines = wrap(a.note.text, 26, 2);
     else if (!STATE) lines = ["…"], faint = true;
-    else if (STATE.stop) lines = ["stopped"];
     else if (!online) { lines = ["offline"]; faint = true; if (a.role === "chief") { lines = ["zzz… the runner is off"]; sub = "start it: kb serve"; } }
+    else if (STATE.stop) { lines = ["paused"]; faint = true; if (a.role === "chief") { lines = ["everyone's paused"]; sub = "click me → resume"; faint = false; } }
     else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 26); sub = (a.task.model || "").split(":").pop() || "starting…"; }
     else if (a.role === "chief" && STATE.stalled) { lines = ["I'm stalled: nothing is progressing"]; sub = "review the work, then: kb ack"; }
     else if (a.mood === "sleep") lines = ["napping · rate limited"], faint = true;
@@ -473,6 +480,19 @@ function drawMinimal() {
 
 // ---------- click a dude: a popup card right next to them ----------
 const POP = {agent:null, detail:null};
+function chiefControls() {
+  const s = STATE; if (!s) return "";
+  const online = s.runner_age_s !== null && s.runner_age_s < 45;
+  return `<div class="ctl">
+    <div class="t">${online ? esc(s.runner_state || "runner online") : "runner offline: start it with kb serve"}</div>
+    <div class="t">runs ${s.runs_today}/${s.max_runs} today · ${s.mem_mb}MB free · ${s.open_slots} open slots · ${s.counts.queued || 0} queued</div>
+    <div class="btns">
+      ${s.stop ? `<button class="pb go" data-act="resume">▶ resume work</button>` : `<button class="pb" data-act="stop">❚❚ pause everyone</button>`}
+      ${s.stalled ? `<button class="pb warn" data-act="ack">ack stall</button>` : ""}
+    </div>
+    <form class="msg" id="chiefMsg"><input id="chiefText" placeholder="tell the chief what to look into…" maxlength="300" autocomplete="off"><button class="pb">send</button></form>
+  </div>`;
+}
 function popHtml() {
   const a = POP.agent, t = a.task || (STATE && STATE.last_by_role[a.role]), d = POP.detail;
   const res = d && d.task.result ? JSON.parse(d.task.result) : null, run = d && d.runs.length ? d.runs[d.runs.length - 1] : null;
@@ -485,6 +505,7 @@ function popHtml() {
     ${res && res.summary ? `<div class="sum">${esc(res.summary.slice(0, 220))}${res.summary.length > 220 ? "…" : ""}</div>` : ""}
     <div class="t" style="margin-top:7px">${esc(a.m.blurb)}</div>
     ${chain ? `<div class="t" style="margin-top:4px">models: ${chain}</div>` : ""}
+    ${a.role === "chief" ? chiefControls() : ""}
     <div class="row">${t ? `<a data-open="${t.id}">full details ›</a>` : "<span></span>"}<a id="popClose">close</a></div>`;
 }
 async function openPop(a) {
@@ -492,7 +513,22 @@ async function openPop(a) {
   const t = a.task || (STATE && STATE.last_by_role[a.role]);
   if (t) { const d = await api(`/api/task/${t.id}`); if (POP.agent === a && !d.error) { POP.detail = d; renderPop(); } }
 }
-function renderPop() { const el = $("#pop"); el.innerHTML = popHtml(); el.style.display = "block"; $("#popClose").onclick = closePop; placePop(); }
+function renderPop() {
+  const el = $("#pop"); el.innerHTML = popHtml(); el.style.display = "block"; $("#popClose").onclick = closePop;
+  el.querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
+    b.disabled = true; await api(`/api/${b.dataset.act}`, {});
+    toastNote(b.dataset.act); await pollState(); renderPop();
+  });
+  const f = $("#chiefMsg");
+  if (f) f.onsubmit = async e => {
+    e.preventDefault(); const txt = $("#chiefText").value.trim(); if (!txt) return;
+    const r = await api("/api/task", {role:"chief", title:`Instruction from Kapil: ${txt}`, spec:{instruction:txt}});
+    if (r.error) return toast(r.error);
+    note("chief", `got it: queued #${r.id}`, "#f2f2f2"); $("#chiefText").value = ""; await pollState(); renderPop();
+  };
+  placePop();
+}
+function toastNote(act) { note("chief", {resume:"▶ back to work, everyone", stop:"❚❚ pausing after current tasks", ack:"ok, planning again"}[act] || "ok", "#f2f2f2"); }
 function closePop() { POP.agent = null; $("#pop").style.display = "none"; }
 function placePop() {
   if (!POP.agent) return;
@@ -604,7 +640,7 @@ async function pollState() {
   $("#ackBtn").style.display = s.stalled ? "" : "none"; $("#stallBar").style.display = s.stalled ? "block" : "none";
   for (const a of agents) a.task = s.running.find(t => t.role === a.role) || null;
   crateTargets();
-  if (POP.agent && !document.querySelector("#pop:hover")) renderPop();
+  if (POP.agent && !document.querySelector("#pop:hover") && !$("#pop").contains(document.activeElement)) renderPop();
 
   $("#board").innerHTML = HSTAGES.map(([st, col]) => {
     const hs = s.hypotheses.filter(h => h.status === st);
