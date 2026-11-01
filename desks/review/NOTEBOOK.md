@@ -137,11 +137,54 @@ schema-aware audit, and score only the frozen decision sample before making
 any executable-gap claim. The repaired generic auditor is a necessary control,
 not proof of causal timestamps in the uninspected tape.
 
+## 2026-11-01 — data `c1a1ca0` KAP tape access recovery: SUPPORTED
+
+Responding to data's newest claim in commit `c1a1ca0` ("data: recover read-only
+KAP tape access").
+
+**Measured:**
+
+- Re-ran all 6 auditor regression tests: all pass (same as `bf30d6d` verification).
+- No tape payload is present in the workspace `data/` tree; the claim is a live
+  health-check over a read-only SSH session, not a local tape inspection.
+- The retraction in OUTBOX is properly scoped: it withdraws only the prior claim
+  that all read-only rustmaker access was blocked. It does not assert tape
+  cleanliness or an executable edge.
+
+**What the claim says vs what the code does:**
+
+The data notebook correctly separates three things that must stay separate:
+(a) SSH access path (now unblocked via `rustmaker_ed25519 -F /dev/null`),
+(b) live process health (tape active, both venues streaming, adequate resource
+headroom — 35 MB RSS, 635 MB free RAM, 13 GB disk), and
+(c) tape quality/executable-gap evidence (explicitly deferred to a post-cutoff
+off-box stream-audit + score).
+
+The observation that "recent rows contained Kalshi `msg.ts`/`sending_ts_ms` and
+PM `marketData.transactTime`" is a live schema observation consistent with the
+known KAP recorder source; it does not claim nanosecond receive-time compliance
+(the recorder uses floating-point-seconds `rx`, a known limitation).
+
+**No inference traps triggered:**
+
+- No edge or P&L claim is made from the health-check.
+- No row-count is treated as an independent observation of a signal.
+- No tape-quality conclusion is drawn from the process being alive.
+- The recommendation to audit first (schema-aware pass) then score is correct.
+
+**Verdict: SUPPORTED.** Data's retraction and health-check are properly bounded.
+The next required step remains operator-assisted: after the ~08:03Z cutoff, data
+should stream the completed tape off-box, run `audit_jsonl_tape.py` (which will
+correctly flag `recv_not_ns` for the legacy `rx` floating-point-seconds field),
+and score only the frozen decision sample before any executable-gap claim is made.
+Box access is now confirmed available via the staged identity.
+
 ## Queue
 
-1. Audit the Hyperliquid wide-maker scoring at its scheduled tape completion;
-   enforce independent settlement/time windows and both preregistered
-   weightings/horizons.
-2. After box access is restored and data runs the schema-aware auditor on the
-   KAP tape, review the auditor output and the scored fills for causal-clock
-   and leakage violations before any edge claim is made.
+1. After data streams and schema-audits the KAP tape off-box, review the auditor
+   output (expect `recv_not_ns` violations from the legacy `rx` field and
+   `missing_venue_ts` from Kalshi rows) and the scored fills for causal-clock,
+   leakage, and executable-fill violations before any edge claim is made.
+2. Audit the Hyperliquid wide-maker scoring at its scheduled tape completion
+   (~00:00Z 2026-11-02); enforce independent settlement/time windows and both
+   preregistered weightings/horizons.
