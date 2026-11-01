@@ -79,7 +79,7 @@ class Pipeline(Base):
         self.drain()
         self.assertEqual(self.hstatus("bad-idea")["status"], "rejected")
         self.assertIn("bad-idea", (Path(self.tmp) / "dead-ends.md").read_text())
-        self.assertEqual(self.c.execute("SELECT COUNT(*) FROM tasks WHERE role='skeptic'").fetchone()[0], 0)
+        self.assertEqual(self.c.execute("SELECT COUNT(*) FROM tasks WHERE role='skeptic' AND json_extract(spec,'$.standing') IS NULL").fetchone()[0], 0)
 
     def test_missing_metrics_parks(self):
         self.setup_roles(None)
@@ -182,6 +182,65 @@ class Web(Base):
             self.assertIn(b"<title>kbrain HQ</title>", urllib.request.urlopen(base + "/").read())
         finally:
             srv.shutdown()
+
+class Firm(Base):
+    """Parallel lanes, the data engineer + background jobs, and standing orders."""
+    def setUp(self):
+        super().setUp()
+        self.cfg["roles"]["engineer"] = {"models": ["shell:true"], "with_data": True}
+        self.cfg["limits"].update(idle_cooldown_s=900, scout_cooldown_s=3600, max_jobs=2, max_job_s=60)
+        self.cfg["gates"]["max_data_attempts"] = 2
+        from kb import jobs
+        self.jobs = jobs
+
+    def test_claim_is_per_role_and_atomic(self):
+        self.db.add_task(self.c, "researcher", "r"); self.db.add_task(self.c, "curator", "c")
+        t = self.runner.pick(self.c, "curator")
+        self.assertEqual(t["role"], "curator")
+        self.assertIsNone(self.runner.pick(self.c, "curator"))
+        self.assertEqual(self.runner.pick(self.c)["role"], "researcher")
+
+    def test_blocked_backtest_goes_to_engineer_job_then_reruns(self):
+        r = self.cfg["roles"]
+        r["researcher"]["models"] = [script(self.tmp, "res.sh", "cat > prereg.md <<'P'\n" + PREREG + "P\n" + result({"status": "ok", "summary": "p"}))]
+        r["backtester"]["models"] = [script(self.tmp, "bt.sh", result({"status": "blocked", "summary": "need kalshi trades"}))]
+        r["engineer"]["models"] = [script(self.tmp, "en.sh", "test -L data || exit 1\ncat > collect.py <<'P'\n"
+            "import os, pathlib\npathlib.Path(os.environ['KB_DATA_DIR'], 'trades.csv').write_text('t,p\\n1,2\\n')\nP\n"
+            + result({"status": "ok", "summary": "collector", "jobs": [{"script": "collect.py", "dataset": "kalshi-trades", "description": "trades"}]}))]
+        self.db.add_task(self.c, "researcher", "idea", {}, hypothesis="needs-data")
+        for _ in range(3):
+            self.c.execute("UPDATE tasks SET not_before=0"); self.runner.tick(self.c, self.cfg)
+        self.assertEqual(self.hstatus("needs-data")["status"], "data")
+        self.assertEqual(self.c.execute("SELECT status FROM jobs").fetchone()[0], "queued")
+        for _ in range(50):
+            self.jobs.pump(self.c, self.cfg, self.lc.on_job_done)
+            if self.c.execute("SELECT status FROM jobs").fetchone()[0] in ("done", "failed"): break
+            time.sleep(0.05)
+        self.assertEqual(self.c.execute("SELECT status FROM jobs").fetchone()[0], "done")
+        self.assertEqual(self.c.execute("SELECT status FROM datasets WHERE name='kalshi-trades'").fetchone()[0], "ready")
+        self.assertEqual(self.hstatus("needs-data")["status"], "backtest")
+        self.assertEqual(self.c.execute("SELECT COUNT(*) FROM tasks WHERE role='backtester' AND status='queued'").fetchone()[0], 1)
+
+    def test_job_script_must_live_in_workspace(self):
+        wd = Path(self.tmp) / "w"; wd.mkdir()
+        task = {"id": 1, "hypothesis": None}
+        self.assertIn("inside the workspace", self.jobs.submit(self.c, task, {"script": "/etc/passwd.py", "dataset": "x"}, wd, self.cfg))
+        self.assertIn("dataset name", self.jobs.submit(self.c, task, {"script": "a.py", "dataset": "../x"}, wd, self.cfg))
+
+    def test_standing_orders_scout_with_cooldown_and_feed_chief(self):
+        self.cfg["domains"] = {"list": ["crypto perps", "prediction markets"]}
+        self.cfg["limits"]["heartbeat_s"] = 0
+        self.cfg["roles"]["researcher"]["models"] = [script(self.tmp, "scout.sh", result({"status": "ok", "summary": "s",
+            "ideas": [{"slug": "funding-flip", "idea": "i", "mechanism": "m", "data": "d"}, {"slug": "Bad Slug", "idea": "x"}]}))]
+        self.runner.plan(self.c, self.cfg)
+        scouts = self.c.execute("SELECT spec FROM tasks WHERE role='researcher'").fetchall()
+        self.assertEqual(len(scouts), 1)
+        self.c.execute("UPDATE tasks SET status='done' WHERE role!='researcher'")
+        t = self.runner.pick(self.c, "researcher"); self.runner.execute(self.c, self.cfg, t)
+        self.assertEqual([r[0] for r in self.c.execute("SELECT slug FROM ideas")], ["funding-flip"])
+        self.runner.plan(self.c, self.cfg)                         # cooldown: no second scout yet
+        self.assertEqual(self.c.execute("SELECT COUNT(*) FROM tasks WHERE role='researcher'").fetchone()[0], 1)
+        self.assertGreaterEqual(self.c.execute("SELECT COUNT(*) FROM tasks WHERE role='chief'").fetchone()[0], 1)
 
 if __name__ == "__main__":
     unittest.main()

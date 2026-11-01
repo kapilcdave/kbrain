@@ -139,6 +139,7 @@ const ROLE = {
   backtester: {name:"Backtester",     room:2, shirt:"#e8ecef", acc:"#3a9a5a", hair:"#7a4a20", skin:"#f1c27d", blurb:"Implements the frozen prereg. Code grades its metrics, not its opinion."},
   skeptic:    {name:"Skeptic",        room:3, shirt:"#8a2b2b", acc:"#f0d0d0", hair:"#a8a8a8", skin:"#ffdbac", blurb:"Assumes every passing backtest is wrong and tries to prove it."},
   curator:    {name:"Curator",        room:4, shirt:"#7d55b8", acc:"#e5d4ff", hair:"#c46a2a", skin:"#8d5524", blurb:"Compacts memory: indexes results and dead ends."},
+  engineer:   {name:"Data Engineer",  room:5, shirt:"#1f9e89", acc:"#c8f5ec", hair:"#5a3a1a", skin:"#d9a066", blurb:"Writes data collectors; the harness runs them in the background so nobody waits on data."},
 };
 const ROOMS = [
   {name:"CHIEF'S OFFICE", f1:"#3b2f2a", f2:"#43352f", wall:"#5a3f2c"},
@@ -153,12 +154,12 @@ const PIPE = {beltY:285, st:{chief:130, researcher:310, backtester:490, skeptic:
               binX:770, binY:430, shelf:{x0:150, x1:440, y:455}, curator:{x:575, y:485}, inbox:{x:70, y:70}};
 const STAGE_X = {idea:130, prereg:310, backtest:490, review:670};
 const GATE = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#f4c542"};
-const HCOL = {idea:"#8d8fa8", prereg:"#5aa9ff", backtest:"#5fd068", review:"#f4c542", validated:"#f4c542", rejected:"#ef5b5b", parked:"#555a78"};
-const MIN = {chief:{x:110, y:200}, researcher:{x:560, y:170}, backtester:{x:200, y:400}, skeptic:{x:640, y:420}, curator:{x:400, y:575}};
-const MINCOL = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#ef6b6b", curator:"#b48cff"};
+const HCOL = {data:"#1f9e89", idea:"#8d8fa8", prereg:"#5aa9ff", backtest:"#5fd068", review:"#f4c542", validated:"#f4c542", rejected:"#ef5b5b", parked:"#555a78"};
+const MIN = {chief:{x:110, y:175}, researcher:{x:540, y:150}, backtester:{x:180, y:370}, skeptic:{x:600, y:370}, curator:{x:110, y:560}, engineer:{x:560, y:560}};
+const MINCOL = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#ef6b6b", curator:"#b48cff", engineer:"#1f9e89"};
 function homeOf(role) {
   if (THEME === "minimal") return MIN[role];
-  return role === "curator" ? PIPE.curator : {x:PIPE.st[role], y:PIPE.beltY - 30};
+  return role === "curator" ? PIPE.curator : role === "engineer" ? {x:200, y:530} : {x:PIPE.st[role], y:PIPE.beltY - 30};
 }
 const layoutOf = t => (t === "pipeline" || t === "minimal") ? t : "rooms";
 const roomCenter = i => {
@@ -473,6 +474,11 @@ function drawMinimal() {
     else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 26); sub = (a.task.model || "").split(":").pop() || "starting…"; }
     else if (a.role === "chief" && STATE.stalled) { lines = ["I'm stalled: nothing is progressing"]; sub = "review the work, then: kb ack"; }
     else if (a.mood === "sleep") lines = ["napping · rate limited"], faint = true;
+    else if (a.role === "engineer" && STATE.jobs && STATE.jobs.length) {
+      const run = STATE.jobs.filter(j => j.status === "running");
+      lines = wrap(`collecting: ${(run.length ? run : STATE.jobs).map(j => j.dataset).join(", ")}`, 26, 2);
+      sub = `${run.length} running · ${STATE.jobs.length - run.length} queued`;
+    }
     else lines = ["idle"], faint = true;
     speech(a, lines, sub, faint);
   }
@@ -485,7 +491,8 @@ function chiefControls() {
   const online = s.runner_age_s !== null && s.runner_age_s < 45;
   return `<div class="ctl">
     <div class="t">${online ? esc(s.runner_state || "runner online") : "runner offline: start it with kb serve"}</div>
-    <div class="t">runs ${s.runs_today}/${s.max_runs} today · ${s.mem_mb}MB free · ${s.open_slots} open slots · ${s.counts.queued || 0} queued</div>
+    <div class="t">runs ${s.runs_today}/${s.max_runs} today · ${s.mem_mb}MB free · ${s.counts.queued || 0} queued · ${s.open_slots} open slots</div>
+    <div class="t">${s.ideas_new || 0} scouted ideas · ${s.datasets_ready || 0} datasets · ${(s.jobs || []).length} collectors</div>
     <div class="btns">
       ${s.stop ? `<button class="pb go" data-act="resume">▶ resume work</button>` : `<button class="pb" data-act="stop">❚❚ pause everyone</button>`}
       ${s.stalled ? `<button class="pb warn" data-act="ack">ack stall</button>` : ""}
@@ -506,6 +513,7 @@ function popHtml() {
     <div class="t" style="margin-top:7px">${esc(a.m.blurb)}</div>
     ${chain ? `<div class="t" style="margin-top:4px">models: ${chain}</div>` : ""}
     ${a.role === "chief" ? chiefControls() : ""}
+    ${a.role === "engineer" && STATE && STATE.jobs && STATE.jobs.length ? `<div class="sum">${STATE.jobs.map(j => `${esc(j.status)} · ${esc(j.dataset)}`).join("<br>")}</div>` : ""}
     <div class="row">${t ? `<a data-open="${t.id}">full details ›</a>` : "<span></span>"}<a id="popClose">close</a></div>`;
 }
 async function openPop(a) {
@@ -547,9 +555,12 @@ function animateMinimal(e) {
              "task.retry":["↻ retrying with the next model", "#e0b040"], "task.blocked":["■ blocked", "#b48cff"]}[e.kind];
   if (N && a) note(a.role, N[0], N[1]);
   if (e.kind === "task.rate_limited" && a) a.setMood("sleep", 9000);
+  const J = {"job.started":["▸ collector started: ", "#f2f2f2"], "job.done":["✓ data ready: ", "#5fd068"], "job.failed":["✗ collector failed: ", "#ef5b5b"]}[e.kind];
+  if (J) note("engineer", J[0] + (d.dataset || ""), J[1]);
+  if (e.kind === "ideas.added") note("researcher", `+${d.n} new ideas`, "#f2f2f2");
   if (e.kind === "task.created" && e.actor === "heartbeat") note("chief", "waking up to plan", "#e0b040");
   if (e.kind === "task.spawn_refused") note("chief", `⊘ refused: ${d.reason || ""}`, "#ef5b5b");
-  if (e.kind === "hyp.status") { const who = {prereg:"researcher", backtest:"backtester", review:"skeptic", validated:"skeptic", rejected:"skeptic", parked:"curator"}[d.status];
+  if (e.kind === "hyp.status") { const who = {prereg:"researcher", backtest:"backtester", data:"engineer", review:"skeptic", validated:"skeptic", rejected:"skeptic", parked:"curator"}[d.status];
     if (who) note(who, `${d.hypothesis}: ${d.status}`, HCOL[d.status] || "#8d8fa8"); }
 }
 
@@ -584,7 +595,7 @@ function frame(now) {
 const ICON = {"task.created":"✉","run.started":"▶","task.done":"✓","task.failed":"✗","task.retry":"↻","task.rate_limited":"z","task.blocked":"■",
   "task.spawn_refused":"⊘","task.crashed":"✗","hyp.status":"◆","verdict":"⚖","alert.stall":"⚠","alert.validated":"★","runner.started":"⚙"};
 const KCOL = {"task.done":"#5fd068","task.failed":"#ef5b5b","task.crashed":"#ef5b5b","task.retry":"#f4c542","task.rate_limited":"#b48cff","alert.stall":"#ef5b5b","alert.validated":"#f4c542","hyp.status":"#5aa9ff"};
-const STAMP = {prereg:["FROZEN ❄",1,"#9fd3ff"], backtest:["→ LAB",2,"#5fd068"], review:["→ COURT",3,"#f4c542"], validated:["VALIDATED ★",3,"#f4c542"], rejected:["REJECTED",4,"#ef5b5b"], parked:["PARKED",4,"#8d8fa8"]};
+const STAMP = {data:["→ DATA",5,"#1f9e89"], prereg:["FROZEN ❄",1,"#9fd3ff"], backtest:["→ LAB",2,"#5fd068"], review:["→ COURT",3,"#f4c542"], validated:["VALIDATED ★",3,"#f4c542"], rejected:["REJECTED",4,"#ef5b5b"], parked:["PARKED",4,"#8d8fa8"]};
 
 function animate(e) {
   if (THEME === "minimal") return animateMinimal(e);
@@ -627,7 +638,7 @@ async function pollEvents() {
 }
 
 // ---------- state -> panels ----------
-const HSTAGES = [["idea","#8d8fa8"],["prereg","#9fd3ff"],["backtest","#5aa9ff"],["review","#f4c542"],["validated","#5fd068"],["rejected","#ef5b5b"],["parked","#555a78"]];
+const HSTAGES = [["idea","#8d8fa8"],["prereg","#9fd3ff"],["backtest","#5aa9ff"],["data","#1f9e89"],["review","#f4c542"],["validated","#5fd068"],["rejected","#ef5b5b"],["parked","#555a78"]];
 async function pollState() {
   try { STATE = await api("/api/state"); } catch (_) { $("#runnerTxt").textContent = "HQ server unreachable"; return; }
   const s = STATE, online = s.runner_age_s !== null && s.runner_age_s < 45;

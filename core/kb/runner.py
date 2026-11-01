@@ -1,6 +1,6 @@
 import json, re, shutil, threading, time, traceback
 from pathlib import Path
-from . import adapters, gates, lifecycle
+from . import adapters, gates, jobs, lifecycle
 from .db import ROOT, STATE, connect, event, add_task
 from .router import load_config, pick_model
 
@@ -27,7 +27,8 @@ def build_prompt(role_name, task, workdir, inline=False):
             f"Hypothesis: {task['hypothesis'] or '-'}\n"
             f"Working directory: {workdir}\n"
             f"Input files (in inputs/): {', '.join(names) or 'none'}\n"
-            f"Spec (spec.json):\n{task['spec']}\n\n"
+            + (f"Datasets (read them under data/ in your working directory; never fetch from the network yourself):\n{task['_catalog']}\n" if task.get('_catalog') else "")
+            + f"Spec (spec.json):\n{task['spec']}\n\n"
             "When finished, write result.json in the working directory: "
             '{"status":"ok|blocked|failed","summary":"...","artifacts":["relative/path"]} '
             "plus any role-specific fields your instructions require. Never print secrets. "
@@ -49,6 +50,14 @@ def inline_files(task, workdir, inline):
 def digest(c, cfg):
     """Compact state snapshot for the chief, so it never needs the whole history."""
     lines = ["# State digest", "", f"Open hypothesis slots: {lifecycle.open_slots(c, cfg)}", ""]
+    if lifecycle.domains(cfg):
+        counts = dict(c.execute("SELECT domain, COUNT(*) FROM hypotheses GROUP BY domain").fetchall())
+        lines += ["## Research domains (hypotheses so far)"] + [f"- {d}: {counts.get(d, 0)}" for d in lifecycle.domains(cfg)] + [""]
+    ideas = c.execute("SELECT * FROM ideas WHERE status='new' ORDER BY created DESC LIMIT 15").fetchall()
+    if ideas:
+        lines += ["## Scouted ideas waiting for you (promote the best by proposing researcher tasks with these slugs)"]
+        lines += [f"- {i['slug']} [{i['domain']}]: {i['idea'][:220]} | mechanism: {i['mechanism'][:160]} | data: {i['data'][:120]}" for i in ideas] + [""]
+    lines += ["## Datasets", jobs.catalog(c, 20), ""]
     for r in c.execute("SELECT status, COUNT(*) n FROM tasks GROUP BY status"):
         lines.append(f"- tasks {r['status']}: {r['n']}")
     lines += ["", "## Hypotheses (slug: status. reason)"]
@@ -70,9 +79,11 @@ def heartbeat(c, cfg):
         if not c.execute("SELECT 1 FROM events WHERE kind='alert.stall' AND id>?", (last_progress,)).fetchone():
             event(c, "runner", "alert.stall", None, msg="no hypothesis progressed recently; chief paused until `kb ack`")
         return
-    busy = c.execute("SELECT COUNT(*) FROM tasks WHERE status IN ('queued','running')").fetchone()[0]
+    starving = not c.execute("SELECT COUNT(*) FROM tasks WHERE status IN ('queued','running') AND role IN ('chief','researcher') "
+                             "AND json_extract(spec,'$.standing') IS NULL").fetchone()[0]
     last = c.execute("SELECT MAX(created) FROM tasks WHERE role='chief'").fetchone()[0] or 0
-    if not busy and time.time() - last >= lim(cfg, "heartbeat_s", 900):
+    has_work = lifecycle.open_slots(c, cfg) > 0 or c.execute("SELECT 1 FROM ideas WHERE status='new'").fetchone()
+    if starving and has_work and time.time() - last >= lim(cfg, "heartbeat_s", 900):
         add_task(c, "chief", "heartbeat: review state and plan next tasks", {}, actor="heartbeat")
 
 def runs_last_day(c):
@@ -90,9 +101,11 @@ def read_result(workdir):
         return None
     return r
 
-def pick(c):
-    return c.execute("SELECT * FROM tasks WHERE status='queued' AND not_before<=? ORDER BY id LIMIT 1",
-                     (time.time(),)).fetchone()
+def pick(c, role=None):
+    """Atomically claim the oldest ready task (for one role's lane, if given)."""
+    q = "SELECT id FROM tasks WHERE status='queued' AND not_before<=?" + (" AND role=?" if role else "") + " ORDER BY id LIMIT 1"
+    return c.execute(f"UPDATE tasks SET status='running', updated=? WHERE id=({q}) AND status='queued' RETURNING *",
+                     (time.time(), time.time(), *([role] if role else []))).fetchone()
 
 def finish(c, task, status, result=None, **ev):
     c.execute("UPDATE tasks SET status=?, result=?, updated=? WHERE id=?",
@@ -128,6 +141,11 @@ def prepare(task, role, workdir, cfg, c):
         for f in files:
             if f.is_file() and f.resolve().is_relative_to(STATE.resolve()):   # only harness-owned files
                 shutil.copyfile(f, workdir / "inputs" / f.name)
+    if role.get("with_data"):
+        jobs.DATA.mkdir(parents=True, exist_ok=True)
+        link = workdir / "data"
+        if not link.exists():
+            link.symlink_to(jobs.DATA, target_is_directory=True)
     if role.get("with_stats"):
         shutil.copyfile(ROOT / "kb" / "stats.py", workdir / "kbstats.py")
     if role.get("digest"):
@@ -152,6 +170,9 @@ def execute(c, cfg, task):
     run_id = c.execute("INSERT INTO runs(task_id,model,started,log_path) VALUES(?,?,?,?)",
                        (task["id"], model, time.time(), str(log_path))).lastrowid
     event(c, "runner", "run.started", task["id"], model=model, run=run_id, role=task["role"])
+    task = dict(task)
+    if role.get("with_data"):
+        task["_catalog"] = jobs.catalog(c)
     rc, timed_out = adapters.run(model, build_prompt(task["role"], task, workdir, inline=model.startswith("api:")),
                                  workdir, role.get("timeout_s", 900), log_path, role.get("tools", ["Read", "Write"]))
     result = read_result(workdir)
@@ -166,7 +187,10 @@ def execute(c, cfg, task):
         outcome = "ok" if result["status"] == "ok" else "blocked"
         spawned = enqueue_children(c, cfg, task, result) if outcome == "ok" else 0
         finish(c, task, "done" if outcome == "ok" else "blocked", result, model=model, spawned=spawned, role=task["role"])
-        lifecycle.on_result(c, cfg, task, result, workdir)
+        if spec.get("standing"):
+            lifecycle.on_standing_result(c, cfg, task, result, workdir)
+        else:
+            lifecycle.on_result(c, cfg, task, result, workdir)
     else:                                  # timeout, crash, invalid output, or status=failed
         outcome = "timeout" if timed_out else "invalid"
         attempts = task["attempts"] + 1
@@ -179,17 +203,49 @@ def execute(c, cfg, task):
             event(c, "runner", "task.retry", task["id"], model=model, reason=outcome, role=task["role"])
     c.execute("UPDATE runs SET ended=?, rc=?, outcome=? WHERE id=?", (time.time(), rc, outcome, run_id))
 
+def gate(cfg, c):
+    """None if the runner may launch work now, else a reason (also published as STATUS)."""
+    if STOP.exists():
+        return "stopped"
+    if (mem := mem_available_mb()) < lim(cfg, "min_mem_mb", 900):
+        return f"waiting: low memory ({mem}MB free)"
+    if runs_last_day(c) >= lim(cfg, "max_runs_per_day", 300):
+        return "waiting: daily run budget used"
+    return None
+
+def plan(c, cfg):
+    """Heartbeat for the chief, plus standing orders for every idle lane that has nothing queued."""
+    heartbeat(c, cfg)
+    stalled, _ = lifecycle.stalled(c, cfg)
+    for role in cfg["roles"]:
+        if role == "chief" or stalled:
+            continue
+        if c.execute("SELECT 1 FROM tasks WHERE role=? AND status IN ('queued','running')", (role,)).fetchone():
+            continue
+        w = lifecycle.idle_work(c, cfg, role)
+        if w:
+            add_task(c, role, w[0], w[1], hypothesis=w[2], actor="standing", max_attempts=2)
+
+def _run(task, cfg):
+    c = connect()                           # each lane gets its own connection
+    try:
+        execute(c, cfg, task)
+    except Exception:
+        c.execute("UPDATE tasks SET status='failed', updated=? WHERE id=?", (time.time(), task["id"]))
+        event(c, "runner", "task.crashed", task["id"], error=traceback.format_exc()[-1500:])
+        lifecycle.on_failed(c, task, "crash")
+    finally:
+        c.close()
+
 def tick(c, cfg):
-    """One scheduling step: 'ran', 'idle', 'stopped', 'low_mem' or 'budget'."""
+    """One synchronous step (tests, `kb once`): 'ran', 'idle', 'stopped', 'low_mem' or 'budget'."""
     global STATUS
     STATE.mkdir(parents=True, exist_ok=True)
-    if STOP.exists():
-        STATUS = "stopped"; return "stopped"
-    if (mem := mem_available_mb()) < lim(cfg, "min_mem_mb", 900):
-        STATUS = f"waiting: low memory ({mem}MB free)"; return "low_mem"
-    if runs_last_day(c) >= lim(cfg, "max_runs_per_day", 300):
-        STATUS = "waiting: daily run budget used"; return "budget"
-    heartbeat(c, cfg)
+    why = gate(cfg, c)
+    if why:
+        STATUS = why
+        return {"stopped": "stopped"}.get(why, "low_mem" if "memory" in why else "budget")
+    plan(c, cfg)
     task = pick(c)
     if not task:
         STATUS = "idle"; return "idle"
@@ -203,21 +259,45 @@ def tick(c, cfg):
     return "ran"
 
 def _publish():
-    while True:                             # liveness even while a 20-minute task runs
+    while True:                             # liveness even while long tasks run
         try:
             ALIVE.write_text(STATUS)
         except OSError:
             pass
         time.sleep(10)
 
-def serve(poll_s=10):
+def serve(poll_s=5):
+    """Parallel lanes: one task per role at a time, up to max_workers, launched only when memory allows.
+    Background data jobs are pumped every loop and never occupy a lane."""
+    global STATUS
     adapters.load_env()
     STATE.mkdir(parents=True, exist_ok=True)
     threading.Thread(target=_publish, daemon=True).start()
     c = connect()
     c.execute("UPDATE tasks SET status='queued' WHERE status='running'")   # crash recovery
     event(c, "runner", "runner.started")
+    lanes, last_launch = {}, 0.0
     while True:
         cfg = load_config()                 # hot-reload routing without restart
-        if tick(c, cfg) != "ran":
-            time.sleep(poll_s)
+        lanes = {r: t for r, t in lanes.items() if t.is_alive()}
+        try:
+            jobs.pump(c, cfg, lifecycle.on_job_done)
+        except Exception:
+            event(c, "runner", "jobs.error", None, error=traceback.format_exc()[-1500:])
+        why = gate(cfg, c)
+        if not why:
+            plan(c, cfg)
+            for role in cfg["roles"]:
+                if role in lanes or len(lanes) >= lim(cfg, "max_workers", 3):
+                    continue
+                if time.time() - last_launch < lim(cfg, "launch_spacing_s", 8) or gate(cfg, c):
+                    break                   # let the last agent's memory show up before judging again
+                task = pick(c, role)
+                if task:
+                    t = threading.Thread(target=_run, args=(task, cfg), daemon=True)
+                    t.start(); lanes[role] = t; last_launch = time.time()
+        busy = ", ".join(sorted(lanes)) or "idle"
+        running_jobs = c.execute("SELECT COUNT(*) FROM jobs WHERE status='running'").fetchone()[0]
+        STATUS = (why + (f" · {busy} finishing" if lanes else "")) if why else \
+            (f"working: {busy}" if lanes else "idle") + (f" · {running_jobs} collectors" if running_jobs else "")
+        time.sleep(poll_s)

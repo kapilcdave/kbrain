@@ -10,16 +10,35 @@ min_mem_mb = 900             # ~8GB box: don't launch agents under memory pressu
 max_queued = 50
 max_depth = 3                # chief -> worker -> worker
 rate_limit_backoff_s = 1800
-heartbeat_s = 900            # idle this long -> wake the chief of staff
+heartbeat_s = 600            # researchers out of work this long -> wake the chief of staff
 max_runs_per_day = 300       # global circuit breaker on free quotas
 stall_runs = 40              # this many runs with no hypothesis changing state -> chief pauses, alert
 dedup_days = 14              # refuse near-identical tasks within this window
 max_tasks_per_hypothesis = 8
-max_open_hypotheses = 5      # finish work before starting more
+max_open_hypotheses = 10     # finish work before starting more
+max_workers = 3              # agents at once; each CLI agent needs ~300-500MB, launches wait for free memory
+launch_spacing_s = 8         # let a new agent's memory show up before judging whether another fits
+max_jobs = 2                 # background collectors at once (cheap: plain python)
+max_job_s = 14400
+job_mem_mb = 1024
+idle_cooldown_s = 900        # min gap between standing orders per role
+scout_cooldown_s = 21600     # re-scout a domain at most every 6h
+refresh_after_s = 86400
+
+[domains]                    # the research portfolio; chief spreads work, researchers scout, engineer bootstraps data
+list = [
+  "prediction markets: Kalshi and Polymarket (economics, weather, elections, sports)",
+  "crypto perps: funding, basis, liquidations (Hyperliquid, Binance public data)",
+  "crypto spot and DEX microstructure",
+  "options: crypto (Deribit public data) and equity options",
+  "sports betting and in-play markets",
+  "macro and scheduled-event trading (CPI, FOMC, earnings)",
+]
 
 [gates]                      # deterministic grading of backtest metrics (kb/lifecycle.py)
 min_units = 30               # independent units (days/events), not trades
 max_prereg_attempts = 2
+max_data_attempts = 2        # engineer tries per hypothesis before parking
 
 # Free OpenAI-compatible providers. Put keys in ~/.config/kbrain/env (chmod 600), e.g. OPENROUTER_API_KEY=...
 [providers.openrouter]
@@ -50,6 +69,13 @@ timeout_s = 1800
 tools = ["Read", "Write", "Edit", "Bash(python3:*)"]
 requires_prereg = true
 with_stats = true
+with_data = true
+
+[roles.engineer]             # data engineer: writes collectors; the harness runs them in the background
+models = ["claude:claude-sonnet-5-5", "codex:", "opencode:opencode/big-pickle"]
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "WebFetch", "WebSearch", "Bash(python3:*)"]
+with_data = true
 
 [roles.skeptic]              # prefers a different backend family than the backtester's
 models = ["codex:", "opencode:opencode/big-pickle", "claude:claude-sonnet-5-5", "agy:gemini-3.8-flash-medium"]
@@ -57,3 +83,4 @@ timeout_s = 1200
 tools = ["Read", "Write", "Bash(python3:*)"]
 independent_of = "backtester"
 with_stats = true
+with_data = true

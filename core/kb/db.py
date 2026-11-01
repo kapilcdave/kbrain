@@ -23,12 +23,28 @@ CREATE TABLE IF NOT EXISTS events(
   kind TEXT NOT NULL, task_id INTEGER, data TEXT NOT NULL DEFAULT '{}');
 CREATE INDEX IF NOT EXISTS events_task ON events(task_id, id);
 CREATE INDEX IF NOT EXISTS events_kind ON events(kind, id);
--- idea -> prereg -> backtest -> review -> validated | rejected | parked
+-- idea -> prereg -> backtest (<-> data) -> review -> validated | rejected | parked
 CREATE TABLE IF NOT EXISTS hypotheses(
   slug TEXT PRIMARY KEY, status TEXT NOT NULL DEFAULT 'idea',
-  path TEXT, prereg_sha TEXT, reason TEXT, updated REAL NOT NULL);
+  path TEXT, prereg_sha TEXT, reason TEXT, updated REAL NOT NULL, domain TEXT);
+-- background collectors the harness runs for the data engineer (outside any agent)
+CREATE TABLE IF NOT EXISTS jobs(
+  id INTEGER PRIMARY KEY, task_id INTEGER NOT NULL, hypothesis TEXT, name TEXT NOT NULL,
+  script TEXT NOT NULL, args TEXT NOT NULL DEFAULT '[]', cwd TEXT NOT NULL, dataset TEXT NOT NULL,
+  blocking INTEGER NOT NULL DEFAULT 1, max_s INTEGER NOT NULL DEFAULT 3600,
+  status TEXT NOT NULL DEFAULT 'queued',   -- queued|running|done|failed
+  pid INTEGER, started REAL, ended REAL, rc INTEGER, log_path TEXT, created REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS datasets(
+  name TEXT PRIMARY KEY, path TEXT NOT NULL, description TEXT, domain TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',  -- pending|ready|failed
+  validated INTEGER NOT NULL DEFAULT 0, notes TEXT, updated REAL NOT NULL);
+-- ideas scouted by researchers, waiting for the chief to promote them
+CREATE TABLE IF NOT EXISTS ideas(
+  slug TEXT PRIMARY KEY, domain TEXT, idea TEXT, mechanism TEXT, data TEXT,
+  status TEXT NOT NULL DEFAULT 'new', task_id INTEGER, created REAL NOT NULL);
 """
-MIGRATIONS = [("tasks", "fingerprint", "TEXT"), ("hypotheses", "prereg_sha", "TEXT"), ("hypotheses", "reason", "TEXT")]
+MIGRATIONS = [("tasks", "fingerprint", "TEXT"), ("hypotheses", "prereg_sha", "TEXT"), ("hypotheses", "reason", "TEXT"),
+              ("hypotheses", "domain", "TEXT")]
 
 def connect():
     STATE.mkdir(parents=True, exist_ok=True)
@@ -49,7 +65,9 @@ def add_task(c, role, title, spec=None, parent_id=None, hypothesis=None,
              depth=0, max_attempts=4, actor="user", fingerprint=None):
     now = time.time()
     if hypothesis:
-        c.execute("INSERT OR IGNORE INTO hypotheses(slug,status,updated) VALUES(?,'idea',?)", (hypothesis, now))
+        c.execute("INSERT OR IGNORE INTO hypotheses(slug,status,updated,domain) VALUES(?,'idea',?,?)",
+                  (hypothesis, now, (spec or {}).get("domain")))
+        c.execute("UPDATE ideas SET status='promoted' WHERE slug=?", (hypothesis,))
     cur = c.execute(
         "INSERT INTO tasks(parent_id,hypothesis,role,title,spec,depth,max_attempts,created,updated,fingerprint)"
         " VALUES(?,?,?,?,?,?,?,?,?,?)",

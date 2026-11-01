@@ -30,6 +30,9 @@ def state(c):
             "SELECT id,role,title,status,hypothesis FROM tasks WHERE id IN (SELECT MAX(id) FROM tasks GROUP BY role)")},
         "hypotheses": rows(c.execute("SELECT slug,status,reason,updated FROM hypotheses ORDER BY updated DESC LIMIT 200")),
         "roles": {k: {"models": v.get("models", [])} for k, v in cfg["roles"].items()},
+        "jobs": rows(c.execute("SELECT id,name,dataset,status,started FROM jobs WHERE status IN ('queued','running') ORDER BY id")),
+        "datasets_ready": c.execute("SELECT COUNT(*) FROM datasets WHERE status='ready'").fetchone()[0],
+        "ideas_new": c.execute("SELECT COUNT(*) FROM ideas WHERE status='new'").fetchone()[0],
         "stats": rows(c.execute("SELECT model, COUNT(*) n, SUM(outcome='ok') ok, AVG(ended-started) avg_s FROM runs "
                                 "WHERE ended IS NOT NULL GROUP BY model ORDER BY n DESC")),
     }
