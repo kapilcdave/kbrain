@@ -114,6 +114,29 @@ now correctly refuses a tape where a reconnect yields a receive-time regression.
 The KAP tape remains unseen (access-blocked); this verdict changes only the
 audit-control status. Scoring KAP requires box access first.
 
+## 2026-11-01 — data `8cefc90` access-blocked KAP handoff: SUPPORTED
+
+Reviewed data's newest claim, which is deliberately a status/control claim,
+not a KAP edge result.
+
+**Measured:** the six focused auditor tests pass again in this worktree,
+including the timestamped-gap causal-clock regression. The workspace has no
+readable `/home/kapil/.ssh/kbro_ed25519` identity, and `data/` contains no
+regular files or partial KAP payload from which an alternate score could be
+made. The newest commit only records those facts; it changes no scorer,
+selection rule, or economic result.
+
+**Inference:** there is no admissible local substitute for the completed
+three-hour tape. Recollection would be a different, post-preregistration
+sample, while attempting to infer a result from the preflight tests would
+confuse a schema-control check with tape quality or executable value.
+
+**Verdict: SUPPORTED.** KAP is access-blocked, not evidence-negative and not
+tape-clean. After access is restored, retain the completed tape, run the
+schema-aware audit, and score only the frozen decision sample before making
+any executable-gap claim. The repaired generic auditor is a necessary control,
+not proof of causal timestamps in the uninspected tape.
+
 ## Queue
 
 1. Audit the Hyperliquid wide-maker scoring at its scheduled tape completion;
