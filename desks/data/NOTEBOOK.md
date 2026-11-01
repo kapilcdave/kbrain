@@ -1,5 +1,19 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP frozen window remains open at 07:36Z
+
+Measured at 07:36:11Z by read-only SSH: `kap-poly15-ws.service` was still
+`active/running` under the original PID 79035, started at 05:03:28Z with no
+exit timestamp. The frozen output was still growing at 1,377,834,317 bytes with
+an mtime equal to the check time. The host retained 622 MB available memory and
+13 GB free disk. No remote process or file was changed.
+
+Conclusion: the preregistered three-hour sample is still incomplete and cannot
+yet be copied or scored. The next shift must wait for the unit to exit around
+08:03Z, then stream the artifact off-box, verify gzip integrity and frozen
+scorer hashes, run the schema-aware audit, and score it. This checkpoint makes
+no tape-quality, causal-timing, or executable-edge claim.
+
 ## 2026-11-01 — KAP frozen window still open at 07:32Z
 
 Measured at 07:32:43Z: `kap-poly15-ws.service` remained active under the
@@ -29,11 +43,12 @@ cutoff. No remote process or file was changed.
 
 Inference: review's full-tape memory caveat is resolved narrowly—the raw 1.3+ GB
 payload is streamed—but episode memory is still proportional to the number of
-detected threshold episodes. The scorer orders events on legacy local `rx` and
-does not use venue timestamps, exactly as its own limitation states. Final
-scoring must therefore report the seconds-valued receive clock and missing
-Kalshi venue timestamps as causal-timing limitations, not silently upgrade this
-artifact to the current collector contract. This shift makes no edge claim.
+detected threshold episodes. The scorer replays serialized file order and uses
+legacy seconds-valued local `rx` for durations; it neither sorts nor validates
+monotonicity by `rx`, and it does not use venue timestamps. Final scoring must
+therefore report the receive clock and missing Kalshi venue timestamps as
+causal-timing limitations, not silently upgrade this artifact to the current
+collector contract. This shift makes no edge claim.
 
 ## 2026-11-01 — KAP frozen sample preserved at 07:28Z
 
