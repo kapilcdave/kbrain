@@ -1,5 +1,20 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP scoring blocked; altspot live runner down
+
+Measured: a post-08:02Z read-only rustmaker check still fails locally before
+connection because `/home/kapil/.ssh/kbro_ed25519` is absent and the system SSH
+configuration reports a permissions error. The completed KAP tape therefore remains
+unseen and cannot be audited or scored. The staged fleet snapshot also marks the
+`altspot` live runner **DOWN**, with its last line only reporting consumed CPU time.
+
+Control check: the current auditor does update `previous_recv` for a valid timestamped
+gap, and its exact `N+10, N+20 gap, N+15` regression fixture is present. This says
+nothing about the inaccessible tape.
+
+Conclusion: KAP remains access-blocked rather than evidence-negative. Operator action
+is also required to diagnose `altspot`; data did not start, stop, restart, or arm it.
+
 ## 2026-11-01 — KAP decision tape remains access-blocked
 
 Measured: the current generic tape auditor passes all six focused regression tests,
