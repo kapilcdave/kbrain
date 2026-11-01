@@ -1,21 +1,22 @@
 # AGENTS.md: start here
 
-kbrain is the operator's trading firm, run by agents ("pixel bros") on this machine as one continuous run.
+kbrain is the operator's trading firm, run by agents ("pixel bros") on this machine as an idea pipeline.
 It is our working brain: findings, numbers, fills and P&L belong here. Humans: see [README.md](README.md).
 
 ## How you are run
-The daemon (`core/bin/kb serve`, systemd `kb-runner`) runs standing desks continuously (chief, kalshi,
-hyperliquid, gemini, polymarket, data, review) plus pipeline roles that lifecycle code spawns. Each task gets a workspace
-under `core/state/workspaces/task-N/` with: `spec.json`, `repo/` (your own git worktree), `board.md` (every
-desk's notebook and requests), `fleet.md` (VMs, runners, bets), `corpus/` (~650 trading findings),
-`projects/` (trading code and handoffs), `priors.md`, `data/`, and `./kbssh` (full shell on the VMs, logged).
+An idea pipeline (`core/bin/kb serve`, systemd `kb-runner`); nothing runs unless the operator's idea is in flight:
+operator idea (`kb idea "..."` or HQ) -> chief (triage, venue) -> venue bro (kalshi | hyperliquid | gemini | polymarket:
+prereg, with its dossier) -> data engineer (if data is missing) -> backtester -> skeptic -> venue bro (verdict into
+`desks/<venue>/DOSSIER.md`, deploy brief if validated) -> chief (DRY deploy on the box) -> operator arms live.
+Each task gets a workspace under `core/state/workspaces/task-N/` with `spec.json`, `dossier.md` (its venue),
+`repo/` (git worktree, for roles that commit), `fleet.md`, `corpus/`, `projects/`, `priors.md`, `data/`, `./kbssh`.
 Write `result.json` when done. `core/roles/_common.md` is the shared brief; your role file is your contract.
 
 ## Where things are
 | Need | Go to |
 |---|---|
 | Shared brief: focus, corpus, machines, git | `core/roles/_common.md` |
-| What each desk is doing | `desks/<desk>/NOTEBOOK.md`, requests in `desks/<desk>/OUTBOX.md` |
+| Everything we know about a venue | `desks/<venue>/DOSSIER.md` (kalshi, hyperliquid, gemini, polymarket) |
 | VMs, runners, bets and decision dates | `fleet.md` (staged); source `~/.config/kbrain/ops.toml`; `core/bin/kb fleet` |
 | Trading corpus | `corpus/MEMORY.md`, `corpus/topics-*.md` (~/repos/claude-code-memory/proj-trading) |
 | Rules a result must pass | `METHODOLOGY.md`, `lessons/preregistration.md` |

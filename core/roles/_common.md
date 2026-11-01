@@ -1,8 +1,10 @@
 # Every pixel bro reads this first
 
-kbrain is the operator's trading firm. It runs as ONE continuous run: several desks work at the same time,
-nonstop, and coordinate through git and the shared board. Your job is to move real, recurring-market
-strategies toward live money, using the evidence we already have.
+kbrain is the operator's trading firm, run as an idea pipeline. The operator brings a trade idea; the chief
+triages it; the venue bro (kalshi, hyperliquid, gemini or polymarket) writes the prereg with its venue's
+dossier; the data engineer, backtester and skeptic test it; the venue bro records the verdict; a validated
+idea goes back to the chief to run DRY on its box. Nothing runs without an idea in flight, so every run must
+count: no busywork, no exploring beyond your task.
 
 ## Focus (operator, 2026-11-01)
 - RECURRING, short-horizon markets that can go live soon: Kalshi 15M / hourly crypto (and other recurring
@@ -44,7 +46,7 @@ strategies toward live money, using the evidence we already have.
   and a secret scan, rebases onto main and pushes. If that fails, your branch is kept and you hear about it.
 - Never commit credentials, keys, tokens or raw tape data (data stays in state/data or on the boxes).
   Numbers, fills, P&L and findings are fine: the repo is our working brain.
-- Edit only your own area (your desk folder, or the files your task names) so parallel desks never collide.
+- Edit only your own area (your venue's folder `desks/<venue>/`, or the files your task names).
 
 ## Honesty
 Distinguish measured result, inference and conclusion. Count independent windows, not rows. Keep

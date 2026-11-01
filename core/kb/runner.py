@@ -29,6 +29,8 @@ def role_text(role_name, cfg=None):
     rcfg = ((cfg or load_config())["roles"].get(role_name) or {})
     if own.is_file():
         body = own.read_text()
+    elif rcfg.get("venue_bro"):
+        body = (ROOT / "roles" / "venue.md").read_text() + f"\nYOUR VENUE: {role_name}\nFOCUS: {rcfg.get('focus', '')}\n"
     else:
         body = (ROOT / "roles" / "desk.md").read_text()
     if rcfg.get("desk"):
@@ -47,8 +49,10 @@ def build_prompt(role_name, task, workdir, inline=False):
             f"Input files (in inputs/): {', '.join(names) or 'none'}\n"
             + ("Read priors.md FIRST: closed branches, estimator traps and venue facts from prior work.\n"
                if (Path(workdir) / "priors.md").is_file() else "")
-            + ("Your git worktree is repo/ (commit there; the harness merges). board.md shows every desk.\n"
+            + ("Your git worktree is repo/ (commit there; the harness merges).\n"
                if (Path(workdir) / "repo").is_dir() else "")
+            + ("The venue's dossier is staged as dossier.md: read it before anything else.\n"
+               if (Path(workdir) / "dossier.md").is_file() else "")
             + (f"Datasets (read them under data/ in your working directory; never fetch from the network yourself):\n{task['_catalog']}\n" if task.get('_catalog') else "")
             + f"Spec (spec.json):\n{task['spec']}\n\n"
             "When finished, write result.json in the working directory: "
@@ -115,7 +119,9 @@ def heartbeat(c, cfg):
         add_task(c, "chief", "heartbeat: review state and plan next tasks", {}, actor="heartbeat")
 
 def runs_last_day(c):
-    return c.execute("SELECT COUNT(*) FROM runs WHERE started>?", (time.time() - 86400,)).fetchone()[0]
+    """Runs counted against max_runs_per_day: the last 24 h, or since the last `kb budget-reset` if later."""
+    reset = c.execute("SELECT MAX(ts) FROM events WHERE kind='budget.reset'").fetchone()[0] or 0
+    return c.execute("SELECT COUNT(*) FROM runs WHERE started>?", (max(time.time() - 86400, reset),)).fetchone()[0]
 
 def read_result(workdir):
     p = Path(workdir) / "result.json"
@@ -183,9 +189,23 @@ def prepare(task, role, workdir, cfg, c):
             link = workdir / name
             if src.is_dir() and not link.exists():
                 link.symlink_to(src, target_is_directory=True)
+    venues = cfg.get("venues", {}).get("list", [])
+    if venues and (role.get("with_dossier") or role.get("with_dossiers") or role.get("venue_bro")):   # venue context, from main
+        cfg_all = cfg
+        if role.get("with_dossiers"):
+            mine = venues
+        else:
+            v = task["role"] if role.get("venue_bro") else lifecycle.venue_of(c, cfg_all, task["hypothesis"])
+            mine = [v] if v else []
+        for v in mine:
+            text = gitops.git("show", f"origin/main:desks/{v}/DOSSIER.md", check=False)
+            if text:
+                dest = workdir / "dossiers" / f"{v}.md" if role.get("with_dossiers") else workdir / "dossier.md"
+                dest.parent.mkdir(parents=True, exist_ok=True); dest.write_text(text)
     if role.get("worktree"):                           # own git worktree; harness merges at the end
         wt = gitops.create(task, workdir)
-        (workdir / "board.md").write_text(gitops.board(wt))
+        if role.get("desk"):
+            (workdir / "board.md").write_text(gitops.board(wt))
     if role.get("with_fleet"):                         # ./kbssh (gated box shell) + the fleet map
         shutil.copyfile(ROOT / "bin" / "kbssh", workdir / "kbssh"); (workdir / "kbssh").chmod(0o755)
         if fleet.FLEET_MD.is_file():

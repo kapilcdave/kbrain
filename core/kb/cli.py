@@ -60,8 +60,11 @@ def main(argv=None):
     t = sub.add_parser("tail"); t.add_argument("-n", type=int, default=30); t.add_argument("-f", action="store_true")
     w = sub.add_parser("web", help="LARP HQ at http://127.0.0.1:7777"); w.add_argument("--port", type=int, default=7777)
     sub.add_parser("serve"); sub.add_parser("once")
+    i = sub.add_parser("idea", help="give the chief a trade idea (the only thing that starts work)")
+    i.add_argument("text"); i.add_argument("--venue", choices=["kalshi", "hyperliquid", "gemini", "polymarket"])
     f = sub.add_parser("fleet", help="check the VMs and their runners now (read-only ssh)")
     f.add_argument("--cached", action="store_true", help="print the last check without ssh")
+    sub.add_parser("budget-reset", help="start the daily run budget fresh from now")
     sub.add_parser("stop"); sub.add_parser("resume"); sub.add_parser("ack", help="acknowledge a stall alert")
     g = sub.add_parser("gate"); g.add_argument("prereg")
     args = ap.parse_args(argv)
@@ -94,9 +97,14 @@ def main(argv=None):
                 print("\033[2J\033[H", end=""); banner(); status(conn, load_config()); time.sleep(2)
         except KeyboardInterrupt:
             pass
+    elif args.cmd == "idea":
+        spec = {"kind": "idea", "idea": args.text, **({"venue": args.venue} if args.venue else {})}
+        print(add_task(conn, "chief", f"Idea: {args.text[:120]}", spec, actor="user:cli"))
     elif args.cmd == "add":
         spec = json.load(open(args.spec[1:])) if args.spec.startswith("@") else json.loads(args.spec)
         print(add_task(conn, args.role, args.title, spec, hypothesis=args.hypothesis))
+    elif args.cmd == "budget-reset":
+        event(conn, "user:cli", "budget.reset"); print("daily run budget restarts now")
     elif args.cmd == "ack":
         event(conn, "user:cli", "user.ack"); print("stall acknowledged; chief heartbeats resume")
     elif args.cmd == "once":

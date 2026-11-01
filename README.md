@@ -2,9 +2,10 @@
 
 The brain of my trading: what I have built, tested, learned, rejected, and what is running now.
 
-A team of agents (the pixel bros) works here continuously: standing desks for Kalshi recurring
-markets, Hyperliquid, Gemini/Polymarket US, data and review, coordinated by a chief of staff. They
-commit their notebooks, scripts and findings to this repo; the harness tests and merges to main.
+A small team of agents (the pixel bros) tests my trade ideas: I give the chief of staff an idea
+(`core/bin/kb idea "..."`), a venue bro (Kalshi, Hyperliquid, Gemini, Polymarket US) preregisters it
+with its venue's dossier, the data engineer, backtester and skeptic test it, and winners go back to the
+chief to run dry on the box before I arm them. Nothing runs without an idea in flight.
 Numbers, fills and P&L live here. Credentials, keys and raw tape data never do.
 
 ## Start Here
@@ -59,10 +60,10 @@ Numbers, fills and P&L live here. Credentials, keys and raw tape data never do.
 - `closed`: frozen after a predefined failure condition.
 - `archived`: retained for provenance rather than active development.
 
-## Desks
+## Venues
 
-Each desk keeps `desks/<desk>/NOTEBOOK.md` (state, findings, queue) and `desks/<desk>/OUTBOX.md`
-(requests to other desks or to me). The office view (`core/bin/kb web`) shows them working.
+Each venue bro keeps `desks/<venue>/DOSSIER.md`: venue facts, our box and runners, closed branches and every
+verdict. Deploy briefs for validated ideas sit next to it. `core/bin/kb web` shows the bros at work.
 
 ## License
 

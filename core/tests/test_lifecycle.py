@@ -104,6 +104,43 @@ class Pipeline(Base):
         self.assertEqual(self.c.execute("SELECT COUNT(*) FROM tasks WHERE role='researcher'").fetchone()[0], 2)
         self.assertEqual(self.hstatus("vague")["status"], "parked")
 
+class VenueFlow(Base):
+    """Operator idea -> chief -> venue bro -> backtester -> skeptic -> venue bro (verdict) -> chief (dry deploy)."""
+    def test_idea_runs_through_the_venue_bro_and_comes_back_to_the_chief(self):
+        r = self.cfg["roles"]
+        for v in r.values(): v["standing_orders"] = False      # production: no background work
+        r["chief"].update({"spawnable": ["kalshi"], "models": [script(self.tmp, "chief.sh",
+            'if grep -q deploy spec.json; then ' + result({"status": "ok", "summary": "deployed dry"}).replace("\n", "\n") + 'else\n'
+            + result({"status": "ok", "summary": "triaged", "new_tasks": [{"role": "kalshi", "hypothesis": "penny-jump-eth",
+                      "title": "Prereg: penny jump", "spec": {"domain": "kalshi", "idea": "x"}}]}) + 'fi\n')]})
+        r["kalshi"] = {"venue_bro": True, "models": [script(self.tmp, "k.sh", "cat > prereg.md <<'P'\n" + PREREG + "P\n"
+                       + result({"status": "ok", "summary": "venue work"}))]}
+        r["backtester"]["models"] = [script(self.tmp, "bt.sh", result({"status": "ok", "summary": "bt",
+            "metrics": {"net_mean": 1, "ci_low": 0.2, "ci_high": 2, "n_units": 40, "net_mean_ex_top": 0.5}}))]
+        r["skeptic"]["models"] = [script(self.tmp, "sk.sh", result({"status": "ok", "summary": "ok", "verdict": "SURVIVES"}))]
+        self.db.add_task(self.c, "chief", "Idea: penny jump on ETH 15M", {"kind": "idea", "idea": "penny jump"})
+        self.drain(12)
+        roles = [x[0] for x in self.c.execute("SELECT role FROM tasks ORDER BY id")]
+        self.assertEqual(roles, ["chief", "kalshi", "backtester", "skeptic", "kalshi", "chief"])
+        self.assertEqual(self.hstatus("penny-jump-eth")["status"], "validated")
+        kinds = [json.loads(x[0]).get("kind") for x in self.c.execute("SELECT spec FROM tasks ORDER BY id")]
+        self.assertEqual(kinds[4:], ["verdict", "deploy"])
+
+    def test_rejected_idea_still_gets_a_verdict_but_no_deploy(self):
+        r = self.cfg["roles"]
+        for v in r.values(): v["standing_orders"] = False      # production: no background work
+        r["chief"].update({"spawnable": ["kalshi"], "models": [script(self.tmp, "c2.sh", result({"status": "ok", "summary": "t",
+            "new_tasks": [{"role": "kalshi", "hypothesis": "bad-fade", "title": "Prereg: fade", "spec": {"domain": "kalshi", "idea": "x"}}]}))]})
+        r["kalshi"] = {"venue_bro": True, "models": [script(self.tmp, "k2.sh", "cat > prereg.md <<'P'\n" + PREREG + "P\n"
+                       + result({"status": "ok", "summary": "v"}))]}
+        r["backtester"]["models"] = [script(self.tmp, "bt2.sh", result({"status": "ok", "summary": "bt",
+            "metrics": {"net_mean": 0.1, "ci_low": -0.3, "ci_high": 0.5, "n_units": 60}}))]
+        self.db.add_task(self.c, "chief", "Idea: fade", {"kind": "idea", "idea": "fade"})
+        self.drain(12)
+        roles = [x[0] for x in self.c.execute("SELECT role FROM tasks ORDER BY id")]
+        self.assertEqual(roles, ["chief", "kalshi", "backtester", "kalshi"])
+        self.assertEqual(self.hstatus("bad-fade")["status"], "rejected")
+
 class AntiSpiral(Base):
     def chief_proposes(self, tasks):
         self.cfg["roles"]["chief"]["models"] = [script(self.tmp, f"c{time.time_ns()}.sh", result({"status": "ok", "summary": "plan", "new_tasks": tasks}))]

@@ -33,6 +33,15 @@ def open_count(c):
 def waiting_on_data(c):
     return c.execute("SELECT COUNT(*) FROM hypotheses WHERE status='data'").fetchone()[0]
 
+def is_author(cfg, role):
+    """Roles that write preregistrations: the generic researcher or a venue bro."""
+    return role == "researcher" or bool(cfg["roles"].get(role, {}).get("venue_bro"))
+
+def venue_of(c, cfg, slug):
+    h = hyp(c, slug) if slug else None
+    v = h["domain"] if h else None
+    return v if v and cfg["roles"].get(v, {}).get("venue_bro") else None
+
 def open_slots(c, cfg):
     return max(0, L(cfg, "limits", "max_open_hypotheses", 5) - open_count(c))
 
@@ -66,9 +75,9 @@ def admit(c, cfg, parent, nt):
     if c.execute("SELECT COUNT(*) FROM tasks WHERE status IN ('queued','running')").fetchone()[0] >= L(cfg, "limits", "max_queued", 50):
         return "queue full"
     slug = nt.get("hypothesis")
-    if role == "researcher":
+    if is_author(cfg, role):
         if not slug or not SLUG.fullmatch(slug):
-            return "researcher task needs a new kebab-case hypothesis slug"
+            return "a prereg task needs a new kebab-case hypothesis slug"
         if (h := hyp(c, slug)):
             return f"hypothesis {slug} already exists ({h['status']})"
         if open_slots(c, cfg) <= 0:
@@ -112,6 +121,35 @@ def sha256(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 def on_result(c, cfg, task, result, workdir):
+    """Route a finished task. When a hypothesis reaches a verdict, its venue bro records it in the dossier;
+    a validated one then goes to the chief for a DRY deploy."""
+    slug, spec = task["hypothesis"], json.loads(task["spec"])
+    kind = spec.get("kind")
+    if kind == "verdict":
+        h = hyp(c, slug) if slug else None
+        if h and h["status"] == "validated" and "chief" in cfg["roles"]:
+            # the brief is merged to main by the venue bro's worktree; start after that merge has landed
+            tid = spawn(c, task, "chief", f"Deploy {slug} in DRY mode",
+                        {"kind": "deploy", "venue": task["role"], "slug": slug,
+                         "brief": f"repo/desks/{task['role']}/deploy-{slug}.md"})
+            c.execute("UPDATE tasks SET not_before=? WHERE id=?", (time.time() + 180, tid))
+        return
+    if kind in ("deploy", "seed", "idea"):
+        return
+    before = hyp(c, slug) if slug else None
+    _route(c, cfg, task, result, workdir)
+    after = hyp(c, slug) if slug else None
+    if before and after and before["status"] not in TERMINAL and after["status"] in TERMINAL:
+        v = venue_of(c, cfg, slug)
+        if v:
+            files = [after["path"]] if after["path"] else []
+            files += [str(Path(workdir) / a) for a in result.get("artifacts", []) if isinstance(a, str)
+                      and (Path(workdir) / a).is_file()][:5]
+            spawn(c, task, v, f"Verdict: {slug} {after['status']}",
+                  {"kind": "verdict", "status": after["status"], "reason": after["reason"], "metrics": result.get("metrics"),
+                   "files": files})
+
+def _route(c, cfg, task, result, workdir):
     slug = task["hypothesis"]
     h = hyp(c, slug) if slug else None
     if not h or h["status"] in TERMINAL:
@@ -125,7 +163,7 @@ def on_result(c, cfg, task, result, workdir):
                          {"needs": result.get("summary", "")[:3000], "files": [h["path"]] if h["path"] else []})
     if result["status"] == "blocked":
         return set_status(c, slug, "parked", f"{task['role']} blocked: {result.get('summary', '')[:240]}")
-    if role == "researcher":
+    if is_author(cfg, role):
         draft = wd / "prereg.md"
         missing = gates.prereg_missing(draft)
         if not missing:
@@ -137,11 +175,11 @@ def on_result(c, cfg, task, result, workdir):
             spawn(c, task, "backtester", f"Backtest {slug} per frozen prereg",
                   {"prereg": str(frozen), "prereg_sha": sha, "files": [str(frozen)]})
             set_status(c, slug, "backtest")
-        elif c.execute("SELECT COUNT(*) FROM tasks WHERE hypothesis=? AND role='researcher'", (slug,)).fetchone()[0] \
-                >= L(cfg, "gates", "max_prereg_attempts", 2):
+        elif c.execute("SELECT COUNT(*) FROM tasks WHERE hypothesis=? AND role=? AND json_extract(spec,'$.kind') IS NULL",
+                       (slug, role)).fetchone()[0] >= L(cfg, "gates", "max_prereg_attempts", 2):
             set_status(c, slug, "parked", f"prereg incomplete after retries: missing {', '.join(missing)}")
         else:
-            spawn(c, task, "researcher", f"Complete the prereg for {slug}",
+            spawn(c, task, role, f"Complete the prereg for {slug}",
                   {"fix_missing": missing, "files": [str(draft)] if draft.is_file() else []})
     elif role == "backtester":
         m = result.get("metrics")
