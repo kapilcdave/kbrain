@@ -1,0 +1,7 @@
+[[runner]]
+name = "kap-poly15-ws"
+box = "rustmaker"
+unit = "kap-poly15-ws.service"
+mode = "tape"
+until = "2026-11-01T08:03:28Z"
+decides = "KAP PM-US/Kalshi paired-book frozen preflight; no executable post-fee gap at our reaction budget closes this decision path."
