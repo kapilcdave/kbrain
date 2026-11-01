@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C9. Structure-Aware vs Sequence-Only Small PLMs on CPU: SaProt-35M vs ESM2-35M by Selection Type
+- **Idea:** Compare SaProt-35M-AF2 against ESM2-35M across all 217 ProteinGym v1.3 DMS substitution assays
+  (186 independent UniProt proteins) and test whether 3D structure conditioning (Foldseek 3Di tokens) provides
+  a statistically significant improvement across all functional selection types (Stability, Activity, Binding,
+  Expression, OrganismalFitness), or if the benefit is confined to stability phenotypes.
+- **Why:** At an identical 35M parameter budget (both running in seconds on an 8-core CPU), SaProt-35M achieves
+  ~0.4130 mean Spearman vs ESM2-35M's ~0.3188—nearly matching the 650M-parameter ESM2-650M (0.4382). However,
+  structural models are hypothesized to overfit rigid backbone coordinates and fail on allosteric binding or
+  catalytic turnover where conformational dynamics matter. Stratifying by `coarse_selection_type` resolves where
+  structure tokens add genuine predictive edge vs where pure sequence representations suffice.
+- **Data:** `pg.published_scores(aid, "SaProt_35M_AF2")` and `pg.published_scores(aid, "ESM2_35M")`, with
+  selection metadata from `pg.reference()`.
+- **Baseline:** ESM2-35M published scores (fixed baseline).
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** < 1 minute (scores are precomputed in `data/proteingym/zero_shot/`).
+
 ### C8. Additive vs Epistatic Fitness Prediction on Multiple-Mutant Assays
 - **Idea:** On the 69 assays in ProteinGym v1.3 containing multiple substitutions (~1.77M mutants), test whether
   epistatic models with explicit pairwise couplings (GEMME, EVmutation) outperform additive PLM log-odds sums

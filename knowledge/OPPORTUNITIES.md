@@ -31,4 +31,16 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero GPU; purely automated API polling, sequence parsing, and CPU inference.
 - **Next step:** Write a Python scraper to query the MaveDB REST API for assays with complete sequence maps and valid UniProt accessions.
 
+### 4. Low-N Active Learning Auditor for Protein Engineering Platforms
+- **What:** An open evaluation toolkit and rigorous benchmarking harness that stress-tests commercial active learning
+  claims (e.g., directed evolution in 24–96 variants per round) against strict negative controls: frozen zero-shot priors,
+  position-disjoint splits (`fold_contiguous_5`), and simple random mutant selection across ProteinGym's 217 assays.
+- **Why now:** Startups like Cradle Bio sell SaaS subscriptions promising rapid fitness optimization with minimal wet-lab
+  measurements. However, prospective wet-lab customers lack vendor-neutral tools to verify whether complex active learning
+  algorithms genuinely beat simple zero-shot ranked screening under realistic experimental noise and position-unseen constraints.
+- **Evidence:** Hsu et al., 2022 (Nat Biotechnol); ProteinGym CV benchmarks; kbrain finding on cheap-zero-shot ensembles.
+- **Rough cost:** Zero cloud spend; purely analytical evaluation using `pg.low_n` and `lab/proteingym.py`.
+- **Next step:** Preregister Candidate C2 / C3 to benchmark low-N ridge regression and model selection across all 217 assays.
+
+
 
