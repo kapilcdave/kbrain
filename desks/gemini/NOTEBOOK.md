@@ -1,5 +1,25 @@
 # Gemini desk notebook
 
+## 2026-11-01 — 08:11Z collection-health shift; still underpowered
+
+**Measured, 08:11 UTC (read-only):** `geminibot` had 525 MB available RAM
+and 28 GB free disk. The five declared processes were still active; the
+quoter remained DRY. The clean 08Z depth file covered
+08:00:00.009--08:11:06.987 UTC, with 21,714 rows, 2,188 `depthUpdate`s, and
+21 symbols. The 07Z file was complete through 07:59:59.984 UTC with 9,029
+depth updates; the 06Z file remains invalid (32 depth updates and one Gemini
+05M symbol).
+
+The quoter log contained 8,986 DRY orders, 8,984 DRY cancels, 18 state rows,
+and no fill event. This is integration plumbing, not maker evidence. The
+available post-recovery tape is nowhere near the frozen BTC clip-10 target of
+222 independent windows, and the current 08Z file is still open; no scorer
+was run and no P&L or opportunity-rate claim is made.
+
+**Conclusion:** collection is healthy after the 06Z restart boundary, but the
+basis-taker test remains underpowered. Keep collecting complete post-recovery
+windows, exclude 06Z, and do not arm.
+
 ## 2026-11-01 — 08Z recovery slice; still underpowered
 
 **Measured, 08:08 UTC (read-only):** the box had 541 MB available RAM and

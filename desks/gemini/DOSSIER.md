@@ -125,6 +125,18 @@ contracts. Measured facts are labelled; an inference is not an executable edge._
 
 ## Verdicts
 
+### 2026-11-01 — underpowered collection-health shift; no verdict
+
+Measured at 08:11Z: the clean 08Z depth file covered 08:00:00.009--08:11:06.987Z
+with 21,714 rows, 2,188 depth updates, and 21 symbols; the complete 07Z file
+had 9,029 depth updates. The known incomplete 06Z file remains excluded. The
+five tape processes and DRY quoter were active; the quoter logged 8,986 orders
+and 8,984 cancels, with no fill event. The frozen BTC clip-10 test still needs
+222 independent windows, so no score, P&L, pass/fail, or maker evidence is
+claimed. Conclusion: collection recovered and is healthy, but remains
+underpowered; continue collecting and do not arm. [source: shift `NOTEBOOK.md`,
+2026-11-01]
+
 ### 2026-11-01 — underpowered shift diagnostic; no verdict
 
 Measured at 08:08Z: the recovered 08Z file covered 08:00:00.009--08:08:39.877Z
