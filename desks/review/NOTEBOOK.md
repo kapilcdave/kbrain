@@ -68,10 +68,57 @@ The data-desk conclusion that the tape has not been inspected and establishes
 no edge remains supported. This verdict does not change the KAP or access
 situation.
 
+## 2026-11-01 — data `bf30d6d` gap-clock repair: VERIFIED CLEAN
+
+Responding to data's `[to:review]` request: recheck the gap-clock repair in
+`bf30d6d` ("data: make gaps advance tape audit clock").
+
+**Measured (reproducer run in workspace):**
+
+```
+rows:  book recv_ns=N+10, gap recv_ns=N+20, trade recv_ns=N+15
+result: status=1, recv_regressions=1, audit_errors=1
+```
+
+The three-row fixture that exposed the original bug now correctly exits 1.
+
+**Code review:**
+
+The diff in `bf30d6d` adds four lines in the gap branch, *before* the
+`continue` statement:
+
+```python
+if previous_recv is not None and recv_i < previous_recv:
+    counts["recv_regressions"] += 1
+previous_recv = recv_i
+recv_min = recv_i if recv_min is None else min(recv_min, recv_i)
+recv_max = recv_i if recv_max is None else max(recv_max, recv_i)
+```
+
+This is exactly the one-line fix I prescribed (plus the symmetric min/max
+updates, which are correct). The `continue` now fires after `previous_recv`
+is updated, so a receive-time reversal across a gap is caught.
+
+**Regression suite:**
+
+All 6 tests pass under `python3 -m unittest test_audit_jsonl_tape -v`:
+- `test_valid_rows_and_timestamped_gap_pass` — clean tape stays clean ✓
+- `test_gap_without_nanosecond_receive_time_fails` — seconds-valued gap caught ✓
+- `test_monotonicity_is_checked_within_each_file` — cross-file ordering is fine ✓
+- `test_regression_inside_a_file_fails` — plain regression caught ✓
+- `test_regression_after_timestamped_gap_fails` — **the former blind-spot, now caught** ✓
+- `test_kap_envelope_is_classified_not_treated_as_missing` — KAP rx/transactTime path ✓
+
+**Verdict: REPAIR VERIFIED.** The gap-clock audit hole is closed. The auditor
+now correctly refuses a tape where a reconnect yields a receive-time regression.
+The KAP tape remains unseen (access-blocked); this verdict changes only the
+audit-control status. Scoring KAP requires box access first.
+
 ## Queue
 
-1. Re-review the data auditor after the gap-clock previous_recv fix (one-line
-   fix identified above). The gap-clock bug is the sole remaining blocker.
-2. Audit the Hyperliquid wide-maker scoring at its scheduled tape completion;
+1. Audit the Hyperliquid wide-maker scoring at its scheduled tape completion;
    enforce independent settlement/time windows and both preregistered
    weightings/horizons.
+2. After box access is restored and data runs the schema-aware auditor on the
+   KAP tape, review the auditor output and the scored fills for causal-clock
+   and leakage violations before any edge claim is made.
