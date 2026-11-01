@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""kbssh <box> <command ...>: run one READ-ONLY command on a trading box as a kbrain agent.
+
+Boxes come from the private ops map (~/.config/kbrain/ops.toml). Uses the agents' key
+(~/.ssh/kbro_ed25519), which each box locks to core/ops/kbro_ro.py, so only allowlisted read-only
+commands run (status, logs, ps, ls/cat/tail of non-secret files, `tar czf - <dir>` to pull data).
+Examples:
+  kbssh rustmaker journalctl -u altspot -n 50 --no-pager
+  kbssh hypephil tail -n 5 logs/mmtape_w1.log
+  kbssh hypephil tar czf - data/mmtape_w1/20261101 > w1.tgz
+  kbssh list
+"""
+import os, shlex, subprocess, sys, tomllib
+from pathlib import Path
+
+OPS = Path(os.environ.get("KB_OPS", Path.home() / ".config" / "kbrain" / "ops.toml"))
+KEY = Path.home() / ".ssh" / "kbro_ed25519"
+
+def main(argv):
+    boxes = {b["name"]: b for b in tomllib.loads(OPS.read_text()).get("box", [])} if OPS.is_file() else {}
+    if len(argv) < 1 or argv[0] in ("-h", "--help"):
+        print(__doc__); return 0
+    if argv[0] == "list":
+        for b in boxes.values():
+            print(f"{b['name']:<11} {b.get('where', '')}\n{'':<11} {b.get('role', '')}")
+        return 0
+    if argv[0] not in boxes:
+        print(f"unknown box {argv[0]!r}; known: {', '.join(boxes)}", file=sys.stderr); return 2
+    if len(argv) < 2:
+        print("give a command, e.g. kbssh rustmaker systemctl status altspot --no-pager", file=sys.stderr); return 2
+    b = boxes[argv[0]]
+    cmd = ["ssh", "-i", str(KEY), "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes", "-o", "ConnectTimeout=10",
+           "-o", "StrictHostKeyChecking=accept-new", "-o", "LogLevel=ERROR", f"{b['user']}@{b['host']}", shlex.join(argv[1:])]
+    try:
+        return subprocess.run(cmd, timeout=360).returncode
+    except subprocess.TimeoutExpired:
+        print("kbssh: timed out", file=sys.stderr); return 124
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

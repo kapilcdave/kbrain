@@ -32,10 +32,20 @@ def state(c):
         "roles": {k: {"models": v.get("models", [])} for k, v in cfg["roles"].items()},
         "jobs": rows(c.execute("SELECT id,name,dataset,status,started FROM jobs WHERE status IN ('queued','running') ORDER BY id")),
         "datasets_ready": c.execute("SELECT COUNT(*) FROM datasets WHERE status='ready'").fetchone()[0],
+        "fleet": _fleet(),
         "ideas_new": c.execute("SELECT COUNT(*) FROM ideas WHERE status='new'").fetchone()[0],
         "stats": rows(c.execute("SELECT model, COUNT(*) n, SUM(outcome='ok') ok, AVG(ended-started) avg_s FROM runs "
                                 "WHERE ended IS NOT NULL GROUP BY model ORDER BY n DESC")),
     }
+
+def _fleet():
+    from . import fleet
+    try:
+        snap = json.loads(fleet.FLEET_JSON.read_text())
+    except (OSError, ValueError):
+        return None
+    return {"ts": snap["ts"], "boxes": [{k: b.get(k) for k in ("name", "reachable", "uptime", "disk")} for b in snap["boxes"]],
+            "runners": [{k: r.get(k) for k in ("name", "box", "mode", "status", "etime", "until")} for r in snap["runners"]]}
 
 def task_detail(c, tid):
     t = c.execute("SELECT * FROM tasks WHERE id=?", (tid,)).fetchone()

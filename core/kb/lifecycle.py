@@ -30,6 +30,9 @@ def hyp(c, slug):
 def open_count(c):
     return c.execute(f"SELECT COUNT(*) FROM hypotheses WHERE status NOT IN {TERMINAL}").fetchone()[0]
 
+def waiting_on_data(c):
+    return c.execute("SELECT COUNT(*) FROM hypotheses WHERE status='data'").fetchone()[0]
+
 def open_slots(c, cfg):
     return max(0, L(cfg, "limits", "max_open_hypotheses", 5) - open_count(c))
 
@@ -70,6 +73,8 @@ def admit(c, cfg, parent, nt):
             return f"hypothesis {slug} already exists ({h['status']})"
         if open_slots(c, cfg) <= 0:
             return "no open hypothesis slots; finish existing work first"
+        if (w := waiting_on_data(c)) >= L(cfg, "limits", "max_waiting_on_data", 3):
+            return f"{w} hypotheses are waiting on data; unblock or close them before starting new ones"
     elif slug:
         if (h := hyp(c, slug)) and h["status"] in TERMINAL:
             return f"hypothesis {slug} is {h['status']}"
@@ -84,7 +89,7 @@ def admit(c, cfg, parent, nt):
 def stalled(c, cfg):
     """No progress for `stall_runs` runs -> spinning. Returns (stalled, last_progress_event_id)."""
     row = c.execute("SELECT id, ts FROM events WHERE kind IN ('hyp.status','user.ack','dataset.ready','ideas.added',"
-                    "'dataset.validated') ORDER BY id DESC LIMIT 1").fetchone()
+                    "'dataset.validated','git.merged') ORDER BY id DESC LIMIT 1").fetchone()
     last_id, last_ts = (row["id"], row["ts"]) if row else (0, 0)
     runs = c.execute("SELECT COUNT(*) FROM runs WHERE started>?", (last_ts,)).fetchone()[0]
     return runs >= L(cfg, "limits", "stall_runs", 40), last_id
@@ -264,6 +269,8 @@ def idle_work(c, cfg, role):
 def on_standing_result(c, cfg, task, result, workdir):
     spec = json.loads(task["spec"])
     kind = spec.get("kind")
+    if kind == "shift":                                # desk shifts land in git; nothing else to route
+        return
     if kind == "scout":
         n = 0
         for i in result.get("ideas", [])[:8]:

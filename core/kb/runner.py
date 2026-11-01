@@ -1,12 +1,14 @@
 import json, os, re, shutil, threading, time, traceback
 from pathlib import Path
-from . import adapters, gates, jobs, lifecycle
+from . import adapters, fleet, gates, gitops, jobs, lifecycle
 from .db import ROOT, STATE, connect, event, add_task
 from .router import load_config, pick_model
 
 RATE_LIMIT = re.compile(r"(rate.?limit|usage limit|limit reached|(?:hit|reached) your .{0,30}limit|too many requests|\b429\b|try again (in|at|later)|quota)", re.I)
 STOP = STATE / "STOP"
 PRIORS = Path(os.environ.get("KB_PRIORS", Path.home() / ".config" / "kbrain" / "priors.md"))
+CORPUS = {"corpus": Path.home() / "repos" / "claude-code-memory" / "proj-trading",   # ~650 findings + topics
+          "projects": Path.home() / "repos" / "proj"}                              # trading code + handoffs
 ALIVE = STATE / "runner.alive"
 STATUS = "starting"                       # what the runner is doing; published to ALIVE
 
@@ -20,16 +22,33 @@ def mem_available_mb():
                 return int(line.split()[1]) // 1024
     return 10**9
 
+def role_text(role_name, cfg=None):
+    """Shared brief + the role's contract. Desks share roles/desk.md plus their own focus line."""
+    common = (ROOT / "roles" / "_common.md").read_text() if (ROOT / "roles" / "_common.md").is_file() else ""
+    own = ROOT / "roles" / f"{role_name}.md"
+    rcfg = ((cfg or load_config())["roles"].get(role_name) or {})
+    if own.is_file():
+        body = own.read_text()
+    else:
+        body = (ROOT / "roles" / "desk.md").read_text()
+    if rcfg.get("desk"):
+        body += f"\nYOUR DESK: {role_name}\nFOCUS: {rcfg.get('focus', '')}\n"
+    if rcfg.get("collector_rules") and role_name != "engineer":
+        body += "\n--- collector rules (from the engineer brief) ---\n" + (ROOT / "roles" / "engineer.md").read_text()
+    return common + "\n---\n" + body
+
 def build_prompt(role_name, task, workdir, inline=False):
-    role = (ROOT / "roles" / f"{role_name}.md").read_text()
+    role = role_text(role_name)
     inputs = Path(workdir) / "inputs"
     names = sorted(p.name for p in inputs.iterdir()) if inputs.is_dir() else []
     return (f"{role}\n\n---\nTASK #{task['id']}: {task['title']}\n"
             f"Hypothesis: {task['hypothesis'] or '-'}\n"
             f"Working directory: {workdir}\n"
             f"Input files (in inputs/): {', '.join(names) or 'none'}\n"
-            + ("Read priors.md FIRST: closed branches, estimator traps and venue facts from prior work. "
-               "It is private; never copy its numbers into public pages.\n" if (Path(workdir) / "priors.md").is_file() else "")
+            + ("Read priors.md FIRST: closed branches, estimator traps and venue facts from prior work.\n"
+               if (Path(workdir) / "priors.md").is_file() else "")
+            + ("Your git worktree is repo/ (commit there; the harness merges). board.md shows every desk.\n"
+               if (Path(workdir) / "repo").is_dir() else "")
             + (f"Datasets (read them under data/ in your working directory; never fetch from the network yourself):\n{task['_catalog']}\n" if task.get('_catalog') else "")
             + f"Spec (spec.json):\n{task['spec']}\n\n"
             "When finished, write result.json in the working directory: "
@@ -52,7 +71,13 @@ def inline_files(task, workdir, inline):
 
 def digest(c, cfg):
     """Compact state snapshot for the chief, so it never needs the whole history."""
-    lines = ["# State digest", "", f"Open hypothesis slots: {lifecycle.open_slots(c, cfg)}", ""]
+    lines = ["# State digest", ""]
+    if (fl := fleet.cached_md()):            # live VMs, runners and bets come first: that is the money path
+        lines += [fl, ""]
+    waiting = lifecycle.waiting_on_data(c)
+    lines += [f"Open hypothesis slots: {lifecycle.open_slots(c, cfg)}",
+              f"Hypotheses waiting on data: {waiting} (new hypotheses are refused while this is >= "
+              f"{lim(cfg, 'max_waiting_on_data', 3)}; get these unblocked or closed first)", ""]
     if lifecycle.domains(cfg):
         counts = dict(c.execute("SELECT domain, COUNT(*) FROM hypotheses GROUP BY domain").fetchall())
         lines += ["## Research domains (hypotheses so far)"] + [f"- {d}: {counts.get(d, 0)}" for d in lifecycle.domains(cfg)] + [""]
@@ -153,7 +178,19 @@ def prepare(task, role, workdir, cfg, c):
         shutil.copyfile(ROOT / "kb" / "stats.py", workdir / "kbstats.py")
     if role.get("digest"):
         (workdir / "digest.md").write_text(digest(c, cfg))
-    if role.get("with_priors") and PRIORS.is_file():   # private distilled findings; lives outside the repo
+    if role.get("with_corpus"):                        # the trading corpus, read-only by convention
+        for name, src in CORPUS.items():
+            link = workdir / name
+            if src.is_dir() and not link.exists():
+                link.symlink_to(src, target_is_directory=True)
+    if role.get("worktree"):                           # own git worktree; harness merges at the end
+        wt = gitops.create(task, workdir)
+        (workdir / "board.md").write_text(gitops.board(wt))
+    if role.get("with_fleet"):                         # read-only box access + the fleet map
+        shutil.copyfile(ROOT / "bin" / "kbssh", workdir / "kbssh"); (workdir / "kbssh").chmod(0o755)
+        if fleet.FLEET_MD.is_file():
+            shutil.copyfile(fleet.FLEET_MD, workdir / "fleet.md")
+    if role.get("with_priors") and PRIORS.is_file():   # distilled closed branches and traps
         shutil.copyfile(PRIORS, workdir / "priors.md")
 
 def execute(c, cfg, task):
@@ -187,7 +224,7 @@ def execute(c, cfg, task):
                                  workdir, role.get("timeout_s", 900), log_path, role.get("tools", ["Read", "Write"]))
     result = read_result(workdir)
     log_tail = log_path.read_text(errors="replace")[-4000:] if log_path.exists() else ""
-    if result is None and RATE_LIMIT.search(log_tail) and not timed_out:
+    if result is None and (rc == adapters.RATE_LIMITED_RC or RATE_LIMIT.search(log_tail)):
         outcome = "rate_limited"           # not the task's fault: wait, don't burn an attempt
         cooldown_until = time.time() + lim(cfg, "rate_limit_backoff_s", 1800)
         c.execute("INSERT INTO model_cooldowns(model,until_ts) VALUES(?,?) "
@@ -216,6 +253,9 @@ def execute(c, cfg, task):
                       (attempts, min(model_idx + 1, nmodels - 1), time.time() + 30, time.time(), task["id"]))
             event(c, "runner", "task.retry", task["id"], model=model, reason=outcome, role=task["role"])
     c.execute("UPDATE runs SET ended=?, rc=?, outcome=? WHERE id=?", (time.time(), rc, outcome, run_id))
+    if role.get("worktree"):                           # commits made before a timeout still count
+        status = gitops.integrate(c, task, workdir, task["role"])
+        event(c, "runner", "task.git", task["id"], role=task["role"], git=status)
 
 def gate(cfg, c):
     """None if the runner may launch work now, else a reason (also published as STATUS)."""
@@ -231,10 +271,17 @@ def plan(c, cfg):
     """Heartbeat for the chief, plus standing orders for every idle lane that has nothing queued."""
     heartbeat(c, cfg)
     stalled, _ = lifecycle.stalled(c, cfg)
-    for role in cfg["roles"]:
-        if role == "chief" or stalled:
+    for role, rcfg in cfg["roles"].items():
+        if role == "chief" or rcfg.get("heartbeat_only"):
             continue
         if c.execute("SELECT 1 FROM tasks WHERE role=? AND status IN ('queued','running')", (role,)).fetchone():
+            continue
+        if rcfg.get("desk"):                            # standing desk: next shift as soon as the last one ends
+            last = c.execute("SELECT MAX(updated) FROM tasks WHERE role=?", (role,)).fetchone()[0] or 0
+            if time.time() - last >= lim(cfg, "desk_gap_s", 90):
+                add_task(c, role, f"{role} desk: shift", {"standing": 1, "kind": "shift"}, actor="desk", max_attempts=2)
+            continue
+        if stalled or rcfg.get("standing_orders") is False:
             continue
         w = lifecycle.idle_work(c, cfg, role)
         if w:
@@ -280,6 +327,16 @@ def _publish():
             pass
         time.sleep(10)
 
+def _fleet_loop():
+    """Read-only ssh checks of the VMs on their own thread, so a slow box never stalls the queue."""
+    c = connect()
+    while True:
+        try:
+            fleet.maybe_refresh(c)
+        except Exception:
+            event(c, "fleet", "fleet.error", None, error=traceback.format_exc()[-1500:])
+        time.sleep(60)
+
 def serve(poll_s=5):
     """Parallel lanes: one task per role at a time, up to max_workers, launched only when memory allows.
     Background data jobs are pumped every loop and never occupy a lane."""
@@ -287,6 +344,7 @@ def serve(poll_s=5):
     adapters.load_env()
     STATE.mkdir(parents=True, exist_ok=True)
     threading.Thread(target=_publish, daemon=True).start()
+    threading.Thread(target=_fleet_loop, daemon=True).start()
     c = connect()
     c.execute("UPDATE tasks SET status='queued' WHERE status='running'")   # crash recovery
     event(c, "runner", "runner.started")

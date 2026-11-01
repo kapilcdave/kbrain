@@ -1,7 +1,7 @@
 ---
 title: Publication Boundary
 type: decision
-status: maintained
+status: archived
 started: 2026-09-03
 updated: 2026-09-03
 tags: [privacy, security, publishing]
@@ -9,6 +9,10 @@ source_repositories: []
 ---
 
 # Publication Boundary
+
+> **Superseded 2026-11-01.** kbrain is now the working trading brain: agents commit findings,
+> numbers, fills and P&L directly. The only hard limits left are credentials/keys and raw tape data
+> (enforced by the merge gate in `core/kb/gitops.py`).
 
 Public release is allowlist-first. Material remains private unless it belongs to
 an approved category and passes a separate safety review.

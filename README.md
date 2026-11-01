@@ -1,11 +1,11 @@
 # kbrain
 
-An evidence-backed map of what I have built, tested, learned, and rejected.
+The brain of my trading: what I have built, tested, learned, rejected, and what is running now.
 
-This is a public knowledge base, not a mirror of my development workspace. It
-collects durable project context, research results, methodological lessons, and
-corrections in plain Markdown. Raw data, credentials, account activity, private
-operations, and unreviewed agent memory do not belong here.
+A team of agents (the pixel bros) works here continuously: standing desks for Kalshi recurring
+markets, Hyperliquid, Gemini/Polymarket US, data and review, coordinated by a chief of staff. They
+commit their notebooks, scripts and findings to this repo; the harness tests and merges to main.
+Numbers, fills and P&L live here. Credentials, keys and raw tape data never do.
 
 ## Start Here
 
@@ -47,7 +47,7 @@ operations, and unreviewed agent memory do not belong here.
 3. Executable prices, fees, fill selection, and capacity are part of the model.
 4. Holdouts are consumable. Once viewed, they are no longer independent.
 5. Nulls and retractions stay visible.
-6. A public brain should be deliberately written for publication.
+6. Credentials and raw data never enter git; everything else we learn does.
 
 ## Status Labels
 
@@ -59,11 +59,10 @@ operations, and unreviewed agent memory do not belong here.
 - `closed`: frozen after a predefined failure condition.
 - `archived`: retained for provenance rather than active development.
 
-## Public Boundary
+## Desks
 
-The [publication policy](decisions/publication-boundary.md) is allowlist-first.
-Pages are newly written summaries of material I am comfortable publishing. They
-do not inherit the Git history of source projects.
+Each desk keeps `desks/<desk>/NOTEBOOK.md` (state, findings, queue) and `desks/<desk>/OUTBOX.md`
+(requests to other desks or to me). The office view (`core/bin/kb web`) shows them working.
 
 ## License
 

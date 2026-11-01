@@ -24,8 +24,18 @@ LLMs propose and do the work; code decides what happens next, so the system fini
          pass -> skeptic on another model family -> SURVIVES = VALIDATED (human decides on paper trading)
 
 Anti-spiral: the chief may only spawn researcher/curator tasks; new slugs only; near-duplicate tasks
-refused for 14 days; max 5 open hypotheses (finish before starting); 8 tasks per hypothesis; if 40 runs pass
+refused for 14 days; max 6 open hypotheses and no new ones while 3+ are waiting on data (finish before starting); 8 tasks per hypothesis; if 40 runs pass
 with no hypothesis changing state, the chief pauses and HQ shows a STALL alert until you `kb ack`.
+
+## Fleet (the VMs)
+The harness, never an agent, checks the trading VMs read-only over ssh every 15 min (`kb fleet` runs it now).
+The map of boxes, runners (live/dry/tape, end time, the question each one answers) and bets (decision date,
+kill rule) lives in `~/.config/kbrain/ops.toml` (machine config next to the keys it names). The result is
+staged at the top of the chief's digest; a runner that dies before its `until`, or an unreachable box, raises
+`alert.fleet` in HQ. Update ops.toml whenever you start or stop something on a box.
+Roles with `with_fleet` (the chief) get `./kbssh <box> <cmd>`: a separate agents' key that each box locks to
+`ops/kbro_ro.py` (forced command: allowlisted read-only commands, no shell, no credential paths, tar only of
+subdirectories). Install or refresh it with `core/ops/install_kbro.sh` (operator-run). Agents get no MCP servers.
 
 ## Roles
 `chief` (chief of staff: wakes on a heartbeat when idle, reads a state digest, emits tasks) ·
@@ -46,7 +56,7 @@ they only fit text-only roles without artifacts. Keys go in `~/.config/kbrain/en
 in the repo); the daemon strips them from agent subprocesses.
 
 ## HQ (the LARP view)
-`bin/kb web` -> http://127.0.0.1:7777. Default view is MINIMAL: a dark screen with the agents, their names, and white text saying what each is doing (nothing else on screen; click an agent for a card beside it; press / to send a message; other layouts via ?theme=classic|lamplight|blueprint|pipeline). Other layouts: one pixel room per role; agents walk to their desks when they get a
+`bin/kb web` -> http://127.0.0.1:7777. Default view is the OFFICE: the classic pixel rooms under a gold KBRAIN header, with no panels or controls (click an agent for its card). Other layouts via ?theme=classic|lamplight|blueprint|pipeline|minimal (classic adds the side panel, command bar and STOP/ACK): one pixel room per role; agents walk to their desks when they get a
 task, show the task and model in a speech bubble, nap on rate limits; envelopes fly to the mailroom (queue)
 and out to desks. Side panel: hypothesis board, live feed, queue, model stats. Click an agent or event to
 inspect a task (result, runs, log tail). The command bar sends instructions to the chief, a new idea to a

@@ -1,5 +1,5 @@
 """Backends. Each runs one agent turn in `workdir`, logs to `log_path`, returns (rc, timed_out)."""
-import json, os, re, signal, subprocess, urllib.error, urllib.request
+import json, os, re, shutil, signal, subprocess, urllib.error, urllib.request
 from pathlib import Path
 
 SECRET_ENV = re.compile(r"(KEY|TOKEN|SECRET|PASSWORD|COOKIE|PRIVATE|SEED|MNEMONIC)", re.I)
@@ -8,28 +8,76 @@ def clean_env():
     """Agents never inherit credentials from the daemon's environment."""
     return {k: v for k, v in os.environ.items() if not SECRET_ENV.search(k)}
 
+# Quota/rate-limit text some CLIs print and then silently retry on forever (opencode free tier does).
+LIMIT_TEXT = re.compile(r"(usage limit reached|rate.?limit|too many requests|\b429\b|quota exceeded|resource.?exhausted)", re.I)
+RATE_LIMITED_RC = -29
+
 def _spawn(argv, cwd, log_path, timeout, stdin_text=None):
+    """Run one agent. A watchdog tails the log and kills the agent as soon as it reports a quota/rate
+    limit, so a rate-limited model costs seconds, not the whole timeout (returns RATE_LIMITED_RC)."""
+    import time
     with open(log_path, "ab") as log:
         p = subprocess.Popen(argv, cwd=cwd, env=clean_env(), stdout=log, stderr=subprocess.STDOUT,
                              stdin=subprocess.PIPE if stdin_text else subprocess.DEVNULL,
                              start_new_session=True)
-        try:
-            p.communicate(stdin_text.encode() if stdin_text else None, timeout=timeout)
-            return p.returncode, False
-        except subprocess.TimeoutExpired:
-            os.killpg(p.pid, signal.SIGKILL)
-            p.wait()
-            return -9, True
+        if stdin_text:
+            try:
+                p.stdin.write(stdin_text.encode()); p.stdin.close()
+            except BrokenPipeError:
+                pass
+        deadline, seen = time.time() + timeout, 0
+        while True:
+            try:
+                p.wait(timeout=5)
+                return p.returncode, False
+            except subprocess.TimeoutExpired:
+                pass
+            try:
+                with open(log_path, "rb") as f:
+                    f.seek(seen); chunk = f.read().decode(errors="replace"); seen = f.tell()
+            except OSError:
+                chunk = ""
+            if LIMIT_TEXT.search(chunk):
+                os.killpg(p.pid, signal.SIGKILL); p.wait()
+                with open(log_path, "a") as f:
+                    f.write("\n[harness] killed: model reported a usage/rate limit\n")
+                return RATE_LIMITED_RC, False
+            if time.time() >= deadline:
+                os.killpg(p.pid, signal.SIGKILL); p.wait()
+                return -9, True
 
 def run_claude(model, prompt, workdir, timeout, log_path, tools):
-    argv = ["claude", "-p", "--model", model, "--permission-mode", "acceptEdits",
-            "--allowedTools", *tools, "--output-format", "text"]
+    """`claude-sonnet-5-5@low` -> --model claude-sonnet-5-5 --effort low. --strict-mcp-config: agents get
+    NO MCP servers (no AWS API); box access is only the read-only ./kbssh wrapper."""
+    name, _, effort = model.partition("@")
+    argv = ["claude", "-p", "--model", name, *(["--effort", effort] if effort else []), "--strict-mcp-config",
+            "--permission-mode", "acceptEdits", "--allowedTools", *tools, "--output-format", "text"]
     return _spawn(argv, workdir, log_path, timeout, stdin_text=prompt)
 
+def available(model):
+    """False for backends that are not set up yet, so the router skips them instead of burning attempts."""
+    backend = model.partition(":")[0]
+    if backend in ("claude", "codex", "opencode", "agy"):
+        return shutil.which(backend) is not None
+    return True
+
+KB_GIT_DIR = Path(__file__).resolve().parents[2] / ".git"
+
 def run_codex(model, prompt, workdir, timeout, log_path, tools):
-    argv = ["codex", "exec", "-s", "workspace-write", "-C", str(workdir), "--skip-git-repo-check"]
-    if model:
-        argv += ["-m", model]
+    """`gpt-5.6-sol@low` -> -m gpt-5.6-sol, reasoning effort low. --ignore-user-config: agents never inherit
+    the operator's MCP servers (AWS). Network only for roles that use ./kbssh; the kbrain .git dir is
+    writable so commits in the task's repo/ worktree work inside the sandbox."""
+    name, _, effort = model.partition("@")
+    argv = ["codex", "exec", "-s", "workspace-write", "-C", str(workdir), "--skip-git-repo-check",
+            "--ignore-user-config"]
+    if name:
+        argv += ["-m", name]
+    if effort:
+        argv += ["-c", f'model_reasoning_effort="{effort}"']
+    if any("kbssh" in t for t in tools):
+        argv += ["-c", "sandbox_workspace_write.network_access=true"]
+    if (Path(workdir) / "repo").exists():
+        argv += ["--add-dir", str(KB_GIT_DIR)]
     argv.append("-")                       # prompt from stdin
     return _spawn(argv, workdir, log_path, timeout, stdin_text=prompt)
 
@@ -39,8 +87,13 @@ def run_shell(model, prompt, workdir, timeout, log_path, tools):
     return _spawn(shlex.split(model), workdir, log_path, timeout)
 
 def run_agy(model, prompt, workdir, timeout, log_path, tools):
-    """Antigravity CLI (Google AI Pro login). `agy models` lists them: gemini-3.8-flash-*, claude-*, gpt-oss-*."""
-    allow = ["command(cat *)", "command(ls *)", "command(echo *)", "command(python3 *)"]
+    """Antigravity CLI (Google AI Pro login). `agy models` lists them: gemini-3.8-flash-{low,medium,high},
+    claude-sonnet-4-6, claude-opus-4-6-thinking, gpt-oss-120b-medium. Shell access follows the role's tools:
+    Rules are command prefixes (agy syntax: `command(gh pr list)`), so Bash(python3:*) -> command(python3)."""
+    allow = ["command(cat)", "command(ls)", "command(echo)"]
+    for t in tools:
+        if t.startswith("Bash(") and t.endswith(":*)"):
+            allow.append(f"command({t[5:-3]})")
     settings = json.dumps({"permissions": {"allow": allow}})      # session-only, never saved
     argv = ["agy", "--sandbox", "--mode", "accept-edits", "--settings", settings, "--add-dir", str(workdir)]
     if model:
@@ -50,7 +103,7 @@ def run_agy(model, prompt, workdir, timeout, log_path, tools):
 
 def run_opencode(model, prompt, workdir, timeout, log_path, tools):
     """opencode run -m provider/model: free models (big-pickle etc.) with file tools, in `workdir`."""
-    argv = ["opencode", "run", "--dir", str(workdir)]
+    argv = ["opencode", "run", "--dir", str(workdir), "--auto", "--print-logs", "--log-level", "WARN"]
     if model:
         argv += ["-m", model]
     argv.append(prompt)

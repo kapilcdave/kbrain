@@ -1,5 +1,6 @@
 import time, tomllib
 from .db import ROOT
+from . import adapters
 
 def load_config():
     with open(ROOT / "config" / "routing.toml", "rb") as f:
@@ -28,6 +29,6 @@ def pick_model(c, cfg, task):
         "SELECT model,until_ts FROM model_cooldowns WHERE until_ts>?", (now,))}
     start = min(task["model_idx"], len(models) - 1)
     for idx in range(start, len(models)):
-        if models[idx] not in cooldowns:
+        if models[idx] not in cooldowns and adapters.available(models[idx]):
             return models[idx], len(models), idx, None
-    return None, len(models), None, min((cooldowns[m] for m in models[start:]), default=now + 60)
+    return None, len(models), None, min((cooldowns[m] for m in models[start:] if m in cooldowns), default=now + 300)

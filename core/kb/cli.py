@@ -3,17 +3,16 @@ from datetime import datetime
 from .db import STATE, connect, add_task, event
 from . import runner, lifecycle
 
-# Mark: a pixel K. A two-pixel stem with a separate diagonal arm and leg.
-# Half-block pixels, money green -> blue (in the style of agy's banner).
-MARK = ["##....##", "##...##.", "##..##..", "##.##...", "####....",
-        "####....", "##.##...", "##..##..", "##...##.", "##....##"]
-STOPS = [(10, 92, 54), (20, 128, 72), (16, 122, 120), (28, 92, 190), (47, 111, 235)]
+LOGO = r"""
+ ██╗  ██╗██████╗ ██████╗  █████╗ ██╗███╗   ██╗
+ ██║ ██╔╝██╔══██╗██╔══██╗██╔══██╗██║████╗  ██║
+ █████╔╝ ██████╔╝██████╔╝███████║██║██╔██╗ ██║
+ ██╔═██╗ ██╔══██╗██╔══██╗██╔══██║██║██║╚██╗██║
+ ██║  ██╗██████╔╝██║  ██║██║  ██║██║██║ ╚████║
+ ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝"""
+GRAD = [214, 215, 179, 143, 107, 71]
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 TRUECOLOR = os.environ.get("COLORTERM", "") in ("truecolor", "24bit")
-
-def grad(t):
-    t = max(0.0, min(1.0, t)) * (len(STOPS) - 1); i = min(int(t), len(STOPS) - 2); f = t - i
-    return tuple(round(a + (b - a) * f) for a, b in zip(STOPS[i], STOPS[i + 1]))
 
 def sgr(rgb, bg=False):
     if TRUECOLOR:
@@ -24,30 +23,10 @@ def sgr(rgb, bg=False):
 def c(code, s):
     return f"\033[{code}m{s}\033[0m" if COLOR else s
 
-def mark_lines():
-    h, w, out = len(MARK), len(MARK[0]), []
-    for r in range(0, h, 2):
-        line = ""
-        for x in range(w):
-            top, bot = MARK[r][x] == "#", r + 1 < h and MARK[r + 1][x] == "#"
-            ct, cb = grad(x / w * .7 + r / h * .3), grad(x / w * .7 + (r + 1) / h * .3)
-            if not COLOR:
-                line += "█" if top and bot else "▀" if top else "▄" if bot else " "
-            elif top and bot: line += c(f"{sgr(ct)};{sgr(cb, True)}", "▀")
-            elif top: line += c(sgr(ct), "▀")
-            elif bot: line += c(sgr(cb), "▄")
-            else: line += " "
-        out.append(line)
-    return out
-
 def banner():
-    word = "kbrain"
-    wm = "".join(c(f"1;{sgr(grad(i / (len(word) - 1)))}", ch) for i, ch in enumerate(word))
-    side = ["", wm + c("2", "  research engine"), c("2", "kapil's agents"), "", ""]
-    print()
-    for m, t in zip(mark_lines(), side):
-        print("  " + m + "   " + t)
-    print()
+    for i, line in enumerate(LOGO.strip("\n").splitlines()):
+        print(c(f"38;5;{GRAD[i % len(GRAD)]};1", line))
+    print(c("2", "        r e s e a r c h   e n g i n e   ·   kapil's agents\n"))
 
 GREEN, TEAL, BLUE = sgr((40, 160, 90)), sgr((22, 150, 150)), sgr((70, 130, 240))
 STATUS_COLOR = {"queued": "33", "running": f"1;{BLUE}", "done": GREEN, "failed": "31", "blocked": "35",
@@ -81,6 +60,8 @@ def main(argv=None):
     t = sub.add_parser("tail"); t.add_argument("-n", type=int, default=30); t.add_argument("-f", action="store_true")
     w = sub.add_parser("web", help="LARP HQ at http://127.0.0.1:7777"); w.add_argument("--port", type=int, default=7777)
     sub.add_parser("serve"); sub.add_parser("once")
+    f = sub.add_parser("fleet", help="check the VMs and their runners now (read-only ssh)")
+    f.add_argument("--cached", action="store_true", help="print the last check without ssh")
     sub.add_parser("stop"); sub.add_parser("resume"); sub.add_parser("ack", help="acknowledge a stall alert")
     g = sub.add_parser("gate"); g.add_argument("prereg")
     args = ap.parse_args(argv)
@@ -94,6 +75,13 @@ def main(argv=None):
         from .gates import prereg_missing
         m = prereg_missing(args.prereg); print("OK" if not m else f"missing: {', '.join(m)}"); sys.exit(bool(m))
     if args.cmd == "serve": return runner.serve()
+    if args.cmd == "fleet":
+        from . import fleet
+        if not args.cached:
+            if not fleet.OPS.is_file():
+                print(f"no ops map at {fleet.OPS}"); sys.exit(1)
+            fleet.refresh(connect())
+        print(fleet.cached_md() or "no fleet check yet"); return
     if args.cmd == "web":
         from .web import serve
         banner(); return serve(args.port)

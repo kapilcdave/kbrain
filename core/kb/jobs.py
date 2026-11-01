@@ -10,6 +10,7 @@ from .adapters import clean_env
 from .db import STATE, event
 
 DATA = STATE / "data"
+PY = str(Path.home() / ".local/share/kbrain/venv/bin/python") if (Path.home() / ".local/share/kbrain/venv/bin/python").exists() else "python3"   # collector venv (websockets)
 _procs = {}                                # job id -> Popen (this process only)
 
 def _limits(mem_mb):
@@ -65,7 +66,7 @@ def pump(c, cfg, on_done):
         log = Path(j["cwd"]) / f"job-{j['id']}.log"
         env = clean_env() | {"KB_DATA_DIR": str(out), "PYTHONDONTWRITEBYTECODE": "1"}
         with open(log, "ab") as lf:
-            p = subprocess.Popen(["python3", "-I", j["script"], *json.loads(j["args"])], cwd=j["cwd"], env=env,
+            p = subprocess.Popen([PY, "-I", j["script"], *json.loads(j["args"])], cwd=j["cwd"], env=env,
                                  stdout=lf, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True,
                                  preexec_fn=_limits(cfg.get("limits", {}).get("job_mem_mb", 1024)))
         _procs[j["id"]] = p

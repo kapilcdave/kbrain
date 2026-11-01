@@ -1,11 +1,12 @@
 # Now
 
-_Updated September 16, 2026._
+_Updated November 1, 2026._
 
 ## Current Focus
 
-- Running autonomous trading research through the kbrain `core/` engine, gated by
-  preregistration and a skeptic review.
+- Recurring, short-horizon markets that can go live: Kalshi 15M/hourly crypto, Hyperliquid perps,
+  Gemini and Polymarket US 5M/15M crypto. Not long-dated markets.
+- kbrain runs as one continuous run: standing desks work nonstop, read the corpus, and commit.
 - Consolidating quantitative research into reusable methodology instead of
   continuing to search the same closed strategy families.
 - Publishing the strongest lessons from failed and corrected experiments.

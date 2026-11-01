@@ -1,88 +1,173 @@
-# Role -> ordered fallback chain of "backend:model". Rate-limited models enter a shared cooldown.
-# Free OpenCode models come first; Codex is reserved for code fallbacks and independent review.
-# Claude is opt-in: add it explicitly when you want to spend that quota.
-# Backends: claude (claude -p), codex (codex exec), agy (Antigravity: `agy models`), opencode (opencode run;
-# `opencode models` lists free ones, e.g. opencode:opencode/big-pickle), api (tool-less HTTP,
-# see [providers]), shell (deterministic).  api models can't touch files: use for text-only roles.
+# kbrain routing. Role -> ordered fallback chain of "backend:model[@effort]". A model that reports a usage or
+# rate limit is killed within seconds (watchdog) and cools down for rate_limit_backoff_s; the next model takes over.
+#
+# Models (operator, 2026-11-01):
+#   chief of staff  = codex gpt-5.6-sol at medium effort
+#   everyone else   = codex gpt-5.6-sol at low effort, gpt-5.6-luna or gpt-5.6-terra (chains are staggered so
+#                     desks do not all hit the same model first), then agy (Gemini 3.8 Flash; Claude Sonnet 4.6
+#                     on Google's quota for review), then free opencode models.
+#   No Claude (operator's own quota) in any chain.
+# Backends: codex (codex exec), agy (Antigravity, Google login), opencode (opencode run; free tier has a usage
+# limit), claude (claude -p), api (tool-less HTTP, see [providers]), shell (deterministic).
+# Backends that are not installed are skipped automatically.
+#
+# Two kinds of roles:
+#   DESKS (desk = true) are standing pixel bros that work continuously, one shift after another, in their own
+#     git worktree; the harness merges their commits to main. This is the "one continuous run".
+#   PIPELINE roles (researcher, backtester, engineer, skeptic, curator) are spawned by kb/lifecycle.py to push a
+#     preregistered hypothesis through prereg -> data -> backtest -> review.
 
 [limits]
 min_mem_mb = 900             # ~8GB box: don't launch agents under memory pressure
-max_queued = 50
-max_depth = 3                # chief -> worker -> worker
+max_queued = 60
+max_depth = 3
 rate_limit_backoff_s = 1800
-heartbeat_s = 600            # researchers out of work this long -> wake the chief of staff
-max_runs_per_day = 120       # global circuit breaker on free quotas
-stall_runs = 40              # this many runs with no hypothesis changing state -> chief pauses, alert
-dedup_days = 14              # refuse near-identical tasks within this window
+heartbeat_s = 600
+max_runs_per_day = 600       # circuit breaker; desks run continuously
+stall_runs = 80
+dedup_days = 14
 max_tasks_per_hypothesis = 8
-max_open_hypotheses = 10     # finish work before starting more
-max_workers = 3              # agents at once; each CLI agent needs ~300-500MB, launches wait for free memory
-launch_spacing_s = 8         # let a new agent's memory show up before judging whether another fits
-max_jobs = 2                 # background collectors at once (cheap: plain python)
+max_open_hypotheses = 6
+max_waiting_on_data = 3      # refuse new hypotheses while this many sit in 'data' (anti strategy-hopping)
+max_workers = 5              # agents at once; launches still wait for free memory
+launch_spacing_s = 8
+desk_gap_s = 90              # pause between one desk's shifts
+max_jobs = 3
 max_job_s = 14400
 job_mem_mb = 1024
-idle_cooldown_s = 900        # min gap between standing orders per role
-scout_cooldown_s = 21600     # re-scout a domain at most every 6h
+idle_cooldown_s = 900
+scout_cooldown_s = 21600
 refresh_after_s = 86400
 
-[domains]                    # the research portfolio; chief spreads work, researchers scout, engineer bootstraps data
+[domains]                    # focus: recurring, short-horizon markets that can go live
 list = [
-  "prediction markets: Kalshi and Polymarket (economics, weather, elections, sports)",
-  "crypto perps: funding, basis, liquidations (Hyperliquid, Binance public data)",
-  "crypto spot and DEX microstructure",
-  "options: crypto (Deribit public data) and equity options",
-  "sports betting and in-play markets",
-  "macro and scheduled-event trading (CPI, FOMC, earnings)",
+  "Kalshi recurring short-horizon markets (15M / hourly crypto and other recurring series)",
+  "Hyperliquid perps: maker/taker microstructure, funding, liquidations",
+  "Gemini and Polymarket US recurring 5M/15M crypto markets, cross-venue with Kalshi",
+  "crypto spot venues as lead/fair-value feeds (Coinbase, Binance, Hyperliquid)",
 ]
 
-[gates]                      # deterministic grading of backtest metrics (kb/lifecycle.py)
-min_units = 30               # independent units (days/events), not trades
+[gates]
+min_units = 30
 max_prereg_attempts = 2
-max_data_attempts = 2        # engineer tries per hypothesis before parking
+max_data_attempts = 2
 
-# Free OpenAI-compatible providers. Put keys in ~/.config/kbrain/env (chmod 600), e.g. OPENROUTER_API_KEY=...
 [providers.openrouter]
 base_url = "https://openrouter.ai/api/v1"
 key_env = "OPENROUTER_API_KEY"
 
-[roles.chief]                # chief of staff: reads the digest, emits tasks, never executes work
-with_priors = true          # stage ~/.config/kbrain/priors.md (private) into the workspace
-models = ["opencode:opencode/big-pickle", "opencode:opencode/glm-5.3-flash-free", "opencode:opencode/deepseek-v4.1-flash-free"]
+# ---------------------------------------------------------------- desks (standing, continuous)
+[roles.chief]                # chief of staff: coordinates desks, reads fleet + board, keeps bets honest
+models = ["codex:gpt-5.6-sol@medium", "agy:gemini-3.8-flash-high", "opencode:opencode/big-pickle"]
 timeout_s = 900
-tools = ["Read", "Write"]
-can_spawn = true
-spawnable = ["researcher", "curator"]   # backtests/audits are spawned by lifecycle code only
+tools = ["Read", "Write", "Bash(./kbssh:*)", "Bash(git:*)"]
+with_priors = true
+with_fleet = true
+with_corpus = true
+worktree = true
 digest = true
+can_spawn = true
+spawnable = ["researcher", "curator"]
+heartbeat_only = true        # the chief wakes on a heartbeat, not every 90 s
 
+[roles.kalshi]
+desk = true
+focus = "Kalshi recurring short-horizon markets: 15M/hourly crypto (penny-jump, narrow-book maker, altspot spot-gap taker, altlive with a lead-venue fair). Box: rustmaker (us-east-2), code ~/proj/rustmaker."
+models = ["codex:gpt-5.6-sol@low", "codex:gpt-5.6-terra", "codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(./kbssh:*)", "Bash(git:*)"]
+with_priors = true
+with_fleet = true
+with_corpus = true
+with_data = true
+worktree = true
+
+[roles.hyperliquid]
+desk = true
+focus = "Hyperliquid perps: maker cells (main, HIP-3 growth, wide sweep), taker ideas, fees per market, the Tokyo tapes and mmscore. Box: hypephil (Tokyo), code ~/proj/hypephil."
+models = ["codex:gpt-5.6-terra", "codex:gpt-5.6-luna", "codex:gpt-5.6-sol@low", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(./kbssh:*)", "Bash(git:*)"]
+with_priors = true
+with_fleet = true
+with_corpus = true
+with_data = true
+worktree = true
+
+[roles.predx]
+desk = true
+focus = "Gemini and Polymarket US recurring 5M/15M crypto markets and their cross-venue relation to Kalshi (KAP paired books, Gemini basis taker, Gemini maker/quoter). Boxes: geminibot (us-east-1) and the PM recorder on rustmaker; code ~/proj/geminibot, ~/proj/kap."
+models = ["codex:gpt-5.6-luna", "codex:gpt-5.6-terra", "codex:gpt-5.6-sol@low", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(./kbssh:*)", "Bash(git:*)"]
+with_priors = true
+with_fleet = true
+with_corpus = true
+with_data = true
+worktree = true
+
+[roles.data]
+desk = true
+focus = "Data desk: serve the other desks' data requests on the board. WebSocket-first collectors (see core/roles/engineer.md rules), keep tapes healthy, catalogue what exists on the boxes and in state/data, and propose box collectors to the operator."
+models = ["codex:gpt-5.6-sol@low", "codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(./kbssh:*)", "Bash(git:*)"]
+with_priors = true
+with_fleet = true
+with_corpus = true
+with_data = true
+worktree = true
+collector_rules = true
+
+[roles.review]
+desk = true
+focus = "Review desk: audit the other desks' newest claims (read their latest commits and NOTEBOOKs) against topics-estimator-and-inference-traps and METHODOLOGY.md. Re-run their scripts where cheap. Write verdicts to their OUTBOX requests and your notebook."
+models = ["agy:claude-sonnet-4-6", "codex:gpt-5.6-terra", "agy:gemini-3.8-flash-high", "opencode:opencode/big-pickle"]
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(./kbssh:*)", "Bash(git:*)"]
+with_priors = true
+with_fleet = true
+with_corpus = true
+with_data = true
+worktree = true
+
+# ---------------------------------------------------------------- pipeline roles (spawned by lifecycle)
 [roles.researcher]
-with_priors = true          # stage ~/.config/kbrain/priors.md (private) into the workspace
-models = ["opencode:opencode/big-pickle", "opencode:opencode/glm-5.3-flash-free", "opencode:opencode/deepseek-v4.1-flash-free"]
+standing_orders = false      # desks do the scouting now
+with_priors = true
+with_corpus = true
+models = ["codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle", "opencode:opencode/glm-5.3-flash-free"]
 timeout_s = 1200
 tools = ["Read", "Write", "Edit", "WebFetch", "WebSearch"]
 
-[roles.curator]              # T1 bulk work: summarize, label, compact memory
-models = ["opencode:opencode/glm-5.3-flash-free", "opencode:opencode/big-pickle", "opencode:opencode/deepseek-v4.1-flash-free"]
+[roles.curator]
+with_corpus = true
+models = ["opencode:opencode/glm-5.3-flash-free", "opencode:opencode/big-pickle", "codex:gpt-5.6-luna"]
 timeout_s = 600
 tools = ["Read", "Write", "Edit"]
 
-[roles.backtester]           # writes + runs code; blocked without a complete prereg
-with_priors = true          # stage ~/.config/kbrain/priors.md (private) into the workspace
-models = ["opencode:opencode/big-pickle", "opencode:opencode/deepseek-v4.1-flash-free", "codex:"]
+[roles.backtester]
+with_priors = true
+with_corpus = true
+models = ["codex:gpt-5.6-terra", "codex:gpt-5.6-sol@low", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
 timeout_s = 1800
 tools = ["Read", "Write", "Edit", "Bash(python3:*)"]
 requires_prereg = true
 with_stats = true
 with_data = true
 
-[roles.engineer]             # data engineer: writes collectors; the harness runs them in the background
-models = ["opencode:opencode/big-pickle", "opencode:opencode/deepseek-v4.1-flash-free", "codex:"]
+[roles.engineer]
+standing_orders = false      # the data desk owns bootstrap/refresh now; engineer serves blocked backtests
+collector_rules = true
+models = ["codex:gpt-5.6-sol@low", "codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
 timeout_s = 1500
 tools = ["Read", "Write", "Edit", "WebFetch", "WebSearch", "Bash(python3:*)"]
 with_data = true
 
 [roles.skeptic]              # prefers a different backend family than the backtester's
-with_priors = true          # stage ~/.config/kbrain/priors.md (private) into the workspace
-models = ["codex:", "opencode:opencode/big-pickle", "opencode:opencode/deepseek-v4.1-flash-free"]
+with_priors = true
+with_corpus = true
+models = ["agy:claude-sonnet-4-6", "agy:gemini-3.8-flash-high", "codex:gpt-5.6-terra"]
 timeout_s = 1200
 tools = ["Read", "Write", "Bash(python3:*)"]
 independent_of = "backtester"
