@@ -15,8 +15,7 @@ button,input,select{font:inherit;color:inherit}
 header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 18px;border-bottom:3px solid var(--line);background:var(--panel)}
 :root[data-theme=lamplight]{--bg:#07080c;--panel:#0d0f15;--panel2:#131620;--line:#1f2230;--gold:#e8c468}
 :root[data-theme=minimal]{--bg:#060709;--panel:#0b0c10;--panel2:#111319;--line:#1a1c24}
-:root[data-theme=minimal] header{position:fixed;top:0;left:0;right:0;z-index:5;opacity:0;transition:opacity .2s;border-bottom-width:1px}
-:root[data-theme=minimal] header:hover{opacity:1}
+:root[data-theme=minimal] body>header,:root[data-theme=minimal] .alert{display:none!important}
 :root[data-theme=minimal] main{display:block;padding:0}
 :root[data-theme=minimal] aside,:root[data-theme=minimal] .cmd{display:none}
 :root[data-theme=minimal] .world{border:0;background:var(--bg)}
@@ -465,6 +464,7 @@ function drawMinimal() {
     else if (STATE.stop) lines = ["stopped"];
     else if (!online) { lines = ["offline"]; faint = true; if (a.role === "chief") { lines = ["zzz… the runner is off"]; sub = "start it: kb serve"; } }
     else if (a.task) { lines = wrap(`#${a.task.id} ${a.task.title}`, 26); sub = (a.task.model || "").split(":").pop() || "starting…"; }
+    else if (a.role === "chief" && STATE.stalled) { lines = ["I'm stalled: nothing is progressing"]; sub = "review the work, then: kb ack"; }
     else if (a.mood === "sleep") lines = ["napping · rate limited"], faint = true;
     else lines = ["idle"], faint = true;
     speech(a, lines, sub, faint);
