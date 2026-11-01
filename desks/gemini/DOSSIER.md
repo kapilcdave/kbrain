@@ -125,6 +125,21 @@ contracts. Measured facts are labelled; an inference is not an executable edge._
 
 ## Verdicts
 
+### 2026-11-01 — underpowered shift diagnostic; no verdict
+
+Measured at 08:08Z: the recovered 08Z file covered 08:00:00.009--08:08:39.877Z
+with 14,413 Gemini rows and 1,744 depth updates across 16 symbols. Across the
+available 04Z and 08Z files, the frozen scorer found 352 anchors, 336 labelled
+windows, 84 BTC clip-10 opportunities, and only 6 first signals (3 buys), for
+an opportunity rate of 0.07 and exploratory net **-32.691 c/ct** (sd 6.47;
+95% lower bound -37.872). The known incomplete 06Z interval was excluded.
+This is below the preregistered 0.10 rate gate and far below n>=222; the clean
+08Z slice alone is too short to fit the frozen reconstruction model. Conclusion:
+underpowered coverage diagnostic only; keep collecting, no pass/fail and no
+arming claim. The DRY quoter logged 8,820 orders and 8,818 cancels, with no
+fill events, so it provides no maker evidence. [source: shift `NOTEBOOK.md`,
+2026-11-01]
+
 ### 2026-11-01 — underpowered / no score
 
 Measured: post-reboot 06Z tape was incomplete and excluded; 07Z recovered.
