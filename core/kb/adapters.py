@@ -16,7 +16,7 @@ def clean_env():
 # Quota/rate-limit text some CLIs print and then silently retry on forever (opencode free tier does).
 # Only the CLIs' OWN quota errors. Never generic words like "rate limit" or "429": agents read trading notes
 # full of those, and a broad pattern killed healthy runs (2026-11-01).
-LIMIT_TEXT = re.compile(r"(Free usage limit reached|(?:You've|You have) hit your [\w -]{0,24}limit|usage limit reached for|"
+LIMIT_TEXT = re.compile(r"(Free usage limit reached|(?:You['’]ve|You have) hit your [\w -]{0,24}limit|usage limit reached for|"
                         r"Rate limit reached for|AI_RetryError|RESOURCE_EXHAUSTED|exceeded your current quota|"
                         r"Claude AI usage limit reached|429 Too Many Requests)")
 RATE_LIMITED_RC = -29

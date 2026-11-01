@@ -255,9 +255,14 @@ def execute(c, cfg, task):
     if result is None and (rc == adapters.RATE_LIMITED_RC or RATE_LIMIT.search(log_tail)):
         outcome = "rate_limited"           # not the task's fault: wait, don't burn an attempt
         cooldown_until = time.time() + lim(cfg, "rate_limit_backoff_s", 1800)
-        c.execute("INSERT INTO model_cooldowns(model,until_ts) VALUES(?,?) "
-                  "ON CONFLICT(model) DO UPDATE SET until_ts=max(until_ts,excluded.until_ts)",
-                  (model, cooldown_until))
+        # account-level quotas (codex, claude, opencode free tier) cover every model of that backend
+        family = model.partition(":")[0]
+        hit = [model] + ([m for r in cfg["roles"].values() for m in r.get("models", [])
+                          if m.partition(":")[0] == family and m != model] if family in ("codex", "claude", "opencode") else [])
+        for m in dict.fromkeys(hit):
+            c.execute("INSERT INTO model_cooldowns(model,until_ts) VALUES(?,?) "
+                      "ON CONFLICT(model) DO UPDATE SET until_ts=max(until_ts,excluded.until_ts)",
+                      (m, cooldown_until))
         c.execute("UPDATE tasks SET status='queued', not_before=?, model_idx=?, updated=? WHERE id=?",
                   (time.time() + 30, model_idx + 1 if model_idx + 1 < nmodels else 0,
                    time.time(), task["id"]))
