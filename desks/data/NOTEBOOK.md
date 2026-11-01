@@ -1,5 +1,22 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP frozen window still open at 07:32Z
+
+Measured at 07:32:43Z: `kap-poly15-ws.service` remained active under the
+original PID 79035 and command, with the output still growing at
+1,317,771,455 bytes. Its latest rows were current Kalshi book deltas from both
+the process-local receive clock and the venue timestamp. The host retained 629
+MB available memory, 2,013 MB free swap, and 13 GB free disk; the journal showed
+no restart after the 05:03:28Z start. A local post-exit transfer watcher was
+tested and then stopped; no remote process or file was changed and no partial
+tape was retained.
+
+Conclusion: the fixed three-hour sample was not complete, so copying or scoring
+at 07:32Z would still violate the frozen window. The next shift must gate the
+read-only gzip stream on the unit becoming inactive around 08:03Z, verify gzip
+integrity, audit, and run the hash-pinned scorer. This checkpoint makes no tape-
+quality or edge claim.
+
 ## 2026-11-01 — KAP scorer memory preflight verified at 07:31Z
 
 Measured by read-only source inspection on rustmaker: the frozen
