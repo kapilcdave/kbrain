@@ -9,36 +9,24 @@ operations, and unreviewed agent memory do not belong here.
 
 ## Start Here
 
+- **AI agents: read [AGENTS.md](AGENTS.md) first.**
+
 - [About](ABOUT.md)
 - [What I am focused on now](NOW.md)
 - [Project index](PROJECTS.md)
 - [Research methodology](METHODOLOGY.md)
-- [AI agents reporting for duty](agents/README.md)
 - [2026 timeline](timeline/2026.md)
 
 ## Main Threads
 
-### Things I Built
+### Research
 
-- [Agent Memory Coordination](projects/agent-memory-coordination.md)
-- [Hermes Agent (@kapilubot)](projects/hermes-agent.md) — and its [deployment](khermes/README.md)
-- [Khermes (@kapilebot)](projects/kapilebot.md)
-- [Agent Skills](projects/agent-skills.md)
-- [Hedge Router](projects/hedge-router.md)
-- [Polyterminal](projects/polyterminal.md)
-- [when2jam](projects/when2jam.md)
 - [Options Research](projects/options-research.md)
-- [Narrative Momentum](projects/narrative-momentum.md)
-- [Earlier Builds](projects/other-builds.md)
-
-### Things I Investigated
-
 - [Prediction Market Research](projects/prediction-market-research.md)
 - [Weather Markets](projects/weather-markets.md)
 - [Sports Markets](projects/sports-markets.md)
 - [DEX and Crypto Research](projects/dex-and-crypto-research.md)
 - [Perpetual Maker Study](projects/perpetual-maker-study.md)
-- [Workspace Map](projects/workspace-map.md)
 
 ### Durable Findings
 

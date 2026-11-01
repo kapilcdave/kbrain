@@ -1,4 +1,4 @@
-import json, re, shutil, threading, time, traceback
+import json, os, re, shutil, threading, time, traceback
 from pathlib import Path
 from . import adapters, gates, jobs, lifecycle
 from .db import ROOT, STATE, connect, event, add_task
@@ -6,6 +6,7 @@ from .router import load_config, pick_model
 
 RATE_LIMIT = re.compile(r"(rate.?limit|usage limit|limit reached|(?:hit|reached) your .{0,30}limit|too many requests|\b429\b|try again (in|at|later)|quota)", re.I)
 STOP = STATE / "STOP"
+PRIORS = Path(os.environ.get("KB_PRIORS", Path.home() / ".config" / "kbrain" / "priors.md"))
 ALIVE = STATE / "runner.alive"
 STATUS = "starting"                       # what the runner is doing; published to ALIVE
 
@@ -27,6 +28,8 @@ def build_prompt(role_name, task, workdir, inline=False):
             f"Hypothesis: {task['hypothesis'] or '-'}\n"
             f"Working directory: {workdir}\n"
             f"Input files (in inputs/): {', '.join(names) or 'none'}\n"
+            + ("Read priors.md FIRST: closed branches, estimator traps and venue facts from prior work. "
+               "It is private; never copy its numbers into public pages.\n" if (Path(workdir) / "priors.md").is_file() else "")
             + (f"Datasets (read them under data/ in your working directory; never fetch from the network yourself):\n{task['_catalog']}\n" if task.get('_catalog') else "")
             + f"Spec (spec.json):\n{task['spec']}\n\n"
             "When finished, write result.json in the working directory: "
@@ -40,7 +43,7 @@ def inline_files(task, workdir, inline):
     if not inline:
         return ""
     wd, out = Path(workdir), ""
-    files = [wd / n for n in json.loads(task["spec"]).get("inline", [])] + [wd / "digest.md"]
+    files = [wd / n for n in json.loads(task["spec"]).get("inline", [])] + [wd / "digest.md", wd / "priors.md"]
     files += sorted((wd / "inputs").glob("*")) if (wd / "inputs").is_dir() else []
     for f in files:
         if f.is_file():
@@ -150,6 +153,8 @@ def prepare(task, role, workdir, cfg, c):
         shutil.copyfile(ROOT / "kb" / "stats.py", workdir / "kbstats.py")
     if role.get("digest"):
         (workdir / "digest.md").write_text(digest(c, cfg))
+    if role.get("with_priors") and PRIORS.is_file():   # private distilled findings; lives outside the repo
+        shutil.copyfile(PRIORS, workdir / "priors.md")
 
 def execute(c, cfg, task):
     role = cfg["roles"][task["role"]]

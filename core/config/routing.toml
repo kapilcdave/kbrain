@@ -46,6 +46,7 @@ base_url = "https://openrouter.ai/api/v1"
 key_env = "OPENROUTER_API_KEY"
 
 [roles.chief]                # chief of staff: reads the digest, emits tasks, never executes work
+with_priors = true          # stage ~/.config/kbrain/priors.md (private) into the workspace
 models = ["opencode:opencode/big-pickle", "opencode:opencode/glm-5.3-flash-free", "opencode:opencode/deepseek-v4.1-flash-free"]
 timeout_s = 900
 tools = ["Read", "Write"]
@@ -54,6 +55,7 @@ spawnable = ["researcher", "curator"]   # backtests/audits are spawned by lifecy
 digest = true
 
 [roles.researcher]
+with_priors = true          # stage ~/.config/kbrain/priors.md (private) into the workspace
 models = ["opencode:opencode/big-pickle", "opencode:opencode/glm-5.3-flash-free", "opencode:opencode/deepseek-v4.1-flash-free"]
 timeout_s = 1200
 tools = ["Read", "Write", "Edit", "WebFetch", "WebSearch"]
@@ -64,6 +66,7 @@ timeout_s = 600
 tools = ["Read", "Write", "Edit"]
 
 [roles.backtester]           # writes + runs code; blocked without a complete prereg
+with_priors = true          # stage ~/.config/kbrain/priors.md (private) into the workspace
 models = ["opencode:opencode/big-pickle", "opencode:opencode/deepseek-v4.1-flash-free", "codex:"]
 timeout_s = 1800
 tools = ["Read", "Write", "Edit", "Bash(python3:*)"]
@@ -78,6 +81,7 @@ tools = ["Read", "Write", "Edit", "WebFetch", "WebSearch", "Bash(python3:*)"]
 with_data = true
 
 [roles.skeptic]              # prefers a different backend family than the backtester's
+with_priors = true          # stage ~/.config/kbrain/priors.md (private) into the workspace
 models = ["codex:", "opencode:opencode/big-pickle", "opencode:opencode/deepseek-v4.1-flash-free"]
 timeout_s = 1200
 tools = ["Read", "Write", "Bash(python3:*)"]

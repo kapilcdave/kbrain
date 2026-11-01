@@ -34,6 +34,18 @@ class Core(unittest.TestCase):
         self.assertEqual(self.c.execute("SELECT COUNT(*) FROM tasks WHERE role='curator'").fetchone()[0], 1)
         self.assertEqual(self.c.execute("SELECT COUNT(*) FROM events WHERE kind='task.spawn_refused'").fetchone()[0], 1)
 
+    def test_priors_staged_only_for_opted_in_roles(self):
+        priors = Path(self.tmp) / "priors.md"
+        priors.write_text("closed: x")
+        self.runner.PRIORS = priors
+        self.cfg["roles"]["chief"]["with_priors"] = True
+        a = self.db.add_task(self.c, "chief", "plan", depth=0)
+        b = self.db.add_task(self.c, "curator", "tidy")
+        self.runner.tick(self.c, self.cfg); self.runner.tick(self.c, self.cfg)
+        ws = Path(self.tmp) / "workspaces"
+        self.assertEqual((ws / f"task-{a}" / "priors.md").read_text(), "closed: x")
+        self.assertFalse((ws / f"task-{b}" / "priors.md").exists())
+
     def test_prereg_gate_blocks_backtest(self):
         self.db.add_task(self.c, "backtester", "bt", {"prereg": "knowledge/index.md"})
         self.runner.tick(self.c, self.cfg)

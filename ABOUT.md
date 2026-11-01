@@ -11,9 +11,6 @@ out what remains true after realistic constraints are added.
 
 That approach has produced:
 
-- agent-memory and coordination infrastructure;
-- terminal and web products;
-- privacy-conscious telemetry tooling;
 - research systems spanning weather, sports, crypto, and options;
 - a large catalogue of negative results and corrected conclusions;
 - production patterns built around explicit arming, reconciliation, and caps.

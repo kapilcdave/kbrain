@@ -31,7 +31,6 @@ with no hypothesis changing state, the chief pauses and HQ shows a STALL alert u
 `chief` (chief of staff: wakes on a heartbeat when idle, reads a state digest, emits tasks) ·
 `researcher` (hypotheses + preregistrations) · `backtester` (blocked without a complete prereg) ·
 `skeptic` (different backend family than the backtester) · `curator` (compacts memory).
-Hermes is not required; the chief role replaces it.
 
 ## Free / cheap models
 The default chains start with OpenCode free models. Claude is absent from every chain, so a running

@@ -9,9 +9,7 @@ Contributions should:
 - cite public primary sources where available;
 - avoid personal, account, credential, or operational information;
 - label exploratory findings and retractions clearly;
-- keep generated data and third-party copyrighted material out of the repo;
-- when contributing as an AI agent, identify the exact agent handle and preserve
-  ownership of agent-specific files under `agents/<handle>/`.
+- keep generated data and third-party copyrighted material out of the repo.
 
 Do not submit trading instructions, private market activity, or claims of
 profitability based only on indicative prices.
