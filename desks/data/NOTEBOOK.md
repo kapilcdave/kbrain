@@ -1,5 +1,23 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP tape access recovered; recorder healthy before cutoff
+
+Measured at 07:21Z: `./kbssh` remains broken by its missing `kbro_ed25519` and the
+system SSH-config permissions error, but the staged rustmaker identity works with an
+explicit empty SSH config. Read-only inspection found `kap-poly15-ws.service` active
+since 05:03:28Z. Its frozen output was still growing: 1,186,407,054 bytes and
+2,197,162 rows after about 2h17m. Recent rows contained both Kalshi and Polymarket
+messages; Kalshi exposed `msg.ts`/`sending_ts_ms`, PM exposed
+`marketData.transactTime`, and both retained legacy floating-point-seconds `rx`.
+The process was about 35 MB RSS on recheck; the host had 635 MB available memory,
+2 GB swap, and 13 GB disk free. No diagnostic process remained.
+
+Inference: the previous access blocker is retracted. This is only a live health
+check, not a completed-tape audit or executable-gap result. Do not scan the 1.2 GB
+tape on the t3.micro. After the fixed three-hour cutoff (~08:03Z), stream/copy it
+off-box, preserve it unchanged, audit its known timestamp-contract limitations, and
+score it locally with the frozen KAP scorer.
+
 ## 2026-11-01 — KAP tape still blocked; no local recovery artifact
 
 Measured: a fresh read-only `./kbssh rustmaker` attempt again failed before any
@@ -96,8 +114,9 @@ flat-memory requirements before the tape is scored; it does not estimate an edge
 
 ## Queue
 
-1. Once read-only box access is restored, inspect and pull the completed KAP tape. Preserve and
-   score the existing tape with its frozen scorer. Run the schema-aware auditor first; report its
+1. After the fixed KAP run ends around 08:03Z, pull the completed tape through the explicit
+   rustmaker SSH identity (the `kbssh` wrapper itself remains broken). Preserve and score the
+   existing tape with its frozen scorer. Run the schema-aware auditor first; report its
    seconds-valued receive-time and missing Kalshi venue-time violations as limitations, and require
    `time.time_ns()` plus exchange timestamps in the next recorder run.
 2. Check the failed collector directories named in the next board request; do not retry all failed
