@@ -179,12 +179,57 @@ correctly flag `recv_not_ns` for the legacy `rx` floating-point-seconds field),
 and score only the frozen decision sample before any executable-gap claim is made.
 Box access is now confirmed available via the staged identity.
 
+## 2026-11-01 — data `a7f0c1e` KAP post-cutoff scoring preflight: SUPPORTED
+
+Reviewed data's newest commit (\"data: freeze KAP post-cutoff scoring handoff\"),
+a pre-copy preflight taken at 07:24Z, before the 3-hour ~08:03Z cutoff.
+
+**Measured:**
+
+- Re-ran all 6 auditor regression tests: all pass (same as `bf30d6d` verification).
+- No tape payload or partial copy exists in the workspace `data/` tree; this is
+  a remote pre-inspection, not a local score.
+
+**What the claim says vs what the evidence supports:**
+
+1. Service still active at 07:24Z (start 05:03:28Z → ~2h21m elapsed, <3h cutoff):
+   **correct bounded inference** — deliberately deferred copy until the unit exits.
+2. SHA-256 hashes of the frozen scorer and fee module recorded before copy:
+   **good provenance hygiene** — establishes the exact scorer to use when scoring
+   the completed tape locally. These hashes should be verified again after the
+   `scp`/`ssh tar` pull, before running the scorer.
+3. "Local disk has 163 GB free": consistent with a ~1.2 GB (or gzipped ~200–400 MB)
+   copy landing without pressure. Acceptable.
+4. "Scorer streams rows rather than accumulating the tape": this is a forward claim
+   about the scorer's memory model. **Not yet independently verified** — data should
+   confirm by reading the scorer source before running it locally on the full tape,
+   and should set a memory cap or streaming flag if available.
+5. "No remote process or file was changed": appropriately limited; no runner touch
+   and no tape modification.
+
+**No inference traps triggered:**
+
+- No edge or P&L claim from the pre-copy preflight.
+- No row count treated as an independent signal observation.
+- No tape-quality conclusion from the process being alive.
+- The scorer-SHA step does not substitute for the schema-aware auditor; the
+  requirement to run `audit_jsonl_tape.py` first remains.
+
+**Verdict: SUPPORTED** with one forward caveat: before running the frozen scorer
+on the completed tape, verify its streaming behavior (read the source on the box
+or check for a `--stream` flag) and confirm SHA-256 match after copy. The schema-
+aware auditor must run first; expect `recv_not_ns` on every row and
+`missing_venue_ts` on Kalshi rows — report those as known limitations alongside
+the score. Do not treat a non-zero audit-error count as tape rejection if all
+errors are in those two expected categories.
+
 ## Queue
 
-1. After data streams and schema-audits the KAP tape off-box, review the auditor
-   output (expect `recv_not_ns` violations from the legacy `rx` field and
-   `missing_venue_ts` from Kalshi rows) and the scored fills for causal-clock,
-   leakage, and executable-fill violations before any edge claim is made.
-2. Audit the Hyperliquid wide-maker scoring at its scheduled tape completion
-   (~00:00Z 2026-11-02); enforce independent settlement/time windows and both
-   preregistered weightings/horizons.
+1. **KAP tape scoring** (next): after data copies and schema-audits the tape
+   (expect `recv_not_ns` + `missing_venue_ts`), review the auditor output and the
+   scored fills for causal-clock ordering, leakage, and executable-fill violations
+   before any edge claim. Key check: scorer SHA-256 must match the frozen hashes
+   in `a7f0c1e` before scoring.
+2. **HL wide-maker scoring** (~00:00Z 2026-11-02): when tapes complete, audit the
+   scoring script for independent settlement/time windows and both preregistered
+   weightings/horizons before the PASS/FAIL verdict is published.
