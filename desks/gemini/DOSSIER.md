@@ -125,6 +125,23 @@ contracts. Measured facts are labelled; an inference is not an executable edge._
 
 ## Verdicts
 
+### 2026-11-01 — 08:13Z collection-health shift; still underpowered
+
+Measured on `geminibot` at 08:13Z: 530 MB available RAM and 28 GB free disk;
+`gb-depthtape`, `gb-record`, `gb-strikepoll`, `gb-leadfeed`, and the DRY-only
+`gb-quoter` were all active. The depth tape reported 24,486 rows in the open
+08Z hour; `gb-strikepoll` had 80 total strike records (4 new since 08:11Z).
+`gb-record` had reached 172,091 book, 22 ack, 2,596,135 depth, 30,063 index,
+1,071 status, and 640 trade records at its latest 08:10Z rollover. Lead-feed
+totals at 08:13Z were Coinbase 39,761, Kraken 79,108, Bitstamp 144,349, and
+Hyperliquid 90,422. Since 08:00Z the DRY quoter emitted 815 orders and 815
+cancels; no fill event was observed. These are operational counts, not maker
+fills or P&L. The current open hour is not scored, the known incomplete 06Z
+slice remains excluded, and the frozen BTC clip-10 test still requires 222
+independent windows. Conclusion: collection is healthy but underpowered; keep
+collecting complete post-recovery windows and do not arm. [source: shift
+2026-11-01 remote service journals]
+
 ### 2026-11-01 — underpowered collection-health shift; no verdict
 
 Measured at 08:11Z: the clean 08Z depth file covered 08:00:00.009--08:11:06.987Z
