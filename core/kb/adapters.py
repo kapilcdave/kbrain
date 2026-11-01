@@ -9,7 +9,11 @@ def clean_env():
     return {k: v for k, v in os.environ.items() if not SECRET_ENV.search(k)}
 
 # Quota/rate-limit text some CLIs print and then silently retry on forever (opencode free tier does).
-LIMIT_TEXT = re.compile(r"(usage limit reached|rate.?limit|too many requests|\b429\b|quota exceeded|resource.?exhausted)", re.I)
+# Only the CLIs' OWN quota errors. Never generic words like "rate limit" or "429": agents read trading notes
+# full of those, and a broad pattern killed healthy runs (2026-11-01).
+LIMIT_TEXT = re.compile(r"(Free usage limit reached|(?:You've|You have) hit your [\w -]{0,24}limit|usage limit reached for|"
+                        r"Rate limit reached for|AI_RetryError|RESOURCE_EXHAUSTED|exceeded your current quota|"
+                        r"Claude AI usage limit reached|429 Too Many Requests)")
 RATE_LIMITED_RC = -29
 
 def _spawn(argv, cwd, log_path, timeout, stdin_text=None):
@@ -91,6 +95,9 @@ def run_agy(model, prompt, workdir, timeout, log_path, tools):
     claude-sonnet-4-6, claude-opus-4-6-thinking, gpt-oss-120b-medium. Shell access follows the role's tools:
     Rules are command prefixes (agy syntax: `command(gh pr list)`), so Bash(python3:*) -> command(python3)."""
     allow = ["command(cat)", "command(ls)", "command(echo)"]
+    if any(t.startswith("Bash(") for t in tools):          # roles with a shell get the ordinary dev toolbox
+        allow += [f"command({c})" for c in ("git", "grep", "rg", "find", "head", "tail", "wc", "sort", "uniq", "sed",
+                  "awk", "cut", "diff", "jq", "mkdir", "cp", "mv", "touch", "date", "pwd", "tar", "gzip", "zcat", "file", "stat")]
     for t in tools:
         if t.startswith("Bash(") and t.endswith(":*)"):
             allow.append(f"command({t[5:-3]})")

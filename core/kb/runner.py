@@ -1,10 +1,10 @@
-import json, os, re, shutil, threading, time, traceback
+import json, os, shutil, threading, time, traceback
 from pathlib import Path
 from . import adapters, fleet, gates, gitops, jobs, lifecycle
 from .db import ROOT, STATE, connect, event, add_task
 from .router import load_config, pick_model
 
-RATE_LIMIT = re.compile(r"(rate.?limit|usage limit|limit reached|(?:hit|reached) your .{0,30}limit|too many requests|\b429\b|try again (in|at|later)|quota)", re.I)
+RATE_LIMIT = adapters.LIMIT_TEXT          # strict: the CLIs' own quota errors only
 STOP = STATE / "STOP"
 PRIORS = Path(os.environ.get("KB_PRIORS", Path.home() / ".config" / "kbrain" / "priors.md"))
 CORPUS = {"corpus": Path.home() / "repos" / "claude-code-memory" / "proj-trading",   # ~650 findings + topics

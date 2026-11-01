@@ -254,7 +254,7 @@ def idle_work(c, cfg, role):
         if r:
             return (f"Validate dataset {r[0]}", {"standing": 1, "kind": "validate", "dataset": r[0]}, None)
     if role == "skeptic":
-        r = c.execute("SELECT * FROM hypotheses WHERE status IN ('rejected','parked') AND slug NOT IN "
+        r = c.execute("SELECT * FROM hypotheses WHERE status IN ('rejected','parked') AND COALESCE(reason,'') NOT LIKE 'off-focus%' AND slug NOT IN "
                       "(SELECT json_extract(spec,'$.audit') FROM tasks WHERE role='skeptic' AND json_extract(spec,'$.audit') IS NOT NULL) "
                       "ORDER BY updated DESC LIMIT 1").fetchone()
         if r:
