@@ -1,5 +1,19 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP tape audit preflight, access still blocked
+
+Measured: a second `./kbssh rustmaker ...` attempt still failed locally before connection because
+`/home/kapil/.ssh/kbro_ed25519` is absent. The KAP recorder source in `~/proj/kap` writes local
+receive time as floating-point seconds under `rx`; Polymarket's venue time is nested in raw
+messages, while not every Kalshi row exposes a venue timestamp. Therefore the generic collector-
+contract audit will reject this recorder as written. This is a timestamp-contract finding, not a
+tape-health or edge verdict; the remote tape itself remains unseen.
+
+Fixed the auditor so a gap marker must carry a nanosecond local receive timestamp, and receive-time
+monotonicity resets at file boundaries (explicit input order is not chronology). Added four
+regression tests covering a valid timestamped gap, a seconds-valued gap, cross-file ordering, and
+an actual within-file regression. All four pass.
+
 ## 2026-11-01 — paired-book tape handoff
 
 Measured: the board had no request addressed to data. Fleet's nearest decision is KAP's
@@ -15,8 +29,9 @@ flat-memory requirements before the tape is scored; it does not estimate an edge
 
 ## Queue
 
-1. Once read-only box access is restored, inspect and pull the completed KAP tape, run the auditor,
-   and hand the audit plus artifact path to predx for the frozen scorer.
+1. Once read-only box access is restored, inspect and pull the completed KAP tape. Preserve and
+   score the existing tape with its frozen scorer, but report its seconds-valued receive-time
+   schema as a limitation; require `time.time_ns()` in the next recorder run.
 2. Check the failed collector directories named in the next board request; do not retry all failed
    historical jobs speculatively.
 3. Support the altlive lead-venue dry rerun after operator go-ahead (Hyperliquid for HYPE;

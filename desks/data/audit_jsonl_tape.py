@@ -45,10 +45,13 @@ def audit(paths: list[Path]) -> tuple[dict[str, Any], int]:
     kinds: Counter[str] = Counter()
     recv_min: int | None = None
     recv_max: int | None = None
-    previous_recv: int | None = None
 
     for path in files(paths):
         counts["files"] += 1
+        # Each hourly file is independently resumable. Comparing the last row of
+        # one explicit input with the first of another makes CLI argument order
+        # look like a clock regression, so monotonicity is file-local.
+        previous_recv: int | None = None
         try:
             handle = open_text(path)
         except OSError:
@@ -69,6 +72,17 @@ def audit(paths: list[Path]) -> tuple[dict[str, Any], int]:
                 kinds[kind] += 1
                 if kind == "gap":
                     counts["gaps"] += 1
+                    recv_key, recv = first(row, RECV_KEYS)
+                    if recv_key is None:
+                        counts["gap_missing_recv_ts"] += 1
+                    else:
+                        try:
+                            recv_i = int(recv)
+                        except (TypeError, ValueError):
+                            counts["gap_bad_recv_ts"] += 1
+                        else:
+                            if recv_i < 1_000_000_000_000_000_000:
+                                counts["gap_recv_not_ns"] += 1
                     continue
 
                 recv_key, recv = first(row, RECV_KEYS)
@@ -94,6 +108,7 @@ def audit(paths: list[Path]) -> tuple[dict[str, Any], int]:
     errors = sum(counts[key] for key in (
         "open_errors", "invalid_json", "non_object", "missing_recv_ts",
         "bad_recv_ts", "recv_not_ns", "recv_regressions", "missing_venue_ts",
+        "gap_missing_recv_ts", "gap_bad_recv_ts", "gap_recv_not_ns",
     ))
     report = {
         "counts": dict(sorted(counts.items())),
