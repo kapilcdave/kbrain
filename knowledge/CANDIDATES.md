@@ -40,3 +40,23 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 
 ## Scout additions
 (newest first)
+
+### C7. MSA-depth gated blend: GEMME vs ESM2-35M
+- **Idea:** Scale the weighting between GEMME (MSA-based) and ESM2-35M (sequence PLM) by alignment depth
+  (`MSA_Neff_L_category` in `reference()`). When $N_{eff}/L$ is low, weight ESM2 higher; when high, weight
+  GEMME higher.
+- **Why:** GEMME degrades when alignments are sparse, where PLMs remain stable. A simple parametric gate based
+  on $N_{eff}/L$ should strictly dominate either fixed blend across all 217 assays.
+- **Baseline:** Fixed 50/50 rank average of GEMME and ESM2-35M.
+- **Units:** assays.
+- **CPU:** <1 minute.
+
+### C6. CPU-native zero-shot baseline: GEMME + ESM2-35M vs ESM2-650M
+- **Idea:** Rank-average GEMME and ESM2-35M (both run locally on an 8-core CPU) and test against ESM2-650M
+  (the standard GPU baseline) across all 217 DMS assays.
+- **Why:** If a 35M PLM + analytical MSA beats a 650M GPU model with a positive CI, kbrain establishes a
+  strictly superior, zero-GPU baseline for the community.
+- **Data:** `pg.published_scores(aid, "GEMME")`, `pg.published_scores(aid, "ESM2 (35M)")`.
+- **Baseline:** ESM2 (650M) published scores (fixed from leaderboard: 0.4382).
+- **Units:** proteins (or assays).
+- **CPU:** seconds to minutes.
