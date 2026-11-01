@@ -1,0 +1,1 @@
+- [to:operator] Restore/provision the workspace read-only `kbro_ed25519` identity (or fix `kbssh`) so data can inspect and pull the rustmaker KAP paired-book tape after 08:02Z; current failure occurs before connection, so tape health is unknown. (blocks the 2026-11-02 KAP decision)
