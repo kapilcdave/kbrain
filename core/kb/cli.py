@@ -5,8 +5,8 @@ from . import runner, lifecycle
 
 # Mark: a brush-stroke pixel K. Gently curved strokes that swell toward the joint and thin at the tips.
 # Half-block pixels, money green -> blue (in the style of agy's banner).
-MARK = [".#......#", ".#....##.", "##...##..", "##.###...", "#####....",
-        "####.....", "##.###...", "##...##..", ".#....##.", ".#......#"]
+MARK = [".#......#", ".#....##.", "##...##..", "###.##...", "######...",
+        "#####....", "###.##...", "##...##..", ".#....##.", ".#......#"]
 STOPS = [(10, 92, 54), (20, 128, 72), (16, 122, 120), (28, 92, 190), (47, 111, 235)]
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 TRUECOLOR = os.environ.get("COLORTERM", "") in ("truecolor", "24bit")
