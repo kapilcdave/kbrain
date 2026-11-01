@@ -1,11 +1,12 @@
-import argparse, json, math, os, sys, time
+import argparse, json, os, sys, time
 from datetime import datetime
 from .db import STATE, connect, add_task, event
 from . import runner, lifecycle
 
-# Mark: a rising chart in half-block pixels, money green -> blue (in the style of agy's banner).
-MARK = ["..........#####", "...........####", "..........#####", ".........##..##", "##......##.....",
-        ".##....##......", "..##..##.......", "...####........", "....##.........", "###############"]
+# Mark: buy the dip. One stroke falls from the left, bottoms on the baseline and rises into an arrowhead,
+# getting thicker as it climbs. Half-block pixels, money green -> blue (in the style of agy's banner).
+MARK = ["...........#####", "............####", "...........#####", "..........###..#", "#........###....",
+        ".#.....###......", "..##..###.......", "...#####........", "....##..........", "################"]
 STOPS = [(10, 92, 54), (20, 128, 72), (16, 122, 120), (28, 92, 190), (47, 111, 235)]
 COLOR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
 TRUECOLOR = os.environ.get("COLORTERM", "") in ("truecolor", "24bit")
@@ -23,56 +24,29 @@ def sgr(rgb, bg=False):
 def c(code, s):
     return f"\033[{code}m{s}\033[0m" if COLOR else s
 
-def wave(t, phase):
-    """Cyclic gradient position: phase 0 is the resting look, any phase blends smoothly (no seam)."""
-    return 1 - abs((t + phase) % 2 - 1)
-
-def lit(rgb, k):
-    """Blend toward white by k in [0, 1]: the glint."""
-    return tuple(round(v + (255 - v) * k) for v in rgb)
-
-def mark_lines(phase=0.0, reveal=None, glint=None):
-    """Half-block render. `reveal`: only columns <= reveal are drawn (the line draws itself).
-    `glint`: column of a soft highlight travelling along the stroke."""
+def mark_lines():
     h, w, out = len(MARK), len(MARK[0]), []
-    def on(r, x):
-        return r < h and MARK[r][x] == "#" and (reveal is None or x <= reveal)
-    def px(r, x):
-        rgb = grad(wave(x / w * .7 + r / h * .3, phase))
-        if glint is not None:
-            rgb = lit(rgb, .85 * math.exp(-((x - glint) / 1.6) ** 2))
-        return rgb
     for r in range(0, h, 2):
         line = ""
         for x in range(w):
-            top, bot = on(r, x), on(r + 1, x)
+            top, bot = MARK[r][x] == "#", r + 1 < h and MARK[r + 1][x] == "#"
+            ct, cb = grad(x / w * .7 + r / h * .3), grad(x / w * .7 + (r + 1) / h * .3)
             if not COLOR:
                 line += "█" if top and bot else "▀" if top else "▄" if bot else " "
-            elif top and bot: line += c(f"{sgr(px(r, x))};{sgr(px(r + 1, x), True)}", "▀")
-            elif top: line += c(sgr(px(r, x)), "▀")
-            elif bot: line += c(sgr(px(r + 1, x)), "▄")
+            elif top and bot: line += c(f"{sgr(ct)};{sgr(cb, True)}", "▀")
+            elif top: line += c(sgr(ct), "▀")
+            elif bot: line += c(sgr(cb), "▄")
             else: line += " "
         out.append(line)
     return out
 
-def banner(animate=True, phase=0.0):
-    """Print the mark. On a colour tty the line draws itself left to right, a glint runs up it, then it
-    settles on `phase` (about 0.6 s). Without colour it prints once, plain."""
-    word, w = "kbrain", len(MARK[0])
-    def frame(ph, reveal=None, glint=None, letters=len(word)):
-        wm = "".join(c(f"1;{sgr(grad(wave(i / (len(word) - 1), ph)))}", ch) for i, ch in enumerate(word[:letters]))
-        wm += " " * (len(word) - letters)
-        side = ["", wm + c("2", "  research engine" if letters == len(word) else " " * 17), c("2", "kapil's agents"), "", ""]
-        return ["  " + m + "   " + t for m, t in zip(mark_lines(ph, reveal, glint), side)]
-    frames = []
-    if animate and COLOR:
-        frames += [frame(phase, reveal=x, letters=round(len(word) * x / (w - 1))) for x in range(w)]     # draw on
-        frames += [frame(phase, glint=g / 2) for g in range(-4, 2 * w + 6)]                            # glint
+def banner():
+    word = "kbrain"
+    wm = "".join(c(f"1;{sgr(grad(i / (len(word) - 1)))}", ch) for i, ch in enumerate(word))
+    side = ["", wm + c("2", "  research engine"), c("2", "kapil's agents"), "", ""]
     print()
-    for f in frames:
-        print("\n".join(f) + f"\033[{len(f) - 1}A\r", end="", flush=True)
-        time.sleep(0.012)
-    print("\n".join(frame(phase)))
+    for m, t in zip(mark_lines(), side):
+        print("  " + m + "   " + t)
     print()
 
 GREEN, TEAL, BLUE = sgr((40, 160, 90)), sgr((22, 150, 150)), sgr((70, 130, 240))
@@ -129,7 +103,7 @@ def main(argv=None):
     elif args.cmd == "top":
         try:
             while True:
-                print("\033[2J\033[H", end=""); banner(animate=False, phase=time.time() / 8 % 2); status(conn, load_config()); time.sleep(2)
+                print("\033[2J\033[H", end=""); banner(); status(conn, load_config()); time.sleep(2)
         except KeyboardInterrupt:
             pass
     elif args.cmd == "add":
