@@ -41,6 +41,19 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C8. Additive vs Epistatic Fitness Prediction on Multiple-Mutant Assays
+- **Idea:** On the 69 assays in ProteinGym v1.3 containing multiple substitutions (~1.77M mutants), test whether
+  epistatic models with explicit pairwise couplings (GEMME, EVmutation) outperform additive PLM log-odds sums
+  (ESM2-35M, ESM2-650M) by a wider margin than on single mutants.
+- **Why:** Multiple mutations exhibit epistatic non-additivity (sign epistasis, stability collapse). Standard zero-shot
+  PLM scoring sums single-site marginal log-odds ($\sum_i \Delta \log P_i$), assuming site independence. If GEMME's
+  spectral co-variation terms capture true physical epistasis, its advantage over PLMs should widen markedly on
+  multiple mutants compared to single substitutions.
+- **Baseline:** ESM2 (650M) and ESM2 (35M) published scores evaluated on the same multiple-mutant subsets.
+- **Data:** `pg.load_assay(aid)` for assays where `DMS_number_multiple_mutants > 0`, plus `pg.published_scores`.
+- **Units:** proteins (or assays).
+- **CPU:** minutes (scores pre-computed).
+
 ### C7. MSA-depth gated blend: GEMME vs ESM2-35M
 - **Idea:** Scale the weighting between GEMME (MSA-based) and ESM2-35M (sequence PLM) by alignment depth
   (`MSA_Neff_L_category` in `reference()`). When $N_{eff}/L$ is low, weight ESM2 higher; when high, weight

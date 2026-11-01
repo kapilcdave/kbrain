@@ -21,4 +21,14 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** CPU evaluation of existing models; minimal inference cost.
 - **Next step:** Benchmark published VenusREM / ProSST scores against low-N experimental data to quantify hit rate reduction.
 
+### 3. Automated MaveDB Ingestion Engine for Novel DMS Targets
+- **What:** Lightweight automated pipeline to monitor MaveDB for newly published DMS experiments (`urn:mavedb`),
+  extract wild-type sequences, fetch ColabFold AlphaFold2 structures, format cross-validation folds, and score zero-shot
+  predictions using our CPU suite before targets appear in official benchmark releases.
+- **Why now:** ProteinGym benchmark updates are infrequent (v1.0 in 2022, v1.3 in 2023), but MaveDB depositions are
+  continuous (>400 experiments; dozens added annually for emerging viral variants, antibody escape, and therapeutic enzymes).
+- **Evidence:** MaveDB API (Rubin et al., Genome Biol 2024); AVE Alliance standards.
+- **Rough cost:** Zero GPU; purely automated API polling, sequence parsing, and CPU inference.
+- **Next step:** Write a Python scraper to query the MaveDB REST API for assays with complete sequence maps and valid UniProt accessions.
+
 

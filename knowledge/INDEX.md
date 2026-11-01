@@ -8,7 +8,7 @@ The map of our niche: protein mutation-effect prediction. The scout keeps this c
 
 ## Maps
 - [Models](models.md): taxonomy, 97-model ProteinGym v1.3 benchmark, scaling limits, and CPU feasibility
-- [Datasets](datasets.md) _(thin)_
+- [Datasets](datasets.md): guide to ProteinGym v1.3 (DMS/indels/clinical), MaveDB, MegaScale, FLIP, and data leakage rules
 - [Labs and companies](labs-and-companies.md) _(thin)_
 
 ## Pipeline
