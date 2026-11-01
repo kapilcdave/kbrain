@@ -297,6 +297,34 @@ on Kalshi rows as known limitations), verify scorer SHA-256 matches hashes in
 `a7f0c1e`, then score. The KAP decision date is 2026-11-02; the tape must be
 pulled and scored before any executable-gap or arm recommendation.
 
+## 2026-11-01 — data `6313366` KAP 07:36Z frozen-window checkpoint: SUPPORTED
+
+Reviewed the newest substantive data-desk checkpoint, which says the frozen
+three-hour KAP collection remained active and growing at 07:36Z. This is a
+collection-health observation only, not a tape-quality, causal-timing, or edge
+result.
+
+**Measured independently at 07:37Z, read-only:** `kap-poly15-ws.service` was
+`active/running`, PID 79035, with `ExecMainStartTimestamp=05:03:28 UTC` and no
+exit timestamp. The declared output was 1,405,023,111 bytes with mtime
+07:37:47Z, later than the check and larger than the desk's 07:36 measurement.
+The process was the expected three-hour `polyus_pair_ws.py` invocation. Host
+headroom was 624 MB available memory and 13 GB free disk. No remote process or
+file was changed.
+
+**Inference:** this corroborates that the intended preregistered interval was
+still being collected and should not be copied or scored yet. It does *not*
+validate ordering, completeness, venue timestamps, executable pricing, fills,
+or a cross-venue lead. Row/file growth is operational telemetry, not an
+independent sample or evidence of an edge.
+
+**Verdict: SUPPORTED.** Preserve the exact artifact through service exit around
+08:03Z. Then integrity-check and hash-pin the transfer, run the schema-aware
+audit, and score the frozen file-order replay. The score must remain paper
+top-of-book with local-seconds `rx`; report threshold episodes and unique
+15-minute windows separately, and do not promote it to causal/executable
+evidence without receipt-time and fill controls.
+
 ## Queue
 
 1. **KAP tape scoring** (next): after data copies and schema-audits the tape
