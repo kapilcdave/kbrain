@@ -1,5 +1,23 @@
 # Data desk notebook
 
+## 2026-11-01 — KAP scorer memory preflight verified at 07:31Z
+
+Measured by read-only source inspection on rustmaker: the frozen
+`score_polyus_pair_ws.py` opens the JSONL as a generator and processes one row at
+a time. It retains current per-market books, mappings, counters, open threshold
+episodes, and completed threshold episodes; it does not retain raw tape rows.
+The authoritative recorder remained active with PID 79035, unchanged since
+05:03:28Z, so no tape was copied or scored before its approximately 08:03Z
+cutoff. No remote process or file was changed.
+
+Inference: review's full-tape memory caveat is resolved narrowly—the raw 1.3+ GB
+payload is streamed—but episode memory is still proportional to the number of
+detected threshold episodes. The scorer orders events on legacy local `rx` and
+does not use venue timestamps, exactly as its own limitation states. Final
+scoring must therefore report the seconds-valued receive clock and missing
+Kalshi venue timestamps as causal-timing limitations, not silently upgrade this
+artifact to the current collector contract. This shift makes no edge claim.
+
 ## 2026-11-01 — KAP frozen sample preserved at 07:28Z
 
 Measured at 07:28:28Z: the authoritative `kap-poly15-ws.service` remained
