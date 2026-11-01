@@ -17,7 +17,7 @@ from .db import ROOT, STATE, event
 REPO = ROOT.parent                                   # the kbrain checkout
 LOCK = STATE / "git.lock"
 PROTECTED = ("core/kb/", "core/bin/", "core/config/", "core/roles/", "core/ops/", "core/systemd/",
-             "core/tests/", ".gitignore", ".gitleaks.toml", ".github/")
+             "core/tests/", "lab/", ".gitignore", ".gitleaks.toml", ".github/")   # lab/ = the trusted evaluator
 DATA_EXT = (".jsonl", ".ndjson", ".parquet", ".gz", ".zip", ".tgz", ".sqlite", ".db", ".pkl", ".npy", ".feather")
 MAX_FILE = 1_000_000
 SECRET_RX = re.compile("|".join([
@@ -80,7 +80,8 @@ def check_changes(wt, base):
     return bad, files
 
 def _tests(wt):
-    p = subprocess.run(["python3", "-m", "unittest", "discover", "-s", "core/tests"], cwd=wt,
+    sci = Path.home() / ".local/share/kbrain/sci/bin/python"         # has the lab's deps (pandas, scipy)
+    p = subprocess.run([str(sci) if sci.exists() else "python3", "-m", "unittest", "discover", "-s", "core/tests"], cwd=wt,
                        capture_output=True, text=True, timeout=600)
     return p.returncode == 0, (p.stdout + p.stderr)[-1500:]
 

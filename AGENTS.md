@@ -1,12 +1,12 @@
 # AGENTS.md: start here
 
-kbrain is the operator's bio x AI research brain, run by agents ("pixel bros") on this machine.
+kbrain is a research firm committed to one niche: protein mutation-effect prediction on ProteinGym.
 Humans: see [README.md](README.md). The shared brief is `core/roles/_common.md`; your role file is your contract.
 
 ## How you are run
 The daemon (`core/bin/kb serve`, systemd `kb-runner`) routes each idea:
 idea (operator via `kb idea "..."`/HQ, or the chief when slots are free) -> chief (triage, field) -> field bro
-(genomics | proteins | cells | clinic: prereg with its dossier) -> data engineer (if data is missing) ->
+(the `proteins` lead: prereg with the niche dossier) -> data engineer (if data is missing) ->
 experimenter -> skeptic -> field bro (verdict into `fields/<field>/DOSSIER.md`, write-up if validated) ->
 chief (finding in `knowledge/findings/`, entry in `knowledge/OPPORTUNITIES.md`).
 The scout runs continuously: field intelligence into `knowledge/`, experiments into `knowledge/CANDIDATES.md`.
@@ -17,7 +17,8 @@ Each task gets a workspace under `core/state/workspaces/task-N/` with `spec.json
 | Need | Go to |
 |---|---|
 | Shared brief: focus, compute, money, rigor, git | `core/roles/_common.md` |
-| A field's state of the art, datasets, baselines, verdicts | `fields/<field>/DOSSIER.md` |
+| The niche's state of the art, baselines, verdicts | `fields/proteins/DOSSIER.md` |
+| The ONLY evaluator results may use | `lab/proteingym.py` |
 | Field map | `knowledge/INDEX.md` |
 | Rules a result must pass | `METHODOLOGY.md`, `lessons/preregistration.md`, `lessons/fake-edges-from-data-bugs.md` |
 | Engine, roles, routing | `core/README.md`, `core/roles/`, `core/config/routing.toml` |

@@ -1,30 +1,30 @@
 # kbrain
 
-My research brain for **bio x AI**: genomics and DNA, proteins, single-cell and omics, and drug discovery.
+A small research firm run by agents (the pixel bros), committed to **one niche: predicting what a single
+amino-acid mutation does to a protein**, scored on [ProteinGym](https://proteingym.org) (217 deep mutational
+scanning assays). We run on 8 CPU cores and no GPU, so our edge is cheap, clever methods and honest evaluation:
 
-A small team of agents (the pixel bros) does three things:
-
-1. **Experiments.** Preregistered computational experiments on public data: an idea, a fixed held-out split,
-   a strong baseline, code-graded results per independent unit, then a skeptic tries to break it.
-2. **Field intelligence.** A living map of what is real in the field: models, datasets, labs, companies,
-   with a hype-versus-evidence call on each.
-3. **Opportunities.** Things worth building, betting on, or doing next, each with evidence.
+1. **Experiments.** Preregistered, scored only by the trusted lab ([`lab/proteingym.py`](lab/proteingym.py)),
+   compared with the published leaderboard on the same assays, then attacked by a skeptic.
+2. **Field intelligence.** What is real in mutation-effect prediction and protein engineering right now.
+3. **Opportunities.** Where this matters: protein engineering with few measurements, tools worth building.
 
 ## Start here
 
 - **AI agents: read [AGENTS.md](AGENTS.md) first.**
 - [What I am focused on now](NOW.md)
-- [Knowledge index](knowledge/INDEX.md): fields, models, datasets, labs, candidates, opportunities, findings
+- [Knowledge index](knowledge/INDEX.md): the niche dossier, models, datasets, candidates, opportunities, findings
+- [The lab](lab/proteingym.py): the only evaluator results may use
 - [Methodology](METHODOLOGY.md) and [lessons](lessons/)
 
 ## How it runs
 
 ```
 idea (me: core/bin/kb idea "...", or the chief when idle)
-  -> chief triage -> field bro (genomics | proteins | cells | clinic) writes the prereg with its dossier
+  -> chief triage -> the mutation-effects lead writes the prereg with its dossier
   -> data engineer -> experimenter -> skeptic -> field bro records the verdict
   -> chief writes the finding and the opportunity; anything that costs money comes to me
-scout: works continuously on field intelligence and candidate experiments
+scout: works continuously on the niche's literature and candidate experiments
 ```
 
 Engine, roles and routing live in [`core/`](core/README.md). `core/bin/kb web` shows the bros at work.

@@ -1,4 +1,4 @@
-# kbrain routing: bio x AI research (genomics, DNA, proteins, single-cell, drug discovery).
+# kbrain routing: bio x AI research, committed to ONE niche: protein mutation-effect prediction (ProteinGym).
 #
 #   you / chief --idea--> CHIEF triage -> FIELD BRO (genomics | proteins | cells | clinic) writes the prereg with its
 #   dossier -> DATA ENGINEER (if data is missing) -> EXPERIMENTER (role id: backtester) -> SKEPTIC     (code routes these)
@@ -29,11 +29,11 @@ max_jobs = 2
 max_job_s = 14400
 job_mem_mb = 2048
 
-[venues]                     # the fields (internal name kept: "venues")
-list = ["genomics", "proteins", "cells", "clinic"]
+[venues]                     # ONE niche (operator 2026-11-01): protein mutation-effect prediction
+list = ["proteins"]
 
 [domains]
-list = ["genomics", "proteins", "cells", "clinic"]
+list = ["proteins"]
 
 [gates]
 min_units = 30               # independent units (genes, protein families, donors, folds), not rows
@@ -54,55 +54,34 @@ with_dossiers = true
 digest = true
 worktree = true
 can_spawn = true
-spawnable = ["genomics", "proteins", "cells", "clinic"]
+spawnable = ["proteins"]
+with_data = true
+with_stats = true
+
 
 [roles.scout]                # continuous field intelligence on cheap models
 desk = true
 standing_orders = false
-focus = "bio x AI field intelligence: new papers/models/datasets in genomics, DNA language models, regulatory genomics, proteins, single-cell, drug discovery; candidate experiments; opportunities."
+focus = "Protein mutation-effect prediction ONLY: new models, methods, benchmarks and results on ProteinGym and deep mutational scanning (zero-shot PLMs, MSA/structure-based, supervised and low-N fitness prediction, epistasis, protein engineering); turn them into candidate experiments that fit our CPU."
 models = ["agy:gemini-3.8-flash-medium", "codex:gpt-5.6-luna", "opencode:opencode/big-pickle", "opencode:opencode/glm-5.3-flash-free"]
 timeout_s = 900
 tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
 worktree = true
 
 # field bros: own a dossier; write the prereg and the verdict for their field's experiments
-[roles.genomics]
-venue_bro = true
-standing_orders = false
-focus = "Genomics and DNA: sequence-to-function models (Enformer/Borzoi-style), DNA language models (Evo, Nucleotide Transformer, HyenaDNA, Caduceus), regulatory variants and eQTLs, variant effect prediction, gnomAD constraint, ENCODE/GTEx."
-models = ["codex:gpt-5.6-luna", "codex:gpt-5.6-terra", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
-timeout_s = 1500
-tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
-worktree = true
 
 [roles.proteins]
 venue_bro = true
 standing_orders = false
-focus = "Proteins: structure prediction (AlphaFold, ESMFold), protein language models (ESM-2/3), design (RFdiffusion, ProteinMPNN), fitness and mutation effect (ProteinGym, deep mutational scans), UniProt/PDB/AlphaFold DB."
+focus = "THE NICHE: predicting the effect of amino-acid substitutions on protein fitness, scored on ProteinGym v1.3 DMS substitution assays (217 assays = independent units). Tracks: zero-shot (small PLMs on CPU, ensembles of published scores), supervised and low-N (few labeled mutants), feature engineering (conservation, structure from AlphaFold DB, biophysics). Always compare with the published leaderboard on the same assays via lab/proteingym.py."
 models = ["codex:gpt-5.6-terra", "codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
 timeout_s = 1500
 tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
 worktree = true
+with_data = true
+with_stats = true
 
-[roles.cells]
-venue_bro = true
-standing_orders = false
-focus = "Cells and omics: single-cell RNA/ATAC, cell atlases (CZ CELLxGENE, Human Cell Atlas), single-cell foundation models (scGPT, Geneformer) vs simple baselines, perturbation prediction (Perturb-seq), spatial omics."
-models = ["codex:gpt-5.6-luna", "codex:gpt-5.6-terra", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
-timeout_s = 1500
-tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
-worktree = true
 
-[roles.clinic]
-venue_bro = true
-standing_orders = false
-focus = "Drug discovery and the clinic: target identification, molecular property and binding prediction (ChEMBL, MoleculeNet, TDC), genetic support for targets, clinical trials (ClinicalTrials.gov) and biotech catalysts, the bio x AI company landscape."
-models = ["codex:gpt-5.6-terra", "codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
-timeout_s = 1500
-tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(git:*)", "WebFetch", "WebSearch"]
-worktree = true
-
-# shared specialists: get the experiment's field dossier staged
 [roles.engineer]
 standing_orders = false
 models = ["codex:gpt-5.6-luna", "agy:gemini-3.8-flash-medium", "codex:gpt-5.6-terra", "opencode:opencode/big-pickle"]

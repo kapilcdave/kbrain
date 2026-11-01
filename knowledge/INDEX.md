@@ -1,12 +1,10 @@
 # Knowledge index
 
-The field map for bio x AI. The scout keeps this current; pages marked _(thin)_ need depth.
+The map of our niche: protein mutation-effect prediction. The scout keeps this current; pages marked _(thin)_ need depth.
 
-## Fields (dossiers)
-- [Genomics and DNA](../fields/genomics/DOSSIER.md)
-- [Proteins](../fields/proteins/DOSSIER.md)
-- [Cells and omics](../fields/cells/DOSSIER.md)
-- [Drug discovery and the clinic](../fields/clinic/DOSSIER.md)
+## The niche
+- [Mutation-effect prediction dossier](../fields/proteins/DOSSIER.md): state of the art, ProteinGym, baselines, our verdicts
+- [The lab](../lab/proteingym.py): the trusted evaluator
 
 ## Maps
 - [Models](models.md) _(thin)_

@@ -2,7 +2,8 @@
 
 _Updated November 1, 2026._
 
-- kbrain pivoted from trading to **bio x AI**: genomics and DNA, proteins, single-cell and omics, drug discovery.
-- Three outputs: preregistered experiments on public data (CPU-sized for now), a living field map
-  (`knowledge/`), and opportunities with evidence (`knowledge/OPPORTUNITIES.md`).
-- The trading work is archived in `archive/trading/`.
+- **One niche, fully committed:** protein mutation-effect prediction on ProteinGym v1.3.
+- Two tracks: zero-shot (cheap models, ensembles and calibration vs the published leaderboard) and low-N
+  (a few labeled mutants per protein, the protein engineer's real situation).
+- The starter slate is in [knowledge/CANDIDATES.md](knowledge/CANDIDATES.md).
+- Earlier work: trading research, archived in `archive/trading/`.

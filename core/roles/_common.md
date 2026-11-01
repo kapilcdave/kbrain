@@ -1,18 +1,33 @@
 # Every bro reads this first
 
-kbrain is the operator's research brain for **bio x AI**: genomics, DNA and regulatory sequence, proteins,
-single-cell and omics, and drug discovery. It produces three things:
-1. **Real experiments** on public data, preregistered, run on our machine, attacked by a skeptic.
-2. **Field intelligence**: a living, honest map of papers, models, datasets, labs and companies.
-3. **Opportunities**: things worth building, betting on, or doing next, each with evidence.
+kbrain is a research firm with ONE niche, and we commit to it: **predicting the effect of amino-acid
+substitutions on protein fitness**, scored on **ProteinGym v1.3** (217 deep mutational scanning assays,
+~2.4M mutants). We publish results, not opinions. Everything we do should move one of these numbers:
 
-How work flows: the operator (or the chief, when idle) brings an idea; the chief triages it; the FIELD BRO
-(genomics, proteins, cells or clinic) writes the prereg with its field's dossier; the data engineer gets the
-data; the experimenter runs it; the skeptic attacks it; the field bro records the verdict; the chief turns
-validated results into findings and opportunities. The SCOUT works continuously on field intelligence.
+- **Zero-shot track:** mean per-assay Spearman over the DMS substitution assays, compared with the published
+  leaderboard on the SAME assays. We cannot run 650M-parameter models on our CPU, so our edge is cheapness and
+  cleverness: small PLMs (ESM2-8M/35M), ensembles and calibration of the published scores we have, features.
+- **Low-N / supervised track:** given only a few labeled mutants of a protein (e.g. 24, 48, 96), predict the
+  rest, using ProteinGym's fixed folds (random / modulo / contiguous). This is what protein engineers need.
+- **Understanding:** where and why models fail (by function type, MSA depth, taxon, structure, position),
+  which turns into the next experiment.
+
+How work flows: the chief picks or triages an idea; the PROTEINS lead (our niche owner) writes the prereg with
+its dossier; the data engineer fills any data gap; the experimenter runs it; the skeptic attacks it; the lead
+records the verdict; the chief writes the finding. The SCOUT watches only this niche and feeds candidates.
+
+## The lab (trusted, read-only for agents)
+- Data is already here: `data/proteingym/` (assays in `dms/`, every leaderboard model's per-mutant scores in
+  `zero_shot/`, `DMS_substitutions_reference.csv`, `leaderboard_spearman_DMS_level.csv`).
+- `lab/proteingym.py` in the repo (copied into your workspace as `proteingym.py`) loads assays and published
+  scores and does the scoring. ALWAYS use it: `pg.assays()`, `pg.load_assay(id)`, `pg.published_scores(id)`,
+  `pg.spearman_by_assay(preds)`, `pg.leaderboard()`, `pg.improvement_units(ours, baseline)`. Never write your
+  own evaluator; a result scored any other way does not count. The lab is operator-owned; propose changes.
+- Units for kbstats are ASSAYS (or proteins when several assays share one; say which). Pass = CI of the per-unit
+  improvement over the stated baseline above zero.
 
 ## Where things are
-- `knowledge/`: the field map (INDEX.md links everything). `fields/<field>/DOSSIER.md`: one per field.
+- `knowledge/`: the niche map (INDEX.md links everything). `fields/proteins/DOSSIER.md`: the niche dossier.
 - `METHODOLOGY.md`, `lessons/`: rigor rules (preregistration, fake effects from data bugs, negative results).
 - `archive/trading/`: the operator's old trading work. Not your focus; ignore unless asked.
 - `data/` in your workspace: datasets the engineer has collected (catalog in your prompt when relevant).

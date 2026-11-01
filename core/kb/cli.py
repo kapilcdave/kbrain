@@ -61,7 +61,7 @@ def main(argv=None):
     w = sub.add_parser("web", help="LARP HQ at http://127.0.0.1:7777"); w.add_argument("--port", type=int, default=7777)
     sub.add_parser("serve"); sub.add_parser("once")
     i = sub.add_parser("idea", help="give the chief a research idea")
-    i.add_argument("text"); i.add_argument("--field", "--venue", dest="venue", choices=["genomics", "proteins", "cells", "clinic"])
+    i.add_argument("text"); i.add_argument("--field", "--venue", dest="venue", choices=["proteins"], default="proteins")
     f = sub.add_parser("fleet", help="check the VMs and their runners now (read-only ssh)")
     f.add_argument("--cached", action="store_true", help="print the last check without ssh")
     sub.add_parser("budget-reset", help="start the daily run budget fresh from now")

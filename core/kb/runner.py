@@ -186,6 +186,10 @@ def prepare(task, role, workdir, cfg, c):
             link.symlink_to(jobs.DATA, target_is_directory=True)
     if role.get("with_stats"):
         shutil.copyfile(ROOT / "kb" / "stats.py", workdir / "kbstats.py")
+    lab = ROOT.parent / "lab"                          # the trusted evaluator: every role gets the same copy
+    if lab.is_dir():
+        for f in lab.glob("*.py"):
+            shutil.copyfile(f, workdir / f.name)
     if role.get("digest"):
         (workdir / "digest.md").write_text(digest(c, cfg))
     if role.get("with_corpus"):                        # the trading corpus, read-only by convention
