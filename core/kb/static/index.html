@@ -168,8 +168,10 @@ const PIPE = {beltY:285, st:{chief:130, researcher:310, backtester:490, skeptic:
 const STAGE_X = {idea:130, prereg:310, backtest:490, review:670};
 const GATE = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#f4c542"};
 const HCOL = {data:"#1f9e89", idea:"#8d8fa8", prereg:"#5aa9ff", backtest:"#5fd068", review:"#f4c542", validated:"#f4c542", rejected:"#ef5b5b", parked:"#555a78"};
-const MIN = {chief:{x:110, y:120}, researcher:{x:540, y:120}, backtester:{x:180, y:260}, skeptic:{x:600, y:260}, curator:{x:110, y:400}, engineer:{x:560, y:400},
-  kalshi:{x:330, y:190}, hyperliquid:{x:780, y:190}, predx:{x:330, y:330}, data:{x:780, y:330}, review:{x:330, y:540}};
+const MIN = (() => {                               // 3 columns x 4 rows; bubbles open to the right
+  const order = ["chief", "kalshi", "hyperliquid", "predx", "data", "review", "researcher", "backtester", "skeptic", "engineer", "curator"];
+  return Object.fromEntries(order.map((r, i) => [r, {x:100 + (i % 3) * 310, y:118 + Math.floor(i / 3) * 140}]));
+})();
 const MINCOL = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#ef6b6b", curator:"#b48cff", engineer:"#1f9e89",
   kalshi:"#2fa36b", hyperliquid:"#36c2c2", predx:"#d9534f", data:"#e08a2a", review:"#5b6bd8"};
 function homeOf(role) {
@@ -239,11 +241,11 @@ ctx.imageSmoothingEnabled = false;
 // ---------- themes ----------
 const BP = {bg:"#0a2540", grid:"#0f3156", line:"#a9d1f7", faint:"#3a73aa", hi:"#ffd166"};
 const DIMC = {office:"#a7a9bd", classic:"#8d8fa8", lamplight:"#4a4f60", blueprint:"#5d8fc4", pipeline:"#4a4f60", minimal:"#3e4250"};
-// Default view is the OFFICE: one open-plan pixel workspace, nothing else on screen.
-// Other layouts (with panels and controls): ?theme=classic|lamplight|blueprint|pipeline|minimal
+// Default view is MINIMAL: the black void with just the bros and what each is doing.
+// Other layouts: ?theme=office|classic|lamplight|blueprint|pipeline
 const QTHEME = new URLSearchParams(location.search).get("theme");
-let THEME = QTHEME || "office";
-if (!["office", "classic", "lamplight", "blueprint", "pipeline", "minimal"].includes(THEME)) THEME = "office";
+let THEME = QTHEME || "minimal";
+if (!["office", "classic", "lamplight", "blueprint", "pipeline", "minimal"].includes(THEME)) THEME = "minimal";
 if (THEME === "office") document.documentElement.dataset.view = "office";
 function placeAgents() {                           // start everyone at their post for the current layout
   for (const a of agents) {
