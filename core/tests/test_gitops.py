@@ -58,13 +58,13 @@ class GitOps(unittest.TestCase):
 
     def test_two_desks_race_both_land(self):
         (t1, wd1, wt1), (t2, wd2, wt2) = self.task(21), self.task(22)
-        for wt, name in ((wt1, "hl"), (wt2, "predx")):
+        for wt, name in ((wt1, "hl"), (wt2, "polymarket")):
             (wt / "desks" / name).mkdir(parents=True); (wt / "desks" / name / "NOTEBOOK.md").write_text(name)
             sh("git", "add", "-A", cwd=wt); sh("git", "commit", "-qm", f"{name}: note", cwd=wt)
         self.assertTrue(self.g.integrate(self.c, t1, wd1, "hl").startswith("merged"))
-        self.assertTrue(self.g.integrate(self.c, t2, wd2, "predx").startswith("merged"))   # rebases onto hl's push
+        self.assertTrue(self.g.integrate(self.c, t2, wd2, "polymarket").startswith("merged"))   # rebases onto hl's push
         log = self.remote_log()
-        self.assertIn("hl: note", log); self.assertIn("predx: note", log)
+        self.assertIn("hl: note", log); self.assertIn("polymarket: note", log)
 
     def test_conflict_keeps_branch(self):
         (t1, wd1, wt1), (t2, wd2, wt2) = self.task(31), self.task(32)

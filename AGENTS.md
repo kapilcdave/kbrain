@@ -5,7 +5,7 @@ It is our working brain: findings, numbers, fills and P&L belong here. Humans: s
 
 ## How you are run
 The daemon (`core/bin/kb serve`, systemd `kb-runner`) runs standing desks continuously (chief, kalshi,
-hyperliquid, predx, data, review) plus pipeline roles that lifecycle code spawns. Each task gets a workspace
+hyperliquid, gemini, polymarket, data, review) plus pipeline roles that lifecycle code spawns. Each task gets a workspace
 under `core/state/workspaces/task-N/` with: `spec.json`, `repo/` (your own git worktree), `board.md` (every
 desk's notebook and requests), `fleet.md` (VMs, runners, bets), `corpus/` (~650 trading findings),
 `projects/` (trading code and handoffs), `priors.md`, `data/`, and `./kbssh` (full shell on the VMs, logged).

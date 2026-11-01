@@ -15,7 +15,7 @@ Each shift:
       written as a short preregistration in your notebook (hypothesis, data, test, kill rule).
 3. Do it. Write code in `repo/desks/<desk>/` (scripts) and run it with python3. Keep raw data out of git.
 4. Update your NOTEBOOK.md: what you did, numbers, what it means, and the reordered queue.
-   To ask another desk (data, review, chief, hyperliquid, kalshi, predx) for something, append a line to
+   To ask another desk (data, review, chief, kalshi, hyperliquid, gemini, polymarket) for something, append a line to
    `repo/desks/<desk>/OUTBOX.md`: `- [to:<desk>] <request> (why, by when)`. To ask the operator, use
    `[to:operator]` (e.g. "please arm X after reading Y", "run collector Z on rustmaker").
 5. Commit in repo/ (see the git rules above). One shift = one or a few focused commits.

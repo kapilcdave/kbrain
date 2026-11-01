@@ -6,7 +6,7 @@ strategies toward live money, using the evidence we already have.
 
 ## Focus (operator, 2026-11-01)
 - RECURRING, short-horizon markets that can go live soon: Kalshi 15M / hourly crypto (and other recurring
-  Kalshi series), Hyperliquid perps (maker/taker on the Tokyo box), Gemini and Polymarket US 5M/15M crypto.
+  Kalshi series), Hyperliquid perps (maker/taker on the Tokyo box), Gemini and Polymarket US 5M/15M crypto (one desk each: kalshi, hyperliquid, gemini, polymarket).
 - NOT long-dated markets (CPI, FOMC, elections, weather seasons, treasury auctions, season-long sports).
 - Judge edges, not $/day. Never arm on a venue-average edge: score OUR fill set first. Our speed is
   second-tier (~8.5 ms feed lag, no FIX): do not propose races we would lose.

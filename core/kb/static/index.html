@@ -144,12 +144,13 @@ const ROLE = {
   engineer:   {name:"Data Engineer",  room:5, shirt:"#1f9e89", acc:"#c8f5ec", hair:"#5a3a1a", skin:"#d9a066", blurb:"Writes data collectors; the harness runs them in the background so nobody waits on data."},
   kalshi:     {name:"Kalshi Desk",    room:2, shirt:"#2fa36b", acc:"#0e3d26", hair:"#2a1a0e", skin:"#e8b98a", blurb:"Standing desk: Kalshi recurring 15M/hourly crypto. Works nonstop, commits to git."},
   hyperliquid:{name:"Hyperliquid Desk",room:1, shirt:"#36c2c2", acc:"#0d3b3b", hair:"#d8c27a", skin:"#f1c27d", blurb:"Standing desk: Hyperliquid perps, the Tokyo tapes and maker cells."},
-  predx:      {name:"PredX Desk",     room:1, shirt:"#d9534f", acc:"#ffe0de", hair:"#121212", skin:"#a86b3c", blurb:"Standing desk: Gemini and Polymarket US 5M/15M crypto, cross-venue with Kalshi."},
+  gemini:     {name:"Gemini Desk",    room:1, shirt:"#ffcf4a", acc:"#3b2f08", hair:"#121212", skin:"#a86b3c", blurb:"Standing desk: Gemini recurring BTC/ETH 5M/15M: basis taker, dry quoter, the geminibot tapes."},
+  polymarket: {name:"Polymarket US Desk", room:1, shirt:"#f06292", acc:"#3b0f1f", hair:"#2a1a0e", skin:"#e8b98a", blurb:"Standing desk: Polymarket US recurring 5M/15M and the cross-venue twin with Kalshi (KAP paired books)."},
   data:       {name:"Data Desk",      room:5, shirt:"#e08a2a", acc:"#3b2508", hair:"#6b3a1a", skin:"#d9a066", blurb:"Standing desk: WebSocket-first collectors and tape health; serves the other desks."},
   review:     {name:"Review Desk",    room:3, shirt:"#5b6bd8", acc:"#dfe3ff", hair:"#4a4a4a", skin:"#ffdbac", blurb:"Standing desk: audits the other desks' newest claims against the estimator traps."},
 };
 // open-plan office: seat positions (feet) per role, and places idle bros wander to
-const OFFICE = {chief:{x:118,y:236}, kalshi:{x:300,y:236}, hyperliquid:{x:440,y:236}, predx:{x:580,y:236},
+const OFFICE = {chief:{x:118,y:236}, kalshi:{x:300,y:236}, hyperliquid:{x:440,y:236}, gemini:{x:580,y:236}, polymarket:{x:118,y:380},
   data:{x:300,y:380}, review:{x:440,y:380}, researcher:{x:580,y:380},
   backtester:{x:300,y:524}, skeptic:{x:440,y:524}, engineer:{x:580,y:524}, curator:{x:118,y:524}};
 const POI = [{x:812,y:150,n:"board"}, {x:880,y:250,n:"coffee"}, {x:760,y:360,n:"couch"}, {x:840,y:372,n:"couch"},
@@ -169,17 +170,17 @@ const STAGE_X = {idea:130, prereg:310, backtest:490, review:670};
 const GATE = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#f4c542"};
 const HCOL = {data:"#1f9e89", idea:"#8d8fa8", prereg:"#5aa9ff", backtest:"#5fd068", review:"#f4c542", validated:"#f4c542", rejected:"#ef5b5b", parked:"#555a78"};
 const MIN = (() => {                               // 3 columns x 4 rows; bubbles open to the right
-  const order = ["chief", "kalshi", "hyperliquid", "predx", "data", "review", "researcher", "backtester", "skeptic", "engineer", "curator"];
+  const order = ["chief", "kalshi", "hyperliquid", "gemini", "polymarket", "data", "review", "researcher", "backtester", "skeptic", "engineer", "curator"];
   return Object.fromEntries(order.map((r, i) => [r, {x:100 + (i % 3) * 310, y:118 + Math.floor(i / 3) * 140}]));
 })();
 const MINCOL = {chief:"#e0b040", researcher:"#5aa9ff", backtester:"#5fd068", skeptic:"#ef6b6b", curator:"#b48cff", engineer:"#1f9e89",
-  kalshi:"#2fa36b", hyperliquid:"#36c2c2", predx:"#d9534f", data:"#e08a2a", review:"#5b6bd8"};
+  kalshi:"#2fa36b", hyperliquid:"#36c2c2", gemini:"#ffcf4a", polymarket:"#f06292", data:"#e08a2a", review:"#5b6bd8"};
 function homeOf(role) {
   if (THEME === "minimal") return MIN[role];
   if (role === "curator") return PIPE.curator;
   if (role === "engineer" || role === "data") return {x:role === "data" ? 260 : 200, y:530};
   if (PIPE.st[role]) return {x:PIPE.st[role], y:PIPE.beltY - 30};
-  return {x:{kalshi:820, hyperliquid:880, predx:820, review:880}[role] || 820, y:{kalshi:120, hyperliquid:120, predx:200, review:200}[role] || 160};
+  return {x:{kalshi:820, hyperliquid:880, gemini:820, polymarket:880, review:880}[role] || 820, y:{kalshi:120, hyperliquid:120, gemini:200, polymarket:200, review:280}[role] || 160};
 }
 const layoutOf = t => (t === "pipeline" || t === "minimal" || t === "office") ? t : "rooms";
 const roomCenter = i => {

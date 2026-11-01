@@ -94,10 +94,22 @@ with_corpus = true
 with_data = true
 worktree = true
 
-[roles.predx]
+[roles.gemini]
 desk = true
-focus = "Gemini and Polymarket US recurring 5M/15M crypto markets and their cross-venue relation to Kalshi (KAP paired books, Gemini basis taker, Gemini maker/quoter). Boxes: geminibot (us-east-1) and the PM recorder on rustmaker; code ~/proj/geminibot, ~/proj/kap."
+focus = "Gemini prediction markets: recurring BTC/ETH 5M/15M contracts. The basis taker (PREREG_gemflow_basis_taker_20261031), the dry-run maker/quoter, and the depth/trade/strike/lead tapes. Box: geminibot (us-east-1), code ~/proj/geminibot."
 models = ["codex:gpt-5.6-luna", "codex:gpt-5.6-terra", "codex:gpt-5.6-sol@low", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
+timeout_s = 1500
+tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(./kbssh:*)", "Bash(git:*)"]
+with_priors = true
+with_fleet = true
+with_corpus = true
+with_data = true
+worktree = true
+
+[roles.polymarket]
+desk = true
+focus = "Polymarket US recurring BTC/ETH 5M/15M markets (PM US BTC 15M is Kalshi KXBTC15M's twin: same settle and strike) and their cross-venue relation to Kalshi: KAP paired books (WS recorder on rustmaker), lead/lag, exact-pair and hedged maker ideas. Use the WebSocket, never REST /book (lags ~20 s). Code ~/proj/kap and ~/repos/proj/polymarket-us-mm, pmus-5m."
+models = ["codex:gpt-5.6-terra", "codex:gpt-5.6-luna", "codex:gpt-5.6-sol@low", "agy:gemini-3.8-flash-medium", "opencode:opencode/big-pickle"]
 timeout_s = 1500
 tools = ["Read", "Write", "Edit", "Bash(python3:*)", "Bash(./kbssh:*)", "Bash(git:*)"]
 with_priors = true
