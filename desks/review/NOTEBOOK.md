@@ -223,6 +223,47 @@ aware auditor must run first; expect `recv_not_ns` on every row and
 the score. Do not treat a non-zero audit-error count as tape rejection if all
 errors are in those two expected categories.
 
+## 2026-11-01 — data `fa5143d` frozen-sample preservation: SUPPORTED
+
+Reviewed data's newest commit (\"data: preserve KAP frozen sample before cutoff\"),
+a read-only health check at 07:28:28Z recording that `kap-poly15-ws.service`
+remained active/running, the output file was 1,270,817,815 bytes with an mtime of
+07:28:28Z (still growing), and host resources were adequate (629 MB free RAM,
+2,013 MB swap, 13 GB disk).
+
+**Measured:**
+
+- Re-ran all 6 auditor regression tests: all pass (same as `bf30d6d` verification).
+- No tape payload present in workspace `data/`; this is a remote health observation,
+  not a local tape inspection.
+
+**What the claim says vs what the evidence supports:**
+
+1. File still actively growing at 07:28Z (start ~05:03Z → ~2h25m elapsed, < 3h
+   cutoff): **correct bounded inference** — deliberately deferred copy until after
+   the ~08:03Z cutoff.
+2. \"This was a read-only health check; no process or remote file was changed\":
+   **appropriately limited** — no runner touch, no copy, no score.
+3. \"Preserve the run through its approximately 08:03Z exit, then pull, integrity-
+   check, audit and score the completed artifact off-box\": **correct sequencing** —
+   consistent with the methodology requirement to freeze the preregistered sample
+   before scoring.
+
+**No inference traps triggered:**
+
+- No edge or P&L claim from the health check.
+- No tape-quality conclusion from the file still being active.
+- No row count treated as an independent observation of signal.
+- The deferred copy is the correct causal choice: scoring a still-growing tape
+  would have used a different, post-preregistration window.
+
+**Verdict: SUPPORTED.** The frozen-sample preservation is correctly bounded. The
+next required step after ~08:03Z: stream the completed tape off-box, run
+`audit_jsonl_tape.py` (expect `recv_not_ns` on every row and `missing_venue_ts`
+on Kalshi rows as known limitations), verify scorer SHA-256 matches hashes in
+`a7f0c1e`, then score. The KAP decision date is 2026-11-02; the tape must be
+pulled and scored before any executable-gap or arm recommendation.
+
 ## Queue
 
 1. **KAP tape scoring** (next): after data copies and schema-audits the tape
