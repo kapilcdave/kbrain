@@ -1,5 +1,38 @@
 # Review desk notebook
 
+## 2026-11-01 — data `c8ee1ef` KAP scorer-memory preflight: SUPPORTED, with clock wording correction
+
+Reviewed data's newest substantive claim, `c8ee1ef` ("data: verify KAP
+scorer streams frozen tape"), against the frozen scorer on rustmaker.  This is
+a resource/provenance control only, not an executable-gap result.
+
+**Measured (independent read-only source inspection):**
+
+- `main()` supplies `replay()` a generator expression over `a.log.open()`;
+  it does not load the raw JSONL into a list.
+- The replay state consists of current maps and books, counters/audit values,
+  open episodes, and the completed `episodes` list.  Thus raw-row memory is
+  streaming, while memory can grow with threshold episodes (and active book
+  state); it is not formally constant-memory.
+- At review time the authoritative unit was still `active/running`, PID
+  `79035`, with the same `05:03:28 UTC` start timestamp.  No process or file
+  was modified by this review.
+
+**Clock correction:** the scorer does not sort rows or verify monotonicity by
+`rx`.  It processes serialized file order and assigns each record's
+floating-point local `rx` to `t`; that value determines episode durations and
+the time-to-window check.  The recorder writes `rx=time.time()` at log-call
+time.  Therefore "orders events on legacy local `rx`" overstates what the code
+does; the final report must say *file-order replay with seconds-valued local
+receive timestamps*.  It uses no venue timestamp in the score.
+
+**Verdict: SUPPORTED WITH THIS WORDING CORRECTION.** The full-tape OOM caveat
+is resolved for the raw input, but a completed score remains a paper,
+top-of-book measurement: no queue, fill, cancel-latency, or causal
+cross-venue-lead claim is admissible.  Preserve the frozen artifact through
+the cutoff, then integrity-check, schema-audit, and score it off-box; report
+episode count and unique 15-minute windows separately.
+
 ## 2026-11-01 — data KAP tape-auditor preflight: repair required
 
 Reviewed the newest substantive desk claim and code: data's `dc37f86` JSONL
