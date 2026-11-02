@@ -41,6 +41,30 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C34. Combinatorial Multi-Mutant Epistatic Density Degradation: PLMs vs Homology Baselines (The Talpir-Fleishman Benchmark)
+- **Idea:** On ProteinGym v1.3's 69 multiple-mutant assays (~1.77M variants), stratify predictions by mutational Hamming distance ($K \in \{2, 3, 4, 5+\}$) and benchmark the decay rate of zero-shot PLMs (ESM2-35M, ESM2-650M) against evolutionary homology models (GEMME, EVmutation) and simple site-independent position weight matrices. Test whether the PLM predictive advantage over simple position-specific frequencies monotonically collapses to zero as mutational density $K$ increases, as hypothesized by Talpir & Fleishman (bioRxiv 2026).
+- **Why:** Talpir & Fleishman (bioRxiv May 2026, DOI: 10.64898/2026.05.01.722313) proved that PLMs do not consistently outperform classical homology baselines on mutation-dense designs. By evaluating this across all 69 multi-mutant ProteinGym assays using precomputed scores, we establish whether PLM fitness scoring on multi-point variants is an illusion driven by single-point marginals.
+- **Data:** ProteinGym multiple-mutant assays in `data/proteingym/dms/` and precomputed published scores (`zero_shot/`).
+- **Baseline:** ESM2-650M published scores.
+- **Units:** Proteins (`by="protein"` across multi-mutant UniProt IDs).
+- **CPU:** 2–3 minutes on 8 CPU cores.
+
+### C33. Parameter-Free RSALOR vs Small PLMs on CPU: Dissecting Core Conservation vs Surface Solvent Accessibility
+- **Idea:** Benchmark the parameter-free RSALOR model ($\text{Score} = \text{RSA} \times \text{LOR}$) against small PLMs (ESM2-35M, SaProt-35M) and GEMME across all 217 ProteinGym substitution assays, stratifying by residue solvent exposure ($\text{RSA} < 0.2$ buried core vs $\text{RSA} \ge 0.2$ surface exposed). Test whether an analytical hybrid combining RSALOR with GEMME or ESM2-35M strictly dominates each individual predictor without GPU compute.
+- **Why:** Tsishyn et al. (Bioinformatics 2025, DOI: 10.1093/bioinformatics/btaf322) reported 0.4848 average Spearman across ProteinGym with zero learned parameters, beating ESM2-650M (0.4382). Evaluating where RSALOR outperforms or complements PLMs isolates whether neural attention weights add predictive value beyond solvent accessibility and MSA frequencies, and offers a parameter-free calibration term.
+- **Data:** ProteinGym v1.3 substitution reference, published scores for GEMME, ESM2-35M, SaProt-35M, and RSALOR scores.
+- **Baseline:** GEMME alone (0.4743) and ESM2-35M (0.3188).
+- **Units:** Proteins (`by="protein"` across 186 UniProt IDs) via `improvement_units()`.
+- **CPU:** 2–3 minutes on 8 CPU cores.
+
+### C32. Nucleotide Mutational Supply & Codon-Distance Decoupling from Zero-Shot PLM Log-Odds (The MacLean-Robertson Bias Filter)
+- **Idea:** For all single-nucleotide reachable vs 2-/3-nucleotide reachable substitutions in ProteinGym assays where wild-type cDNA/mRNA codon sequences are known, test whether adjusting zero-shot PLM log-odds ($\Delta \log P$) by subtracting expected codon transition-transversion log-odds (decoupling mutational supply from biophysical selection) improves Spearman correlation on unbiased saturation mutagenesis (NNK/NNS) assays.
+- **Why:** MacLean et al. (bioRxiv July 2026, DOI: 10.64898/2026.07.06.736753) proved that PLMs conflate nucleotide mutational accessibility with protein fitness because natural training databases reflect mutational supply. Saturation mutagenesis screens test all 19 amino acids regardless of codon distance. If PLMs penalize 2-nt and 3-nt substitutions simply because they are rare in natural evolution, a lightweight nucleotide distance correction restores true biophysical ranking on CPU in seconds.
+- **Data:** ProteinGym substitution reference table (`pg.reference()`), wild-type coding sequences, and precomputed ESM2-35M / ESM2-650M published scores.
+- **Baseline:** Raw ESM2-35M and ESM2-650M published scores.
+- **Units:** Proteins (`by="protein"` across UniProt IDs) via `improvement_units()`.
+- **CPU:** 2–3 minutes on 8 CPU cores.
+
 ### C31. Hybrid Ranking-Regression Loss (RankReg) vs Pure Ridge Regression in Low-N Regimes (N=24, 48)
 - **Idea:** Benchmark a hybrid ranking-regression loss function (RankReg: $\min_w \alpha \mathcal{L}_{\text{MSE}}(y, \hat{y}) + (1-\alpha) \mathcal{L}_{\text{Rank}}(y, \hat{y})$ with pairwise ranking hinge/logistic loss) against standard MSE-minimizing Ridge regression across ProteinGym substitution assays at $N \in \{24, 48, 96\}$ under both `fold_random_5` and `fold_contiguous_5`. Inputs are frozen zero-shot scores (GEMME, ESM2-35M) and one-hot indicators.
 - **Why:** Standard supervised models in directed evolution optimize MSE, which overfits absolute assay measurement noise and non-linear readout compression at the expense of candidate rank ordering. Conversely, pure pairwise ranking objectives lose metric calibration. Xu et al. (REAP / RankReg, Nature Communications 2026, DOI: 10.1038/s41467-026-76264-2) proved that joint ranking-regression optimization enabled rapid functional hotspot discovery and 57- to 104-fold activity gains in automated enzyme campaigns. Optimizing RankReg on CPU via fast SciPy L-BFGS takes seconds per assay and directly tests whether rank-preserving supervision beats standard Ridge on held-out mutants.

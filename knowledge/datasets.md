@@ -164,6 +164,16 @@ ProteinGym single-substitution assays include three standardized 5-fold cross-va
   2. **Assay Dynamic Range & Non-Linearity:** Assays with severe selection bottlenecks or binary viability cutoffs penalize rank-order correlation compared to quantitative continuous fluorescence or kinetic readouts.
   3. **Site Conservation Variance:** Datasets with uniform residue conservation offer poor discriminative signal for PLMs compared to assays with sharp contrasts between catalytic cores and flexible loops.
 
+### 5.4 ViroGym: Eukaryotic Viral DMS & Neutralisation Benchmark
+
+**ViroGym** (Zhou et al., arXiv:2603.06740, March 2026; [arXiv:2603.06740](https://arxiv.org/abs/2603.06740)):
+- **What:** A comprehensive, large-scale benchmark designed specifically to evaluate protein language models on viral proteins across three distinct evaluation pillars:
+  1. **79 Deep Mutational Scanning Assays:** Over 550,000 variants spanning eukaryotic viruses across 7 phenotypic readouts (expression, binding, replication, entry, neutralization).
+  2. **21 Influenza Neutralisation Tasks:** Antigenic drift and immune escape measurement.
+  3. **Real-World Pandemic Forecasting:** Prospective lineage tracking on circulating SARS-CoV-2 (GISAID) and influenza strains.
+- **Why it matters:** In ProteinGym and related general benchmarks, viral proteins represent a notorious failure regime where standard masked language models underperform. ViroGym provides the first standardized, multi-pillar evaluation dedicated to resolving viral evolutionary dynamics.
+- **Key Findings:** Autoregressive causal language models (such as ProGen2) consistently outperform masked bidirectional models (ESM-2) on viral fitness and escape prediction. Crucially, in vitro DMS ranking performance strongly correlates with prospective real-world lineage emergence forecasting, proving that DMS bench measurements capture epidemiologically relevant fitness.
+
 ---
 
 ## 6. Clinical & Population Variation Repositories

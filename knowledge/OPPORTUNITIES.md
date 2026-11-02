@@ -300,6 +300,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero cloud spend; 100% CPU-tractable (<5 minutes across all 2.46M mutants on an 8-core CPU; <1.5 GB peak RAM). Any forward evaluation on an unseen prospective DMS paper requires operator approval.
 - **Next step:** Execute a frozen preregistered forward paper test on a newly published, post-ProteinGym DMS dataset (requiring operator approval), or evaluate explicit phenotype routing (high structure weight for folding stability, zero structure weight for viral/catalytic targets) under frozen pre-label criteria.
 
+### 31. Mutational Bias Decoupling Engine for Directed Evolution (Codon-Free PLM Scoring)
+- **What:** A lightweight software middleware and API that calibrates zero-shot protein language model scores (ESM-2, ESM-C, SaProt) by subtracting nucleotide mutational supply log-odds (transition/transversion asymmetries, 1-nt vs 2-nt/3-nt codon reachability), outputting pure biophysical fitness rankings for synthetic library design.
+- **Why now:** Commercial DNA synthesis platforms (Twist Bioscience, GenScript, Illumina oligo pools) allow protein engineers to construct completely uniform saturation mutagenesis libraries regardless of nucleotide distance. However, foundation models trained on natural sequences (UniRef) are inherently confounded by historical mutational supply (MacLean et al., bioRxiv July 2026), systematically underrating multi-nucleotide substitutions that could serve as optimal biocatalysts. Decoupling codon supply expands discovery hits for unnatural amino acid engineering and directed evolution.
+- **Evidence:** MacLean et al., 2026 ([DOI:10.64898/2026.07.06.736753](https://doi.org/10.64898/2026.07.06.736753)); ProteinGym substitution assays.
+- **Rough cost:** Zero cloud spend; fast analytical codon distance calculation on local CPU in seconds.
+- **Next step:** Run Candidate C32 across ProteinGym assays to quantify the rank improvement on unbiased saturation screens.
+
+### 32. ViroWatch: Zero-Shot Pandemic Lineage Forecasting Pipeline (ViroGym Integration)
+- **What:** An automated surveillance and prospective lineage forecasting engine for viral pathogens (Influenza, Coronaviruses, Arboviruses) that combines ViroGym-validated autoregressive language models (ProGen2) with empirical deep mutational scanning neutralization maps to rank the emergence probability of future circulating immune-escape strains.
+- **Why now:** Pathogen surveillance consortia (BARDA, CEPI, WHO) need early-warning tools to anticipate antigenic escape before variants achieve high global frequency. Zhou et al. (ViroGym, arXiv:2603.06740, March 2026) proved that in vitro DMS and neutralization benchmark performance directly correlates with real-world lineage emergence on GISAID tracking data, and that autoregressive models consistently outperform bidirectional masked models in viral fitness forecasting.
+- **Evidence:** Zhou et al., 2026 ([arXiv:2603.06740](https://arxiv.org/abs/2603.06740)); ViroGym 79-assay DMS suite; GISAID prospective tracking.
+- **Rough cost:** Zero GPU training spend; scoring pre-screened candidate sequences via open ProGen2 weights on workstation CPU/GPU.
+- **Next step:** Benchmark CPU-runnable autoregressive models against masked PLMs on the viral stratum of ProteinGym and ViroGym.
+
 
 
 

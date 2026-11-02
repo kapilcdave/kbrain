@@ -192,6 +192,30 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
 - **Relevance to kbrain:** Solves the core statistical flaw in low-N surrogate modeling: standard MSE regression overfits assay scale noise, while RankReg preserves the rank ordering essential for directed evolution candidate nomination.
 - **Open Science Stance:** Nature Communications open access, open software routines for ranking-guided exploration.
 
+### 2.19 Fleishman Lab (Weizmann Institute of Science)
+- **Principal Investigators:** Sarel J. Fleishman & Itay Talpir (Department of Biomolecular Sciences, Weizmann Institute).
+- **Key Contributions:**
+  - Automated structure-based design of stable, functional proteins (PROSS for stability, FuncLib for active-site multi-point diversity).
+  - Critical evaluation of protein language models in mutation-dense functional landscapes (Talpir & Fleishman, bioRxiv 2026, DOI: 10.64898/2026.05.01.722313), proving that PLMs perform indistinguishably across parameter scales and do not outperform simple homology baselines on multi-mutant designs without biophysical priors.
+- **Relevance to kbrain:** Directly validates kbrain's zero-shot epistasis findings: confirms that scaling sequence PLMs does not solve higher-order mutational design and that structural and biophysical constraints are indispensable.
+- **Open Science Stance:** Open access preprints, publicly accessible web servers (PROSS, FuncLib) and GitHub evaluation pipelines.
+
+### 2.20 Viral Genomics & Evolution Hub (MRC-University of Glasgow CVR / Robertson Lab)
+- **Principal Investigators:** David L. Robertson & Oscar A. MacLean (MRC-University of Glasgow Centre for Virus Research).
+- **Key Contributions:**
+  - Disentangling nucleotide mutational supply from biophysical protein fitness in PLMs (MacLean et al., bioRxiv 2026, DOI: 10.64898/2026.07.06.736753).
+  - Demonstrated that base PLM pseudo-probabilities are confounded by codon distance and transition/transversion biases learned from natural sequence databases, and established methods to isolate pure protein fitness for protein engineering while retaining forecasting power for pathogen emergence.
+- **Relevance to kbrain:** Provides the theoretical and empirical mechanism for why PLMs underperform on unbiased saturation mutagenesis (DMS) libraries: natural sequences under-sample multi-nucleotide changes, which PLMs penalize as "unfit" despite biophysical stability.
+- **Open Science Stance:** Open science bioRxiv preprints, open data pipelines for viral lineage analysis.
+
+### 2.21 3Bio / Interuniversity Institute of Bioinformatics in Brussels (ULB / Pucci & Rooman)
+- **Principal Investigators:** Fabrizio Pucci & Marianne Rooman (Université Libre de Bruxelles / ULB).
+- **Key Contributions:**
+  - **RSALOR** (Tsishyn, Hermans, Rooman, & Pucci, Bioinformatics 2025, DOI: 10.1093/bioinformatics/btaf322): Parameter-free mutational effect predictor multiplying Relative Solvent Accessibility (RSA) by evolutionary Log-Odds Ratios (LOR), achieving 0.4848 Spearman across ProteinGym.
+  - **PoPMuSiC & BeAtMuSiC**: Classical, fast biophysical predictors for folding and binding free-energy changes ($\Delta\Delta G$).
+- **Relevance to kbrain:** Proves that transparent, parameter-free structural biophysics runs in milliseconds on CPU and matches or beats multi-billion parameter neural networks on ProteinGym.
+- **Open Science Stance:** Open source Python package (`pip install rsalor`) and GitHub repository at `3BioCompBio/RSALOR`.
+
 ---
 
 ## 3. AI Foundation Model Consortia & Tech Giants

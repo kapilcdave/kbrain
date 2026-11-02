@@ -610,3 +610,33 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Consistently outperforms sequence-only baselines with an absolute gain of at least +10% in Spearman rank correlation. Demonstrates that explicit physicochemical descriptors provide an indispensable orthogonal signal that compensates for the lack of 3D atomic coordinates.
 - **Open Code / Weights / Data:** Complete code, data preparation pipelines, training recipes, and configs open at `github.com/kabir-ai2bio-lab/LoMuS`.
 - **Hype vs. Evidence:** **HIGH UTILITY FOR FAST EDGE SCREENING.** Validates kbrain's architectural philosophy: explicit biophysical features combined with small adapted PLMs provide a robust, GPU-light alternative to expensive structural forward passes.
+
+### 43. Decoupling Nucleotide Mutational Supply from Biophysical Fitness in PLMs (MacLean et al., bioRxiv 2026)
+- **Paper:** *Protein language models learn underlying mutation biases alongside fitness landscapes*
+- **Authors:** Oscar A. MacLean, Kieran Lamb, Spyros Lytras, Laura Mojsiejczuk, Ke Yuan, Joseph Hughes, David L. Robertson (MRC-University of Glasgow Centre for Virus Research; bioRxiv July 2026)
+- **Citations / Links:** [DOI:10.64898/2026.07.06.736753](https://doi.org/10.64898/2026.07.06.736753); bioRxiv: `2026.07.06.736753`
+- **Claims:** Demonstrates that zero-shot protein language models (ESM-2, ESM-C) inherently conflate **biophysical protein fitness constraints** with **nucleotide-level mutational supply biases** (transition/transversion asymmetries, CpG hypermutability, and 1-nt vs 2-nt/3-nt codon reachability), because their training sequences reflect historical evolutionary filters rather than unconstrained biophysical space.
+- **Benchmark & Baselines:** Evaluated on real-world influenza A (H3N2) lineage emergence, antigenic escape scanning, and ProteinGym substitution benchmarks, comparing raw PLM log-odds against mutational-supply decoupled scores.
+- **Result:** Incorporating nucleotide accessibility enhances binary forecasting of *which* mutations will emerge under natural evolutionary pressure (where mutational supply governs arrival). Conversely, for evaluating the circulating fitness of existing variants or unbiased experimental deep mutational scans (where NNK/NNS codons sample all amino acids equally), mutational supply acts as a confounding artifact: decoupling it improves pure biophysical fitness ranking. Epistatic scanning revealed that antigenic mutations (e.g. I160K in H3N2) require epistatic permissiveness from background substitutions (S144N/N158D).
+- **Open Code / Weights / Data:** Open data and analysis code on GitHub / bioRxiv.
+- **Hype vs. Evidence:** **CONCEPTUALLY GROUNDED & STATISTICALLY RIGOROUS.** Explains a fundamental blindspot of PLM zero-shot scores on experimental DMS libraries: PLMs penalize multi-nucleotide amino acid changes that are biophysically tolerated simply because nature rarely samples them.
+
+### 44. Simple Baselines Rival PLMs in Mutation-Dense Functional Landscapes (Talpir & Fleishman, bioRxiv 2026)
+- **Paper:** *Simple baselines rival protein language models in mutation-dense design of function tasks*
+- **Authors:** Itay Talpir, Sarel J. Fleishman (Weizmann Institute of Science; bioRxiv May 2026)
+- **Citations / Links:** [DOI:10.64898/2026.05.01.722313](https://doi.org/10.64898/2026.05.01.722313); bioRxiv: `2026.05.01.722313`
+- **Claims:** Tests whether scaling sequence PLMs translates to superior predictive accuracy on **mutation-dense / multi-mutant functional landscapes**, where engineering designs require combining multiple substitutions far from wild-type.
+- **Benchmark & Baselines:** Benchmarked across multi-mutant deep mutational scanning landscapes and combinatorial design sets, comparing ESM-2 (various scales) against classical homology baselines (position weight matrices, PSSMs) and simple biophysical stability filters.
+- **Result:** Across architectures and parameter counts, PLMs perform statistically indistinguishably from one another, and **none consistently outperforms simple conventional baselines** (homology-based log-odds and position-specific frequencies) when evaluating multi-mutant functional combinations. Shows that PLMs fail to generalize to combinatorial mutation density without explicit structural/biophysical physics.
+- **Open Code / Weights / Data:** Open-source benchmarking scripts and evaluation datasets on bioRxiv / GitHub.
+- **Hype vs. Evidence:** **HIGH SCIENTIFIC RIGOR.** Directly challenges the prevailing assumption that large PLMs capture combinatorial epistasis, confirming kbrain's zero-shot epistasis findings and reinforcing that sequence-only representations hit an asymptotic ceiling on multi-point engineering designs.
+
+### 45. RSALOR: Parameter-Free Solvent Accessibility and Evolutionary Log-Odds (Tsishyn et al., Bioinformatics 2025)
+- **Paper:** *Residue conservation and solvent accessibility are (almost) all you need for predicting mutational effects in proteins*
+- **Authors:** Matsvei Tsishyn, Pauline Hermans, Marianne Rooman, Fabrizio Pucci (Université Libre de Bruxelles / 3Bio; Bioinformatics 2025)
+- **Citations / Links:** [DOI:10.1093/bioinformatics/btaf322](https://doi.org/10.1093/bioinformatics/btaf322); Bioinformatics, Vol 41, Issue 6, btaf322; GitHub: `3BioCompBio/RSALOR`
+- **Claims:** Formulates **RSALOR**, an entirely parameter-free, transparent scoring model that multiplies evolutionary Log-Odds Ratios ($\text{LOR}$ from MSAs) by Relative Solvent Accessibility ($\text{RSA}$ from 3D structures or AlphaFold coordinates): $\text{Score} = \text{RSA} \times \text{LOR}$.
+- **Benchmark & Baselines:** Evaluated extensively on ProteinGym v1.3 deep mutational scanning substitution assays and folding stability benchmarks, compared directly against multi-billion-parameter foundation models (ESM-2, Tranception, AlphaMissense).
+- **Result:** Achieves an average Spearman rank correlation of **0.4848** across ProteinGym DMS assays—rivaling or outperforming complex deep learning models like ESM-2 650M (0.4382) and ESM-1v (0.4280)—while requiring **zero GPU compute** and calculating predictions in milliseconds on a single CPU core.
+- **Open Code / Weights / Data:** Fully open Python package (`pip install rsalor`) and repository at `github.com/3BioCompBio/RSALOR`.
+- **Hype vs. Evidence:** **OUTSTANDING EMPIRICAL EVIDENCE.** Proves that a massive fraction of deep learning "magic" on ProteinGym is simply the product of core conservation and surface tolerance, establishing a robust, transparent CPU baseline for the community.
