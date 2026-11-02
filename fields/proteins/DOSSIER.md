@@ -172,8 +172,9 @@ Our compute boundary (8 CPU cores, ~7 GB RAM, ~160 GB disk, no GPU) dictates our
 3. **Augmented Low-N Regression Under Contiguous Splits (Candidate C3)**:
    - *Status*: **Random-split endpoint validated, but not deployable to position-unseen mutation design (Task #191).** Across all proteins the preregistered random-split endpoint passed: mean per-protein $\Delta\rho=+0.00994$, 95% bootstrap CI $[+0.00451,+0.01570]$, $n=186$. This aggregate is driven by 33 multi-mutant-dominated proteins ($+0.05271$, CI $[+0.03402,+0.07464]$); the 153 single-mutant-dominated proteins are null ($+0.00071$, CI $[-0.00393,+0.00474]$).
    - *Question*: Does a model that cannot reuse positional information from training retain an advantage over GEMME on `fold_contiguous_5`, where all test positions are unseen?
-   - *Required next test*: Freeze contiguous folds and all ridge choices; use `lab/proteingym.py`; emit paired per-assay predictions and protein-clustered `kbstats.evaluate` fields (`net_mean`, `ci_low`, `ci_high`, `n_units`). Do not treat the validated random-split result as evidence for this position-disjoint question.
-   - *Feasibility*: Fast closed-form ridge regression using numpy/scikit-learn across 5 folds. Runs in seconds per assay.
+   - *Current status*: **Parked (Task #201; no endpoint evaluated).** The frozen `contiguous-low-n-augmentation` preregistration cannot be run in the supplied environment: its authoritative staged `proteingym.py` evaluator cannot import because the only available Python 3.14.8 runtime lacks pandas, scipy, and scikit-learn (numpy 2.5.4 is present). No result, eligibility count, control, or numerical conclusion was produced.
+   - *Required next test*: Restore an evaluator-compatible local runtime with pandas, scipy, and scikit-learn, then rerun the unchanged frozen preregistration using `lab/proteingym.py`; emit paired per-assay predictions and protein-clustered `kbstats.evaluate` fields (`net_mean`, `ci_low`, `ci_high`, `n_units`). Do not substitute a custom evaluator or treat the random-split result as evidence for this position-disjoint question.
+   - *Feasibility once unblocked*: Fast ridge regression across five folds; expected to run in seconds per assay on the stated CPU budget.
 4. **Explaining Small PLM Failure Modes (Candidate C4)**:
    - *Question*: How does the performance gap between small PLMs (ESM2-35M) and top MSA models (GEMME) correlate with MSA evolutionary depth ($N_{\text{eff}}/L$), taxon (virus vs eukaryote), sequence length, and functional assay type?
    - *Feasibility*: Pure analytical regression on metadata from `pg.reference()` and `pg.leaderboard()`. Runs in seconds.
@@ -196,6 +197,12 @@ Our compute boundary (8 CPU cores, ~7 GB RAM, ~160 GB disk, no GPU) dictates our
 ---
 
 ## Verdicts (Ours, Dated, Newest First)
+
+### 2026-11-01: contiguous-low-n-augmentation — PARKED (Evaluator Runtime Blocked)
+- **Hypothesis / frozen protocol**: The preregistered N=96 GEMME-augmented ridge with position-free amino-acid-pair indicators would improve held-out Spearman over frozen GEMME on ProteinGym v1.3 `fold_contiguous_5`, assessed as a protein-clustered paired endpoint. The frozen preregistration is `inputs/contiguous-low-n-augmentation.md`.
+- **Measured result**: **No numerical result.** The mandated staged `proteingym.py` evaluator could not import in the only available Python 3.14.8 environment because pandas, scipy, and scikit-learn were unavailable (numpy 2.5.4 was available). Consequently no data were loaded or scored, and no eligibility, prediction, baseline, control, confidence interval, or pass/fail decision exists.
+- **Verdict**: **PARKED / BLOCKED BY RUNTIME.** This is an infrastructure limitation, not a negative result or evidence for/against transferable low-N calibration under position-disjoint splits.
+- **Resumption condition**: Provide a local evaluator-compatible runtime containing pandas, scipy, and scikit-learn; rerun the unchanged frozen preregistration through `lab/proteingym.py`. Do not replace the evaluator, alter the split, or tune the frozen method after the runtime is restored.
 
 ### 2026-11-01: label-efficient-model-selection — VALIDATED (Random Low-N Protocol)
 - **Hypothesis**: With 24 labelled mutants, training-only agreement with experimental fitness can select between GEMME and ESM2-650M well enough to improve held-out fitness prediction over frozen GEMME.
