@@ -293,6 +293,14 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero GPU compute; fast convex/L-BFGS optimization on local workstation CPU.
 - **Next step:** Execute Candidate C31 to benchmark RankReg against standard Ridge across ProteinGym low-N splits.
 
+### 30. Asymmetric Structure-Evolution Zero-Shot Engine & Phenotype Safeguard (`EvoStruct-Engine`)
+- **What:** A lightweight, CPU-native variant effect scoring engine and decision API implementing an asymmetric 80% GEMME + 20% SaProt-35M-AF2 percentile-rank blend with automated phenotypic safeguards (falling back to GEMME on viral replication assays and pLDDT < 60 disordered regions).
+- **Why now:** Commercial protein engineering teams frequently assume that adding AlphaFold2 structure representations (SaProt, ESM-IF1) uniformly improves variant prediction across all biological phenotypes. kbrain's confirmatory backtest of an equal 50/50 GEMME/SaProt blend validated a benchmark-wide gain (+0.0211 Spearman per protein; 95% CI [+0.0089, +0.0330]), but the skeptic audit proved this gain was driven entirely by physical folding stability (+0.0814) and 64 cDNA display proteolysis assays from Tsuboyama et al. On functional assays (enzymatic activity, ligand binding, organismal fitness), equal weighting was statistically significantly harmful (-0.0175, 95% CI [-0.0302, -0.0046]), collapsing severely on viral replication genomes (-0.0995, 95% CI [-0.1168, -0.0821]). An asymmetric 80/20 scalar blend resolved these defects, establishing a strictly Pareto-superior frontier that improves over GEMME across every stratum (+0.0208 overall, +0.0079 on functional assays) with zero GPU compute.
+- **Evidence:** The kbrain [structure-evolution zero-shot blend finding](findings/structure-evolution-zero-shot-blend.md); deploy note [`fields/proteins/deploy-structure-evolution-zero-shot-blend.md`](../fields/proteins/deploy-structure-evolution-zero-shot-blend.md); GEMME: Laine et al., 2019 ([DOI:10.1093/molbev/msz179](https://doi.org/10.1093/molbev/msz179)); SaProt: Su et al., 2024 ([ICLR 2024](https://doi.org/10.1101/2023.10.02.560515)); ProteinGym v1.3 benchmark ([arXiv:2306.12204](https://arxiv.org/abs/2306.12204)); Tsuboyama et al., 2023 ([DOI:10.1038/s41586-023-06328-6](https://doi.org/10.1038/s41586-023-06328-6)).
+- **Rough cost:** Zero cloud spend; 100% CPU-tractable (<5 minutes across all 2.46M mutants on an 8-core CPU; <1.5 GB peak RAM). Any forward evaluation on an unseen prospective DMS paper requires operator approval.
+- **Next step:** Execute a frozen preregistered forward paper test on a newly published, post-ProteinGym DMS dataset (requiring operator approval), or evaluate explicit phenotype routing (high structure weight for folding stability, zero structure weight for viral/catalytic targets) under frozen pre-label criteria.
+
+
 
 
 
