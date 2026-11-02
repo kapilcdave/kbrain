@@ -22,6 +22,7 @@ On ProteinGym v1.3, **bigger is not automatically better**, and **pure sequence 
 
 3. **The SOTA Frontier: Structure + Retrieval:**
    - The absolute leaders combine 3D structure (e.g. AlphaFold2 predictions) and retrieval of evolutionary homologs:
+     - **VenusREM2:** **0.5560** (ProteinGym aggregate; training-free harness fusing frozen models with MSA retrieval and pLDDT/SASA shrinkage; Tan et al., Sep 2026)
      - **AIDO Protein-RAG (16B):** 0.5419
      - **VenusREM:** 0.5357 (fuses ProSST structural tokens with evolutionary MSA retrieval logits)
      - **ProSST (K=2048):** 0.5225 (quantized 3D structure tokens + disentangled attention)
@@ -231,3 +232,42 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Benchmark & Baselines:** ESM-2 (650M) zero-shot scoring on ProteinGym DMS assays (e.g. DNAJA1) evaluated by indirect causal effect vs raw activation magnitude.
 - **Open Code / Weights / Data:** Fully open code and SAE feature checkpoints.
 - **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Mechanistically explains why sequence-only PLMs perform well on stability: their internal representations learn emergent 3D contact maps from evolutionary co-variation. Also explains why explicit structure models offer only marginal incremental gains over ESM-2 on many standard single-point assays.
+
+### 5. Training-Free Retrieval & Structural Shrinkage (VenusREM2)
+- **Paper:** *A General Harness for Protein Foundation Model Fitness Prediction*
+- **Authors:** Yang Tan, Qijia Tian, Gangyu Sun, Bozitao Zhong, Mingchen Li (arXiv, Sep 2026)
+- **Citations / Links:** [arXiv:2609.34654](https://arxiv.org/abs/2609.34654)
+- **Claims:** Introduces VenusREM-Harness (VRH), a model-agnostic, training-free framework that fuses frozen foundation model scores with multiple sequence alignment (MSA) evidence according to model prediction uncertainty. It then applies gated background correction and score shrinkage based on AlphaFold2 structural confidence (pLDDT) and solvent accessibility (SASA).
+- **Benchmark & Baselines:** Evaluated across 1,211 assays and 3.1M variants spanning ProteinGym, VenusMutHub, and VenusViroHub against 71 baseline configurations.
+- **Result:** Built with VRH, **VenusREM2** achieves a new state-of-the-art **0.5560 ProteinGym Average Spearman** (+0.038 above prior leader AIDO Protein-RAG / VenusREM v1), ranking #1 across all functional classes, taxa, MSA-depth, and mutation-depth regimes.
+- **Open Code / Weights / Data:** Code and evaluation harness open on GitHub / VenusMutHub.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED / PARADIGM SHIFT.** Proves that beating the scaling plateau does not require training larger billion-parameter models from scratch. Model-agnostic calibration combining evolutionary MSA retrieval with physical solvent-exposure shrinkage reliably lifts frozen PLMs by ~0.07 Spearman.
+
+### 6. Shared Decoders for Cross-Protein Stability Transfer (StabilityArc)
+- **Paper:** *StabilityArc: Decoding Protein Sequence Embeddings into Generalizable Stability Landscapes*
+- **Authors:** Aaron L. Feller, Andrew D. Ellington, Claus O. Wilke (arXiv, Sep 2026)
+- **Citations / Links:** [arXiv:2610.00742](https://arxiv.org/abs/2610.00742)
+- **Claims:** Universal biochemical and thermodynamic rules govern stability across diverse folds. StabilityArc passes frozen ESMC-600M residue embeddings through a shared RoPE transformer decoder to generate an $L \times 20$ full-mutational matrix, adding a symmetric contact-aware residual to capture pairwise epistasis.
+- **Benchmark & Baselines:** Strict leave-one-protein-out cross-validation across 66 ProteinGym stability assays (134,794 variants) against ProSST-2048, ESM-2, and Kermut.
+- **Result:** Achieves **0.7134 Spearman correlation** on held-out proteins, exceeding ProSST-2048 (0.6526) by +0.0608. Supplying StabilityArc scores as priors to Kermut lifts supervised performance to **0.8280** (improving over Kermut's 0.8167).
+- **Open Code / Weights / Data:** Fully open preprint and codebase.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Establishes that zero-shot PLM representations can be decoded into generalizable stability matrices across unseen proteins, eliminating per-target model training for folding stability.
+
+### 7. Linear Fitness Subspaces in PLMs for Low-N Directed Evolution
+- **Paper:** *Linear Fitness Subspace in Protein Language Models Enables Sample-Efficient Directed Evolution*
+- **Authors:** SiYuan Ma, Canran Xiao, Zikai Xiao, Albert Gao, Liang He (arXiv, Oct 2026)
+- **Citations / Links:** [arXiv:2610.07607](https://arxiv.org/abs/2610.07607)
+- **Claims:** Formulates the Linear Fitness Subspace (LFS) hypothesis: within mutation-induced residue representation deltas ($\Delta z = z_{\text{mut}} - z_{\text{wt}}$), a compact, assay-specific set of directions makes fitness variation linearly accessible from few labeled variants. Proposes Subspace-Guided Evolutionary Search (SGES), which identifies this subspace using Partial Least Squares (PLS) from minimal initial samples ($N \in [12, 48]$) to perform surrogate modeling and acquisition.
+- **Benchmark & Baselines:** 10 core ProteinGym DMS assays, 87 static validation assays, and 18-assay budgeted search vs zero-shot PLMs, PCA, random projections, and Gaussian processes.
+- **Open Code / Weights / Data:** Open preprint and code repository.
+- **Hype vs. Evidence:** **HIGHLY RELEVANT TO KBRAIN.** Directly explains why regularized linear models (ridge regression) on PLM representations and zero-shot priors succeed at low N: mutation effects locally lie in low-dimensional linear manifolds.
+
+### 8. Compute-Efficient Modern Architectures (ProtModernBERT)
+- **Paper:** *ProtModernBERT: Compute-Efficient Protein Language Modeling*
+- **Authors:** Alberto Martínez, Natalia Flechas Manrique, Llorenç Espinosa-Portalés, Luc Andrea (arXiv, Oct 2026)
+- **Citations / Links:** [arXiv:2610.19738](https://arxiv.org/abs/2610.19738)
+- **Claims:** Modernizes protein language model architectures by incorporating RoPE (Rotary Position Embeddings), FlashAttention, GeGLU activations, and sequence unpadding.
+- **Benchmark & Baselines:** Evaluated against ProtBert, Amplify-120M, and ESM2 across structural tasks and ProteinGym zero-shot substitution benchmarks.
+- **Result:** Matches Amplify-120M and ProtBert performance with an **80%–90% reduction in pre-training FLOPs**, narrowing the gap to ESM2 when controlling for pre-training data.
+- **Open Code / Weights / Data:** Open-source architecture and checkpoints.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Validates that architectural modernization is more consequential than raw parameter count in compute-constrained regimes.

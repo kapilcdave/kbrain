@@ -41,6 +41,16 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C11. Subspace Projection vs One-Hot Ridge in Low-N Regimes (N=24, 48) on Contiguous Folds
+- **Idea:** Compare two CPU-tractable feature representations for low-N fitness prediction under `fold_contiguous_5` (position-disjoint test mutants):
+  (1) Standard one-hot amino acid indicators + frozen zero-shot prior (augmented ridge baseline from C3).
+  (2) Low-dimensional Partial Least Squares (PLS) or PCA projection (5–10 components) of ESM2-35M residue embedding deltas ($\Delta z = z_{\text{mut}} - z_{\text{wt}}$) + zero-shot prior.
+- **Why:** The Linear Fitness Subspace hypothesis (Ma et al., arXiv:2610.07607, Oct 2026) posits that mutation-induced embedding deltas $\Delta z$ compress functional variation into a compact linear subspace accessible with few labels ($N \le 48$). On position-disjoint splits (`fold_contiguous_5`), standard one-hot features completely fail because test positions were never seen during training (their weights remain zero). In contrast, continuous PLM embedding deltas encode biochemical and spatial relationships across all positions. Testing whether subspace projection enables generalization across unseen positions directly tests if PLM embeddings can unlock position-extrapolative low-N engineering on CPU.
+- **Data:** ProteinGym v1.3 single-substitution assays with `fold_contiguous_5` in `data/proteingym/dms/` and `pg.published_scores`.
+- **Baseline:** Frozen zero-shot GEMME / ESM2-35M scores alone and one-hot augmented ridge.
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** 5–10 minutes on 8 CPU cores (closed-form scikit-learn `PLSRegression` / `PCA` + `Ridge` on ESM2-35M embedding deltas across 5 folds).
+
 ### C10. Decision-Benchmarked Crossover: At What N Does Empirical Ridge Overtake Zero-Shot Priors on Contiguous Splits?
 - **Idea:** Measure the exact training size $N \in \{12, 24, 48, 96, 192\}$ where a pure empirical ridge regression
   (one-hot features alone) and an augmented ridge regression (one-hot + zero-shot prior) surpass frozen zero-shot

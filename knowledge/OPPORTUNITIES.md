@@ -84,6 +84,21 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
   hard-selection, softmax, static-blend, and GEMME procedures before inspecting its labels. Request operator
   approval separately if generating ESM2-650M scores would incur any spend.
 
+### 7. Subspace-Accelerated Low-N Screening for Directed Evolution
+- **What:** A lightweight, CPU-native antibody and enzyme engineering workflow that fits a Linear Fitness Subspace (LFS)
+  over small PLM embedding deltas (ESM2-35M / SaProt-35M) using an initial round of 24–48 experimental measurements,
+  guiding round-2 candidate acquisition without GPU fine-tuning.
+- **Why now:** Commercial wet-labs typically measure 24–96 variants in round 1. Standard tools either fit brittle
+  unregularized regressors that fail on unseen positions, or rely on static zero-shot rankings that cannot incorporate
+  experimental assay specifics. Ma et al. (Oct 2026) proved that a 5–10 dimension subspace recovered via PLS captures
+  fitness variation with sample efficiency that beats high-dimensional neural networks.
+- **Evidence:** Ma et al. 2026 ([arXiv:2610.07607](https://arxiv.org/abs/2610.07607)); kbrain low-N benchmark results
+  ([augmented-low-n-regression.md](findings/augmented-low-n-regression.md)).
+- **Rough cost:** Zero GPU spend; pure closed-form scikit-learn PLS/Ridge inference on 8-core CPU.
+- **Next step:** Execute Candidate C11 across ProteinGym `fold_contiguous_5` splits to determine whether subspace
+  projection achieves a statistically positive CI over unassisted zero-shot priors on position-disjoint splits.
+
+
 
 
 

@@ -35,29 +35,30 @@ The table below reports zero-shot performance across all 217 deep mutational sca
 
 | Rank | Model | Class | Parameters | Hardware / Compute Profile | Mean Spearman ($\bar{\rho}_{\text{assay}}$) | ProteinGym Aggregate ($\bar{\rho}_{\text{agg}}$) | Primary Reference |
 |---|---|---|---|---|---|---|---|
-| 1 | **AIDO Protein-RAG** | Retrieval-Augmented PLM | 16B | Cluster GPU (Multi-A100) | 0.5419 | 0.5182 | Gao et al., 2024 ([bioRxiv:2024.08.19.608688](https://doi.org/10.1101/2024.08.19.608688)) |
-| 2 | **VenusREM** | Representation Ensemble | - | Cluster GPU | 0.5357 | 0.5182 | VenusREM team, 2024 |
-| 3 | **ProSST (K=2048)** | Structure-Aware PLM | ~110M | GPU (AF2 structure tokens) | 0.5225 | 0.5069 | Wang et al., 2023 ([bioRxiv:2023.11.02.565261](https://doi.org/10.1101/2023.11.02.565261)) |
-| 4 | **S3F-MSA** | Structure + Surface + MSA | - | Cluster GPU | 0.5154 | 0.4959 | S3F team, 2024 |
-| 5 | **S2F-MSA** | Structure + MSA | - | Cluster GPU | 0.5079 | 0.4883 | S2F team, 2024 |
-| 6 | **Protriever** | Homology Retrieval PLM | - | GPU (Retrieval index) | 0.4989 | 0.4789 | Protriever team, 2024 (200 assays) |
-| 7 | **ESCOTT** | Structure + Alignment | - | GPU / CPU | 0.4985 | 0.4759 | Faure et al., 2021 ([Genome Biol 22:256](https://doi.org/10.1186/s13059-021-02482-1)) |
-| 8 | **PoET** | Autoregressive Retrieval | 200M | GPU (Batched MSA prompt) | 0.4898 | 0.4701 | Truong & Bepler, 2023 ([NeurIPS 2023](https://doi.org/10.1101/2023.07.03.547514)) |
-| 9 | **ESM3 open** | Multimodal Foundation | 1.4B | Cluster GPU | 0.4827 | 0.4657 | Hayes et al., 2024 ([bioRxiv:2024.07.02.601708](https://doi.org/10.1101/2024.07.02.601708)) |
-| 10 | **RSALOR** | Sequence + Structure | - | GPU | 0.4848 | 0.4646 | RSALOR team, 2024 |
-| 11 | **VespaG** | PLM + Conservation | - | GPU / CPU | 0.4818 | 0.4579 | Marquet et al., 2024 |
-| 12 | **SaProt (650M)** | Structure-Aware PLM | 650M | High-end GPU (AF2 structure) | 0.4728 | 0.4566 | Su et al., 2024 ([ICLR 2024](https://doi.org/10.1101/2023.10.02.560515)) |
-| 13 | **TranceptEVE L** | Retrieval + Generative VAE | Ensemble | High-end GPU | 0.4745 | 0.4558 | Notin et al., 2022 ([ICML 2022](https://proceedings.mlr.press/v162/notin22a.html)) |
-| 14 | **GEMME** | Epistatic Evolutionary | Analytical | **CPU-only (seconds–minutes)** | **0.4743** | **0.4547** | Laine et al., 2019 ([Mol Biol Evol 36:2349](https://doi.org/10.1093/molbev/msz179)) |
-| 15 | **ProtSSN (ensemble)**| Structure-Sequence GNN | Ensemble | GPU | 0.4728 | 0.4489 | Tan et al., 2023 ([bioRxiv:2023.11.16.567362](https://doi.org/10.1101/2023.11.16.567362)) |
-| 16 | **EVE (ensemble)** | Deep Generative VAE | 5x VAE | GPU (Train per family) | 0.4599 | 0.4393 | Frazer et al., 2021 ([Nature 599:91](https://doi.org/10.1038/s41586-021-04043-8)) |
-| 17 | **VESPA** | PLM + Mutation Embedding | - | Fast CPU/GPU inference | 0.4630 | 0.4355 | Marquet et al., 2022 ([Bioinformatics 38:3020](https://doi.org/10.1093/bioinformatics/btac278)) |
-| 18 | **Tranception L** | Autoregressive Retrieval | 700M | High-end GPU | 0.4502 | 0.4341 | Notin et al., 2022 ([ICML 2022](https://proceedings.mlr.press/v162/notin22a.html)) |
-| 19 | **MSA Transformer** | Axial Attention Transformer| 100M | High-end GPU (16 GB VRAM) | 0.4526 | 0.4317 | Rao et al., 2021 ([ICML 2021](https://proceedings.mlr.press/v139/rao21a.html)) |
-| 20 | **ESM2 (650M)** | Masked Language Model | 650M | GPU (8–16 GB VRAM) | 0.4382 | 0.4138 | Lin et al., 2023 ([Science 379:1069](https://doi.org/10.1126/science.ade2574)) |
-| 21 | **ESM-1v (ensemble)**| Masked Language Model | 5x 650M | GPU (8–16 GB VRAM) | 0.4280 | 0.4065 | Meier et al., 2021 ([NeurIPS 2021](https://doi.org/10.1101/2021.07.09.451791)) |
-| 22 | **SaProt (35M)** | Structure-Aware PLM | 35M | Low GPU / CPU | 0.4130 | 0.4065 | Su et al., 2024 ([ICLR 2024](https://doi.org/10.1101/2023.10.02.560515)) |
-| 23 | **ESM2 (3B)** | Masked Language Model | 3B | Multi-GPU (24–48 GB VRAM) | 0.4321 | 0.4056 | Lin et al., 2023 ([Science 379:1069](https://doi.org/10.1126/science.ade2574)) |
+| 1 | **VenusREM2** | Retrieval-Enhanced Harness | - | GPU + Structure/MSA Harness | - | **0.5560** | Tan et al., 2026 ([arXiv:2609.34654](https://arxiv.org/abs/2609.34654)) |
+| 2 | **AIDO Protein-RAG** | Retrieval-Augmented PLM | 16B | Cluster GPU (Multi-A100) | 0.5419 | 0.5182 | Gao et al., 2024 ([bioRxiv:2024.08.19.608688](https://doi.org/10.1101/2024.08.19.608688)) |
+| 3 | **VenusREM** | Representation Ensemble | - | Cluster GPU | 0.5357 | 0.5182 | VenusREM team, 2024 |
+| 4 | **ProSST (K=2048)** | Structure-Aware PLM | ~110M | GPU (AF2 structure tokens) | 0.5225 | 0.5069 | Wang et al., 2023 ([bioRxiv:2023.11.02.565261](https://doi.org/10.1101/2023.11.02.565261)) |
+| 5 | **S3F-MSA** | Structure + Surface + MSA | - | Cluster GPU | 0.5154 | 0.4959 | S3F team, 2024 |
+| 6 | **S2F-MSA** | Structure + MSA | - | Cluster GPU | 0.5079 | 0.4883 | S2F team, 2024 |
+| 7 | **Protriever** | Homology Retrieval PLM | - | GPU (Retrieval index) | 0.4989 | 0.4789 | Protriever team, 2024 (200 assays) |
+| 8 | **ESCOTT** | Structure + Alignment | - | GPU / CPU | 0.4985 | 0.4759 | Faure et al., 2021 ([Genome Biol 22:256](https://doi.org/10.1186/s13059-021-02482-1)) |
+| 9 | **PoET** | Autoregressive Retrieval | 200M | GPU (Batched MSA prompt) | 0.4898 | 0.4701 | Truong & Bepler, 2023 ([NeurIPS 2023](https://doi.org/10.1101/2023.07.03.547514)) |
+| 10 | **ESM3 open** | Multimodal Foundation | 1.4B | Cluster GPU | 0.4827 | 0.4657 | Hayes et al., 2024 ([bioRxiv:2024.07.02.601708](https://doi.org/10.1101/2024.07.02.601708)) |
+| 11 | **RSALOR** | Sequence + Structure | - | GPU | 0.4848 | 0.4646 | RSALOR team, 2024 |
+| 12 | **VespaG** | PLM + Conservation | - | GPU / CPU | 0.4818 | 0.4579 | Marquet et al., 2024 |
+| 13 | **SaProt (650M)** | Structure-Aware PLM | 650M | High-end GPU (AF2 structure) | 0.4728 | 0.4566 | Su et al., 2024 ([ICLR 2024](https://doi.org/10.1101/2023.10.02.560515)) |
+| 14 | **TranceptEVE L** | Retrieval + Generative VAE | Ensemble | High-end GPU | 0.4745 | 0.4558 | Notin et al., 2022 ([ICML 2022](https://proceedings.mlr.press/v162/notin22a.html)) |
+| 15 | **GEMME** | Epistatic Evolutionary | Analytical | **CPU-only (seconds–minutes)** | **0.4743** | **0.4547** | Laine et al., 2019 ([Mol Biol Evol 36:2349](https://doi.org/10.1093/molbev/msz179)) |
+| 16 | **ProtSSN (ensemble)**| Structure-Sequence GNN | Ensemble | GPU | 0.4728 | 0.4489 | Tan et al., 2023 ([bioRxiv:2023.11.16.567362](https://doi.org/10.1101/2023.11.16.567362)) |
+| 17 | **EVE (ensemble)** | Deep Generative VAE | 5x VAE | GPU (Train per family) | 0.4599 | 0.4393 | Frazer et al., 2021 ([Nature 599:91](https://doi.org/10.1038/s41586-021-04043-8)) |
+| 18 | **VESPA** | PLM + Mutation Embedding | - | Fast CPU/GPU inference | 0.4630 | 0.4355 | Marquet et al., 2022 ([Bioinformatics 38:3020](https://doi.org/10.1093/bioinformatics/btac278)) |
+| 19 | **Tranception L** | Autoregressive Retrieval | 700M | High-end GPU | 0.4502 | 0.4341 | Notin et al., 2022 ([ICML 2022](https://proceedings.mlr.press/v162/notin22a.html)) |
+| 20 | **MSA Transformer** | Axial Attention Transformer| 100M | High-end GPU (16 GB VRAM) | 0.4526 | 0.4317 | Rao et al., 2021 ([ICML 2021](https://proceedings.mlr.press/v139/rao21a.html)) |
+| 21 | **ESM2 (650M)** | Masked Language Model | 650M | GPU (8–16 GB VRAM) | 0.4382 | 0.4138 | Lin et al., 2023 ([Science 379:1069](https://doi.org/10.1126/science.ade2574)) |
+| 22 | **ESM-1v (ensemble)**| Masked Language Model | 5x 650M | GPU (8–16 GB VRAM) | 0.4280 | 0.4065 | Meier et al., 2021 ([NeurIPS 2021](https://doi.org/10.1101/2021.07.09.451791)) |
+| 23 | **SaProt (35M)** | Structure-Aware PLM | 35M | Low GPU / CPU | 0.4130 | 0.4065 | Su et al., 2024 ([ICLR 2024](https://doi.org/10.1101/2023.10.02.560515)) |
+| 24 | **ESM2 (3B)** | Masked Language Model | 3B | Multi-GPU (24–48 GB VRAM) | 0.4321 | 0.4056 | Lin et al., 2023 ([Science 379:1069](https://doi.org/10.1126/science.ade2574)) |
 | 24 | **ESM2 (15B)** | Masked Language Model | 15B | Cluster GPU (8x A100) | 0.4253 | 0.4003 | Lin et al., 2023 ([Science 379:1069](https://doi.org/10.1126/science.ade2574)) |
 | 25 | **EVmutation** | Pairwise Potts Epistasis | Analytical | CPU (Pseudolikelihood) | 0.4184 | 0.3953 | Hopf et al., 2017 ([Nat Biotechnol 35:128](https://doi.org/10.1038/nbt.3769)) |
 | 26 | **Site-Independent**| Profile PSSM Log-odds | 0 | **CPU-only (milliseconds)** | **0.3688** | **0.3594** | Classical baseline (ProteinGym standard) |
