@@ -24,6 +24,12 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 - **Data/baseline:** Public DPLM-Evo release if available and ProteinGym mutation tables; baseline ProGen2-M/same mutation type, units assays.
 - **CPU:** Blocked until open weights/code and CPU path are confirmed; no cloud resource authorized.
 
+### C38. Label-Budget Decision Crossover: Calibrated Priors vs Measured Additivity
+- **Idea:** Using existing ProteinGym labels and frozen published predictions, replay a decision benchmark at budgets $N \in \{20, 48, 96, 192, 500\}$: compare calibrated zero-shot priors, additive low-N regression, and prediction-guided versus random acquisition for top-$K$ discovery and global Spearman. Keep ProteinGym fixed folds and define acquisition from training labels only.
+- **Why:** Ding et al. report that calibrated priors win at 20–100 measurements, measured additivity wins for discovery after roughly 50–100, and global ranking crosses near 500. This is directly actionable for kbrain's low-N track, but the thresholds are not independently replayed through the trusted evaluator.
+- **Data/baseline:** `pg.load_assay`, `pg.published_scores`, and existing low-N folds. Baselines fixed before scoring: best published zero-shot member, calibrated fixed blend, ridge/additive model, random acquisition, and model-guided acquisition. Report per-assay and per-protein units; discovery must be preregistered separately from leaderboard Spearman.
+- **CPU:** 5–20 minutes using staged scores and scikit-learn; zero cloud spend. A full acquisition simulation may need chunking to stay under the session limit.
+
 ## Starter slate (operator + Claude, 2026-11-01)
 
 ### C1. Cheap zero-shot ensemble vs its best member

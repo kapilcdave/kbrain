@@ -347,6 +347,13 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero cloud spend for local CPU execution (<5 minutes across all 2.46M mutants on an 8-core CPU; <1.5 GB peak RAM). For an operator-approved prospective forward validation on a newly published post-2024 DMS dataset lacking precomputed VenusREM scores, propose a hard ceiling of **$20** for cloud GPU inference (single AlphaFold structure tokenization + multi-model representation forward pass); no cloud resource may be created without operator approval `[to:operator]`.
 - **Next step:** Package the dual-track phenotypic router into `lab/` and evaluate its empirical performance against fixed baselines under frozen pre-label criteria.
 
+### 36. Decision-Budget Planner for Protein Engineering (`MeasureOrModel`)
+- **What:** A CPU decision-support layer that recommends whether the next assay budget should be spent on calibrated zero-shot ranking, random measurements, additive modeling, double-mutant measurements, or prediction-guided acquisition.
+- **Why now:** Ding et al. show that the best strategy changes with measurement budget and objective: calibrated priors can dominate at 20–100 labels, while measured additivity later wins discovery. This is more useful to an engineer than a single global leaderboard rank.
+- **Evidence:** Ding et al., 2026 ([bioRxiv DOI:10.64898/2026.10.13.758966](https://doi.org/10.64898/2026.10.13.758966)); kbrain low-N findings and fixed ProteinGym folds.
+- **Rough cost:** Zero cloud spend; replay over published scores and existing labels is minutes on CPU. The first product should expose uncertainty and crossover ranges, not hard universal thresholds.
+- **Next step:** Execute Candidate C38 with top-$K$ discovery and global-ranking endpoints preregistered separately; do not market the thresholds until replayed.
+
 
 
 

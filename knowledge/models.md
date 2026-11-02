@@ -701,3 +701,20 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Benchmark/result:** Structural-response benchmark, not a ProteinGym fitness leaderboard; normalized-deformation correlation reportedly falls to about 0.2 for the strongest perturbations.
 - **Open status:** Preprint and supplement are public; no DMS predictor is released.
 - **Hype vs. evidence:** **USEFUL MECHANISTIC EVIDENCE.** Supports local-contact/RSA residuals as a hypothesis, not as a demonstrated fitness gain.
+
+### 53. Decision Benchmarking Separates Ranking Accuracy from Experimental Value (Ding et al., bioRxiv 2026)
+- **Paper:** *Decision benchmarking reveals when protein foundation models add experimental value*
+- **Citation / link:** [bioRxiv DOI:10.64898/2026.10.13.758966](https://doi.org/10.64898/2026.10.13.758966)
+- **Claim:** Reframes protein engineering evaluation around the next decision—what to measure and what to select—rather than a fixed zero-shot correlation leaderboard. It benchmarks 95 predictors and measurement/acquisition strategies across all 217 ProteinGym assays (~2.47M variants).
+- **Benchmark & baselines:** ProteinGym DMS, calibrated zero-shot priors, additive models using measured variants, double-mutant measurements, and prediction-guided acquisition at matched budgets (20–500 measurements). The abstract reports that zero-shot accuracy explains less than one-fifth of discovery variation after calibration.
+- **Result:** Calibrated priors beat budget-matched additivity at 20–100 measurements, but measured additivity overtakes zero-shot models after roughly 50–100 measurements for top-variant discovery and around 500 for global ranking. Prediction-guided acquisition improves discovery; double-mutant measurements help models with mutation-identity features.
+- **Open status:** Preprint is public; verify released code/tables before treating the budget curves as reproducible. No new model weights are required for the immediate kbrain test.
+- **Hype vs. evidence:** **HIGH-VALUE DECISION EVIDENCE, NOT A NEW ZERO-SHOT SOTA.** It directly motivates measuring label-budget crossover and discovery metrics under kbrain's fixed folds; the headline budget thresholds remain author-reported until replayed with `lab/proteingym.py`.
+
+### 54. Pev: One-Pass Family-Held-Out Protein Evolution Scorer (Pev Team, 2026)
+- **Release:** *A System One Approach to General Protein Evolution*
+- **Citation / link:** [Hugging Face model card](https://huggingface.co/Yibooooo/Pev)
+- **Claim:** A single-residue-edit model scores all legal substitutions and STOP in one parent-sequence forward pass, trained across public mutational-scanning and binding/stability datasets and evaluated on family-held-out targets.
+- **Benchmark & baselines:** The model card reports a 214,378-variant evaluation over 165 held-out families spanning AlphaSeq, MegaScale, FireProtDB, ProteinGym, SKEMPI 2.0, SLiM DMS, AbAgym, and FLAb. It emphasizes beneficial-edit enrichment rather than a directly comparable 217-assay ProteinGym mean Spearman; it says the backbone returns about 2/5 beneficial edits versus 1/8 for a stated comparator, with antibodies as a weak class.
+- **Open status:** MIT-licensed model card/repository materials are public, but the training data/code and exact comparator protocol need auditing before use. Single substitutions only; not for indels or multi-mutants.
+- **Hype vs. evidence:** **INTERESTING RELEASE, INSUFFICIENTLY VERIFIED.** The family-held-out design and throughput claim are relevant, but no trusted-evaluator ProteinGym substitution result or full reproducibility package is visible in the card; treat it as a candidate forward/reproduction target, not evidence of SOTA.
