@@ -22,6 +22,9 @@ The map of our niche: protein mutation-effect prediction. The scout keeps this c
     the single-substitution stratum is null and unseen-position design remains unvalidated.
   - [Label-efficient model selection](findings/label-efficient-model-selection.md): 24-label routing between
     GEMME and ESM2-650M beats GEMME on random splits, but remains dry-run pending unseen-target validation.
+  - [Cross-protein-shrunk low-N router](findings/cross-protein-shrunk-low-n-router.md): leave-protein-out
+    historical shrinkage adds +0.0030 Spearman over target-only softmax at 24 labels, but remains a dry-mode
+    retrospective result pending an unseen-target test.
   - [Structure-token Stability edge](findings/structure-tokens-stability-edge.md): SaProt-35M-AF2 beats
     same-scale ESM2-35M on the frozen Stability subset, qualified to Tsuboyama-heavy small-domain data.
   - [MSA-depth gated routing](findings/msa-depth-gated-routing.md): GEMME/ESM2-650M blending beats GEMME,

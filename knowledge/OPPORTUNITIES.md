@@ -228,11 +228,24 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Next step:** Execute Candidate C18 on the ProteinGym MegaScale stability assays to quantify the exact generalization uplift over unconstrained ridge regression.
 
 ### 18. Meta-Utility Predictor Router for Low-N Directed Evolution Campaigns (AssayRouter-Protein)
-- **What:** An automated meta-routing service trained across hundreds of historical deep mutational scans that observes 24–48 experimental labels from an initial screening round and selects an optimal convex ensemble of frozen predictors (ESM-2, SaProt, GEMME) based on predicted post-fit marginal utility.
-- **Why now:** Commercial directed evolution platforms (Cradle, Generate:Biomedicines, Arzeda) waste wet-lab rounds testing uncalibrated zero-shot predictors. Selecting models via support-set cross-validation on 24 labels is noisy and prone to overfitting. AssayRouter (Xu et al., arXiv:2609.37285, Sep 2026) proved that cross-assay historical utility priors outperform support-set CV by 0.0409 NLL across external regression benchmarks.
-- **Evidence:** Xu et al., 2026 ([arXiv:2609.37285](https://arxiv.org/abs/2609.37285)); kbrain Candidate C2 findings.
-- **Rough cost:** Zero GPU compute; fast linear meta-regression inference in milliseconds on CPU.
-- **Next step:** Execute Candidate C20 on ProteinGym's 217 assays under leave-one-protein-out evaluation to benchmark against unregularized 24-label model selection.
+- **What:** A dry-mode router that combines 24 target measurements with leave-protein-out historical utility to
+  weight frozen GEMME and ESM2-650M rankings for the remainder of a mutation library.
+- **Why now:** A frozen ProteinGym replay found that cross-protein shrinkage improves on noisy target-only
+  softmax routing, while the support-label permutation and metadata-only controls both preserve the claimed
+  feature-informed mechanism. The evidence is retrospective and does not yet support operational use.
+- **Evidence:** The kbrain
+  [cross-protein-shrunk router finding](findings/cross-protein-shrunk-low-n-router.md) reports a
+  **+0.002994** mean per-protein held-out Spearman gain over target-only softmax (95% CI
+  **[+0.002016, +0.004115]**; 186 proteins) and a top-5%-trimmed gain of **+0.001743**. External motivation:
+  Xu et al., 2026 ([arXiv:2609.37285](https://arxiv.org/abs/2609.37285)); benchmark: ProteinGym
+  ([Notin et al., arXiv:2306.12204](https://arxiv.org/abs/2306.12204)).
+- **Rough cost:** Zero cloud spend for packaging and replay on published scores; ridge fitting and rank mixing
+  take CPU minutes. Any ESM2-650M score generation for an unseen target requires a provider-specific quote,
+  hard spending cap, and operator approval before resources are created.
+- **Next step:** Keep the implementation in dry mode. Identify one wholly unseen public DMS target and freeze
+  the exact model pair, score orientation, percentile ranks, ridge/shrinkage parameters, 24-label protocol,
+  leave-target-protein exclusion, coverage rules, target-only softmax, uniform, GEMME, permutation and
+  metadata-only controls, and protein-level endpoint before inspecting its labels.
 
 ### 19. Interface-Aware Geometric Adapter Service for Biologics Affinity Maturation (CIR-Engine)
 - **What:** A plug-and-play geometric residual adapter that intercepts sequence PLM scores (ESM-2, SaProt) for antibody-antigen or viral receptor complexes and injects 22 interpretable cross-chain geometric contact descriptors.
