@@ -127,6 +127,23 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
 - **Relevance to kbrain:** Demonstrates that post-inference structural auditing of candidate mutations removes unphysical false positives that deceive raw scalar log-odds models, dramatically boosting prospective hit rates.
 - **Open Science Stance:** Open GitHub repositories (`ai4protein/VenusRAR`), reproducible benchmarking code.
 
+### 2.11 Loschmidt Laboratories (Masaryk University) & DTU Biosustain
+- **Principal Investigators:** Stanislav Mazurenko & Ditte Hededam Welner.
+- **Key Contributions:**
+  - **PRIZM** (Harding-Larsen et al., Bioinform Adv / bioRxiv Feb 2026): A two-phase framework demonstrating that $N \approx 20$ experimental measurements from an initial microplate are sufficient to select the optimal zero-shot model from ProteinGym candidate pools for subsequent directed evolution rounds.
+  - Wet-lab validation on industrial biocatalysts (sucrose synthase thermostability +3°C, glycosyltransferase catalytic activity +20%).
+  - Creators of widely used protein engineering computational tools (FireProt, HotSpot Wizard).
+- **Relevance to kbrain:** Directly validates kbrain's label-efficient model routing findings. Demonstrates that low-N wet-lab budgets should prioritize zero-shot model selection over training fragile empirical regressors from scratch.
+- **Open Science Stance:** Open source tools, Zenodo datasets, and open-access publications.
+
+### 2.12 Green Lab (Harvard Medical School, Systems Biology)
+- **Principal Investigator:** Anna G. Green.
+- **Key Contributions:**
+  - Mechanistic interpretability and causal feature attribution in protein language models (Mohanty et al., bioRxiv Aug/Sep 2026, DOI: 10.64898/2026.08.28.747907).
+  - Deployed Sparse Autoencoders (SAEs) and activation patching on ESM-2, discovering that zero-shot variant effect predictions are mediated by sparse, reusable causal feature circuits that physically map to 3D contact residues in protein backbones.
+- **Relevance to kbrain:** Provides the foundational biophysical explanation for why PLMs succeed or fail: zero-shot scores reflect internal spatial contact subgraphs, validating our hypotheses on 3D contact density gating.
+- **Open Science Stance:** Open bioRxiv preprints, open GitHub code and SAE checkpoints.
+
 ---
 
 ## 3. AI Foundation Model Consortia & Tech Giants
@@ -158,6 +175,14 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
 - **Flagship Model:** **AIDO Protein-RAG** (16B). Currently holds the **#1 ranking on ProteinGym v1.3** (0.5419 mean Spearman, 0.5182 aggregate).
 - **Architecture:** Integrates pre-trained protein language models with homologous sequence retrieval (RAG) and structural conditioning.
 - **Business Model:** Enterprise biotechnology partnerships and bio-computing cloud platforms.
+
+### 3.5 Multiverse Computing
+- **Team / Authors:** Alberto Martínez, Natalia Flechas Manrique, Llorenç Espinosa-Portalés, Luc Andrea.
+- **Key Model:** **ProtModernBERT** (arXiv:2610.19738, Oct 2026).
+- **Architecture:** Replaces legacy BERT components with modern encoder refinements (unpadding, rotary position embeddings [RoPE], GeGLU activations, sequence packing) trained on the UR100P corpus.
+- **ProteinGym Standing:** Matches ProtBert and Amplify-120M zero-shot and representation benchmarks while achieving an 80% to 90% reduction in pre-training FLOPs.
+- **Relevance to kbrain:** Demonstrates high-throughput, low-memory PLM inference architectures optimized for standard commodity CPUs, highly aligned with edge deployment.
+- **Business Model:** Efficient AI architectures, quantum-inspired algorithms, and enterprise edge computing solutions.
 
 ---
 

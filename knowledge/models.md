@@ -510,3 +510,33 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** When evaluation is restricted to the viable functional subspace—the exact regime where directed evolution operates to select improved variants—zero-shot model rank correlation collapses to near zero ($\rho \approx 0$). Furthermore, on new-to-nature functional assays, zero-shot predictions show zero or negative correlation with true enhancement.
 - **Open Code / Weights / Data:** Diagnostic evaluation scripts and stratified analysis notebooks open on GitHub.
 - **Hype vs. Evidence:** **FOUNDATIONAL RIGOR CRITIQUE.** Proves mathematically and empirically why high leaderboard Spearman scores can be deceptive for protein engineering: zero-shot models function primarily as blunt lethality/unfolding filters rather than fine-grained optimizers of functional activity.
+
+### 33. Sparse Causal Feature Circuits for Zero-Shot Mutation Prediction
+- **Paper:** *Towards Sparse Causal Features for Zero-shot Mutation Effect Prediction in a Protein Language Model*
+- **Authors:** Saishradha Mohanty, Manya Phutela, Anna G. Green (Harvard Medical School / Green Lab, bioRxiv, Aug/Sep 2026)
+- **Citations / Links:** [bioRxiv preprint](https://doi.org/10.64898/2026.08.28.747907)
+- **Claims:** Applies mechanistic interpretability techniques—Sparse Autoencoders (SAEs), integrated gradients attribution, and activation patching—to ESM-2 to extract sparse causal feature circuits mediating zero-shot mutation effect predictions.
+- **Benchmark & Baselines:** Evaluated on 67 single mutations in the DNAJA1 J-domain benchmarked against deep mutational scanning fitness data and raw ESM-2 log-odds predictions.
+- **Result:** Circuits isolated by causal indirect effect (mediation) recover model predictions substantially better than raw activation magnitudes. Related substitutions reuse 40% to 75% of their causal latent circuits. Latent features overwhelmingly map to residues in direct 3D physical contact (within 8 Å) with the mutated position.
+- **Open Code / Weights / Data:** SAE checkpoints and activation patching scripts available on bioRxiv / GitHub.
+- **Hype vs. Evidence:** **GROUNDBREAKING MECHANISTIC EVIDENCE.** Provides the first rigorous causal proof that PLM zero-shot mutation scores reflect internal representations of 3D spatial contact networks rather than superficial 1D sequence co-occurrence.
+
+### 34. Low-N Model Selection for Directed Protein Evolution (PRIZM)
+- **Paper:** *PRIZM: Combining Low-N Data and Zero-shot Models to Design Enhanced Protein Variants*
+- **Authors:** David Harding-Larsen, Brianna Marie Lax, Martina Escorial García, Catarina Mendonça, Felipe Mejia-Otalvaro, Ditte Hededam Welner, Stanislav Mazurenko (DTU Biosustain / Loschmidt Laboratories, bioRxiv, Feb 2026; Bioinformatics Advances 2026)
+- **Citations / Links:** [Bioinformatics Advances](https://doi.org/10.1093/bioadv/vbag299); [bioRxiv preprint](https://doi.org/10.64898/2026.02.08.704628); Zenodo: [10.5281/zenodo.23035983](https://doi.org/10.5281/zenodo.23035983)
+- **Claims:** Formulates a two-phase protein engineering protocol (PRIZM): uses a minimal set of experimental measurements ($N \approx 20$ labeled variants) to evaluate and select the best pre-trained zero-shot model from a candidate pool, then deploys that chosen model to prioritize variants across large screening libraries.
+- **Benchmark & Baselines:** Benchmarked across ProteinGym substitution assays and prospectively validated in the wet lab on sucrose synthase (thermostability) and glycosyltransferase (catalytic activity).
+- **Result:** $N \approx 20$ labels are sufficient to reliably differentiate high-performing from poor zero-shot models on a specific target property. In wet-lab validation, the PRIZM-selected models delivered variants with +3°C apparent melting temperature improvements and +20% relative activity gains.
+- **Open Code / Weights / Data:** Software pipeline and case study datasets openly available via Zenodo and GitHub.
+- **Hype vs. Evidence:** **METHODOLOGICALLY ROBUST & ACTIONABLE.** Confirms kbrain's label-efficient model routing findings: minimal wet-lab data is best spent performing hypothesis selection across diverse zero-shot priors rather than fitting overparameterized neural regressors.
+
+### 35. Compute-Efficient Protein Language Modeling (ProtModernBERT)
+- **Paper:** *ProtModernBERT: Compute-Efficient Protein Language Modeling*
+- **Authors:** Alberto Martínez, Natalia Flechas Manrique, Llorenç Espinosa-Portalés, Luc Andrea (Multiverse Computing, arXiv, Oct 2026)
+- **Citations / Links:** [arXiv:2610.19738](https://arxiv.org/abs/2610.19738)
+- **Claims:** Porting architectural refinements from ModernBERT (unpadding, rotary position embeddings [RoPE], GeGLU activations, sequence packing, FlashAttention) to encoder-only protein language modeling on the UR100P corpus.
+- **Benchmark & Baselines:** ProteinGym substitution and clinical benchmarks, compared directly against ProtBert and Amplify-120M.
+- **Result:** Matches or exceeds ProtBert and Amplify-120M zero-shot and representation performance while reducing pre-training compute (FLOPs) by 80% to 90%. Dramatically improves inference throughput and memory footprint on standard CPU/edge hardware.
+- **Open Code / Weights / Data:** Model weights and training code open on Hugging Face / GitHub.
+- **Hype vs. Evidence:** **HIGH INDUSTRIAL RELEVANCE.** Proves that modern architectural innovations can slash PLM compute requirements by nearly an order of magnitude, making local CPU deployment and rapid inference feasible for edge laboratories.

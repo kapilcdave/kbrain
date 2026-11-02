@@ -74,9 +74,10 @@ While zero-shot foundation models (ESM-2, GEMME, VenusREM2) predict broad fitnes
 - By pairing frozen PLM embeddings (e.g. ESM Cambrian) as input columns $X$ with measured assay fitness $y$, the tabular foundation model performs in-context Bayesian regression in a single transformer forward pass.
 - Eliminates hyperparameter tuning, gradient descent, and cross-validation overfitting on small datasets ($N \le 96$), matching or exceeding task-specific Gaussian processes and supervised regressors on ProteinGym and catalytic activity benchmarks while running instantaneously on CPU.
 
-### Paradigm 5: Label-Efficient Model Routing (kbrain 2026)
-- Instead of using $N=24$ measurements to fit model weights, use them to perform **hypothesis selection**: which foundation model's energy landscape best correlates with this specific assay?
-- Demonstrated by kbrain's [label-efficient model selection finding](findings/label-efficient-model-selection.md): dynamically switching between GEMME and ESM2-650M yields **+0.01645** held-out Spearman gain over GEMME (95% CI [+0.00776, +0.02608]).
+### Paradigm 5: Label-Efficient Model Routing & Informed Selection (kbrain & PRIZM 2026)
+- Instead of using $N=20–24$ measurements to fit model weights, use them to perform **hypothesis selection**: which foundation model's energy landscape best correlates with this specific target phenotype?
+- **kbrain Empirical Validation:** Dynamically switching between GEMME and ESM2-650M on $N=24$ labels yielded **+0.01645** held-out Spearman gain over GEMME (95% CI [+0.00776, +0.02608]) ([finding](findings/label-efficient-model-selection.md)).
+- **PRIZM Formalization & Wet-Lab Proof ([Harding-Larsen et al., bioRxiv Feb 2026 / Bioinform Adv 2026](https://doi.org/10.1093/bioadv/vbag299)):** Demonstrated that a minimal calibration set ($N \approx 20$) reliably identifies the optimal zero-shot model from ProteinGym candidate pools for a given enzyme target. Deploying the selected model achieved a +3°C melting temperature enhancement on sucrose synthase and +20% activity gain on glycosyltransferase, proving the real-world value of low-N model routing over unguided single-model bets.
 
 ---
 
@@ -130,6 +131,7 @@ Recent decision-benchmarking literature ([Ding et al., bioRxiv Oct 2026](https:/
 
 ## 6. Key References
 
+- **Harding-Larsen et al., Bioinform Adv / bioRxiv 2026:** *PRIZM: Combining Low-N Data and Zero-shot Models to Design Enhanced Protein Variants.* [DOI:10.1093/bioadv/vbag299](https://doi.org/10.1093/bioadv/vbag299)
 - **Hsu et al., Nat Biotechnol 2022:** *Learning protein fitness landscapes with mutation-augmented neural networks.* [DOI:10.1038/s41587-021-01146-5](https://doi.org/10.1038/s41587-021-01146-5)
 - **Ding et al., bioRxiv 2026:** *Decision benchmarking reveals when protein foundation models add experimental value.* [DOI:10.64898/2026.10.13.758966](https://doi.org/10.64898/2026.10.13.758966)
 - **Ma et al., arXiv 2026:** *Linear Fitness Subspace in Protein Language Models Enables Sample-Efficient Directed Evolution.* [arXiv:2610.07607](https://arxiv.org/abs/2610.07607)

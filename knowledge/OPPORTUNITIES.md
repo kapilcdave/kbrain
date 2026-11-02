@@ -251,6 +251,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Negligible compute; fast Biopython/structural geometry calculations on standard CPU.
 - **Next step:** Prototype the steric clash and SASA filter on ProteinGym benchmark assays with available AlphaFold PDBs (Candidate C25).
 
+### 24. Low-N Zero-Shot Model Selection Engine for Directed Evolution (PRIZM-Engine)
+- **What:** A lightweight decision-support SaaS / Python tool for enzyme and antibody engineering benches that takes a standard 24- or 96-well screening plate of mutant measurements, identifies the top-performing zero-shot model from a calibrated pool (GEMME, ESM2, SaProt, Tranception), and uses it to rank large prospective libraries without model fine-tuning.
+- **Why now:** Wet-lab teams frequently guess which foundation model to use or try to fine-tune complex neural networks on $N \le 24$ mutants, causing severe overfitting. Harding-Larsen et al. (PRIZM, bioRxiv/Bioinformatics Advances 2026) proved that minimal calibration data ($N \approx 20$) is sufficient to pick the winning zero-shot model, yielding prospective hits (+3°C melting temp, +20% activity) in directed evolution campaigns.
+- **Evidence:** Harding-Larsen et al., 2026 ([DOI:10.1093/bioadv/vbag299](https://doi.org/10.1093/bioadv/vbag299)); kbrain label-efficient routing finding.
+- **Rough cost:** Zero GPU compute; instant Spearman rank correlation over precomputed candidate models in milliseconds on CPU.
+- **Next step:** Execute Candidate C26 across the 217 ProteinGym assays to quantify the bootstrap improvement of N=20 model selection over a static baseline.
+
+### 25. Sparse Causal Circuit Auditor for Biologics Hallucination & Interpretability (SAE-ProteinAudit)
+- **What:** An explainability API and validation audit tool using Sparse Autoencoders (SAEs) and causal activation patching on protein language models (ESM-2, SaProt) to provide biopharma teams with structural residue attribution maps explaining why a model scored a substitution favorably before chemical synthesis.
+- **Why now:** Biopharma ML teams often treat PLM variant scores as black-box logits, leading to costly wet-lab failures when models score substitutions favorably based on spurious sequence motifs. Mohanty et al. (bioRxiv 2026) showed that true functional variant predictions are mediated by sparse causal circuits that physically map to 3D spatial contacts (residues within 8 Å). An automated audit tool that visualizes and checks causal circuit integrity provides wet-lab scientists with interpretable rationale before placing oligonucleotide orders.
+- **Evidence:** Mohanty et al., 2026 ([bioRxiv:10.64898/2026.08.28.747907](https://doi.org/10.64898/2026.08.28.747907)); DNAJA1 J-domain mechanistic circuit benchmark.
+- **Rough cost:** Minimal CPU/GPU evaluation using open SAE checkpoints; fast visual graph outputs.
+- **Next step:** Prototype Candidate C27 to measure whether 3D contact density gating replicates SAE causal circuit benefits on ProteinGym.
+
 
 
 

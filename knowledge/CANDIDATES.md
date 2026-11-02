@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C27. 3D Contact-Dense Residue Sensitivity Weighting (The Green SAE Causal Filter)
+- **Idea:** Benchmark whether weighting or gating zero-shot PLM substitution scores by local 3D contact density (residues within 8 Å sphere around the mutation site in AlphaFold structures) improves Spearman rank correlation and top-$K$ enrichment over raw unweighted PLM scores across ProteinGym assays.
+- **Why:** Mohanty et al. (Green Lab, bioRxiv 2026, DOI: 10.64898/2026.08.28.747907) proved using Sparse Autoencoders and causal activation patching on ESM-2 that the model's zero-shot mutation predictions are causally mediated by latent circuits that map directly to 3D physical contact networks. When a residue has few physical contacts (disordered loops / high solvent accessibility), PLM sequence log-odds are prone to hallucinating severe penalties that do not reflect true biophysical sensitivity. Modulating PLM scores by contact density tests whether this causal circuit insight can be operationalized training-free on CPU.
+- **Data:** ProteinGym v1.3 substitution assays, precomputed ESM-2 / SaProt scores, and AlphaFold2 PDB backbones.
+- **Baseline:** Raw unweighted ESM-2 (650M or 35M) zero-shot scores.
+- **Units:** Proteins (`by="protein"` across UniProt IDs with AF2 structures).
+- **CPU:** 2–3 minutes on 8 CPU cores.
+
+### C26. Low-N (N=20) Zero-Shot Model Selector on ProteinGym (The PRIZM Protocol)
+- **Idea:** Test whether an ultra-low-N sample of $N=20$ labeled variants (under both random and contiguous sampling) can reliably select the single best zero-shot model among {GEMME, ESM2-650M, SaProt-35M, EVE, Tranception} on each assay, compared to defaulting to GEMME alone or a fixed 50/50 blend. Evaluate on held-out variants across ProteinGym v1.3 substitution assays.
+- **Why:** Harding-Larsen et al. (PRIZM, bioRxiv/Bioinformatics Advances 2026) demonstrated that evaluating zero-shot models on $N \approx 20$ variants successfully isolated top performers that delivered wet-lab enhancements on enzyme targets. In kbrain's prior finding (`findings/label-efficient-model-selection.md`), 24-label routing between GEMME and ESM2-650M beat GEMME (+0.016 held-out Spearman), but was tested only on a 2-model pair on random splits. Testing the PRIZM protocol across a 5-model candidate pool on both random and contiguous splits provides the definitive test of whether low-N hypothesis selection generalizes across diverse protein families.
+- **Data:** ProteinGym v1.3 substitution reference table and precomputed zero-shot predictions (`data/proteingym/zero_shot/`).
+- **Baseline:** GEMME alone (or fixed uniform ensemble).
+- **Units:** Proteins (`by="protein"` across 186 UniProt IDs) via `improvement_units()`.
+- **CPU:** 1–2 minutes on 8 CPU cores (analytical evaluation over precomputed scores).
+
 ### C25. Post-PLM Structural Steric & SASA Gating for Top-K Candidate Selection (VenusRAR CPU Filter)
 - **Idea:** Simulate prospective directed evolution candidate selection (Top-$K$ with $K \in \{20, 50, 96\}$) from zero-shot foundation models (ESM2-650M, SaProt-35M, GEMME) with and without a training-free structural audit filter (rejecting mutations that introduce severe atomic van der Waals clashes $>0.4$ Å in AlphaFold2 backbones, or bury charged residues [Arg, Lys, Asp, Glu] in core positions where relative solvent accessibility $\text{RSA} < 0.05$). Measure whether structural auditing improves top-$K$ mean true experimental fitness and positive hit rate compared to raw unconstrained PLM ranking.
 - **Why:** Liang et al. (VenusRAR, arXiv:2602.00197, Feb 2026) showed that zero-shot PLMs frequently assign high statistical likelihoods to mutations that violate elementary physical packing rules, and that an automated structural audit boosted Top-5 Hit Rate by up to 367% on ProteinGym-DMS99 while yielding 4- to 5-fold activity improvements on Cas12i3. We can validate this training-free hypothesis across ProteinGym assays with available AlphaFold coordinates on CPU in minutes.
