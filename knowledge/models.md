@@ -747,3 +747,24 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Benchmark/result:** ProteinGym supervised benchmark; the indexed abstract reports split/aggregation comparisons, but detailed protocol and numerical claims require direct audit.
 - **Open status:** Public SSRN paper; code/data release was not established in this shift.
 - **Hype vs. evidence:** **METHODOLOGY ALERT.** Relevant to fixed random/modulo/contiguous folds, but not evidence for a model improvement until reproduced with the trusted evaluator.
+
+### 59. DPLM: Dynamics-Aware Protein Language Model (Jiang et al., bioRxiv 2026)
+- **Citation / link:** [bioRxiv DOI:10.64898/2026.04.29.721692](https://doi.org/10.64898/2026.04.29.721692); [release](https://github.com/yuexujiang/DPLM_release)
+- **Claim:** Contrastive pretraining aligns sequence representations with molecular-dynamics trajectories. The authors report improved zero-shot mutation-effect prediction over ESM-based representations on multiple DMS datasets, with lightweight task-specific heads reaching strong stability and disorder performance.
+- **Benchmark/baselines:** Multiple DMS datasets and stability/disorder tasks; the indexed abstract does not give a directly comparable ProteinGym v1.3 mean Spearman or a complete assay list. ESM-based representations are the stated baseline.
+- **Open status:** Preprint and inference release are public; checkpoint size, CPU memory, and exact zero-shot scoring path need an audit. No paid resource is authorized.
+- **Hype vs. evidence:** **PROMISING, NOT VERIFIED.** Dynamics is orthogonal to our sequence/MSA blends, but the missing ProteinGym aggregate and possible MD-derived compute make a staged transfer check essential before any benchmark claim.
+
+### 60. DETANGO: Disentangling Stability from Functional Mutation Effects (Mohanty et al., bioRxiv 2026)
+- **Citation / link:** [bioRxiv DOI:10.64898/2026.02.03.703560](https://doi.org/10.64898/2026.02.03.703560)
+- **Claim:** Removes components of pLM mutation effects attributed to stability perturbation to produce a functional-plausibility score and functional-site maps across ligand binding, catalysis, and allostery.
+- **Benchmark/baselines:** Functional-site identification and SBI-variant analyses across several functional contexts; the abstract emphasizes comparisons with conservation-plus-stability heuristics, not a directly comparable 217-assay ProteinGym Spearman result.
+- **Open status:** Public preprint; code, checkpoints, and exact ProteinGym-compatible outputs were not established in this shift.
+- **Hype vs. evidence:** **MECHANISTIC HYPOTHESIS, NOT LEADERBOARD EVIDENCE.** It could explain why structure/evolution blends trade off stability and activity, but it should be audited on functional-only assays with stability controls before adoption.
+
+### 61. Corrected SaProt Benchmark Release: Window-Aware 3Di Tokens (PawanRamaMali, 2026)
+- **Citation / link:** [Protein foundation model benchmark dataset](https://huggingface.co/datasets/PawanRamaMali/proteingym-fm-benchmark)
+- **Claim:** Reports that earlier SaProt benchmark versions mishandled ProteinGym sub-fragment assays by truncating 3Di tokens from the full UniProt N-terminus rather than aligning the assayed window; a domain-aware, pLDDT-masked v6 result is reported as the corrected comparison.
+- **Benchmark/baselines:** 201 scored ProteinGym assays; the card reports ESM-2 650M mean Spearman 0.446 and corrected SaProt 650M v6 0.432, versus 0.277/0.302 for the two superseded pipelines. These figures are release-card results, not kbrain evaluator results.
+- **Open status:** Per-assay result files and dataset card are public; raw model outputs are available for audit. The card does not itself establish that all 217 assays or score orientations match kbrain's lab.
+- **Hype vs. evidence:** **IMPORTANT PIPELINE WARNING.** The bug is concrete and directly relevant to our structure-token findings; reproduce the window mapping and score with `lab/proteingym.py` before using any SaProt comparison.

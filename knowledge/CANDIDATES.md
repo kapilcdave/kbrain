@@ -36,6 +36,18 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 - **Data/baseline:** Zenodo release (DOI 10.5281/zenodo.20139484), ProteinGym v1.3, and frozen published-score baselines. Freeze score orientation, assay inclusion, and checkpoint before evaluation; units are assays, with proteins secondary.
 - **CPU:** 15–60 minutes if scores can be generated locally; if inference requires unavailable GPU memory or large MSA searches, stop after release audit and hand off to the data engineer. Zero cloud spend.
 
+### C40. Corrected SaProt Sub-Fragment Alignment Audit
+- **Idea:** Reconstruct the ProteinGym sub-fragment/window mapping used by the public SaProt v3/v4 and v6 result files, then score each exact mutation row through `lab/proteingym.py`; compare corrected versus legacy outputs on the affected assays and against ESM2-35M/650M and GEMME.
+- **Why:** A public benchmark release identifies a concrete 3Di tokenization bug that can feed structure tokens from the wrong region of a larger UniProt sequence. This may explain instability in prior structure-token comparisons and is a data-validity check, not a model-tuning exercise.
+- **Data/baseline:** Public per-assay files in the [ProteinGym FM benchmark](https://huggingface.co/datasets/PawanRamaMali/proteingym-fm-benchmark), ProteinGym v1.3 assay/reference tables, and published-score baselines. Freeze affected-assay inclusion and score orientation before inspection; units are assays, proteins secondary.
+- **CPU:** 2–10 minutes for file alignment and trusted scoring; zero cloud spend.
+
+### C41. DPLM Dynamics Transfer Audit
+- **Idea:** Inspect the public DPLM release and, only if a CPU-runnable checkpoint/inference path exists, score a preregistered subset of ProteinGym assays; compare against ESM2-35M and GEMME, with no claim about the full benchmark unless all inclusion and orientation checks pass.
+- **Why:** Dynamics-aware representations may provide orthogonal information to sequence and MSA scores, but the paper reports no directly comparable ProteinGym v1.3 aggregate in its abstract. The audit separates a genuine transfer signal from a task-specific or expensive MD pipeline.
+- **Data/baseline:** DPLM public release ([bioRxiv DOI](https://doi.org/10.64898/2026.04.29.721692), [GitHub](https://github.com/yuexujiang/DPLM_release)); ProteinGym v1.3; ESM2-35M and GEMME fixed baselines. Units: assays, with phenotype strata prespecified.
+- **CPU:** Release inspection is minutes; inference is **blocked pending memory/runtime check**. No GPU or cloud resource may be created.
+
 ## Starter slate (operator + Claude, 2026-11-01)
 
 ### C1. Cheap zero-shot ensemble vs its best member

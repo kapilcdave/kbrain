@@ -367,6 +367,13 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero cloud spend for release inspection and staged-score replay; local inference cost unknown until checkpoint and MSA requirements are inspected.
 - **Next step:** Execute C39, with a hard stop if the release cannot produce exact ProteinGym mutation scores under the workstation budget.
 
+### 38. Dynamics-Aware Fitness Transfer Auditor (`DPLM-Transfer`)
+- **What:** A reproducible audit layer that tests whether dynamics-aware protein representations add value to cheap evolutionary/PLM ensembles on real DMS assays, while reporting runtime and memory as first-class constraints.
+- **Why now:** DPLM reports improved zero-shot mutation-effect prediction from sequence/MD contrastive pretraining, but its public abstract does not establish a comparable ProteinGym v1.3 aggregate or local-CPU feasibility. Engineering teams need to know whether the dynamics signal survives transfer without an MD pipeline.
+- **Evidence:** Jiang et al., 2026 ([bioRxiv DOI:10.64898/2026.04.29.721692](https://doi.org/10.64898/2026.04.29.721692)); [public release](https://github.com/yuexujiang/DPLM_release).
+- **Rough cost:** Zero cloud spend for release inspection and staged scoring. Any GPU inference or paid compute requires a separate operator-approved proposal; do not create resources.
+- **Next step:** Execute C41 on the smallest assay subset that passes exact mutation mapping and CPU memory checks; report a null if DPLM does not beat fixed ESM2-35M/GEMME baselines.
+
 
 
 
