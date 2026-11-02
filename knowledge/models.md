@@ -2,7 +2,7 @@
 
 _A comprehensive taxonomy, empirical evaluation on ProteinGym v1.3 (217 DMS assays, ~2.4M mutants), and computational feasibility guide._
 
-Last updated: 2026-11-01 (Scout shift). Grounded in the ProteinGym v1.3 benchmark and published zero-shot substitution evaluations.
+Last updated: 2026-11-01 (Scout shift: added VESM co-distillation, SeqDance/ESMDance biophysical dynamics, and ProteoCast proteome-wide GEMME scaling). Grounded in the ProteinGym v1.3 benchmark and published zero-shot substitution evaluations.
 
 ---
 
@@ -768,3 +768,34 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Benchmark/baselines:** 201 scored ProteinGym assays; the card reports ESM-2 650M mean Spearman 0.446 and corrected SaProt 650M v6 0.432, versus 0.277/0.302 for the two superseded pipelines. These figures are release-card results, not kbrain evaluator results.
 - **Open status:** Per-assay result files and dataset card are public; raw model outputs are available for audit. The card does not itself establish that all 217 assays or score orientations match kbrain's lab.
 - **Hype vs. evidence:** **IMPORTANT PIPELINE WARNING.** The bug is concrete and directly relevant to our structure-token findings; reproduce the window mapping and score with `lab/proteingym.py` before using any SaProt comparison.
+
+### 62. VESM: Co-Distillation of ESM Models for Variant Effect Prediction (Dinh et al., Nature Methods 2026)
+- **Paper:** *Compressing the collective knowledge of ESM into a single protein language model*
+- **Citation / links:** [DOI:10.1038/s41592-026-03050-9](https://doi.org/10.1038/s41592-026-03050-9); [Hugging Face Hub: ntranoslab/vesm](https://huggingface.co/ntranoslab/vesm); [GitHub: ntranoslab/vesm](https://github.com/ntranoslab/vesm); [Precomputed scores: ntranoslab/vesm_scores](https://huggingface.co/datasets/ntranoslab/vesm_scores)
+- **Authors:** Tuan Dinh, Seon-Kyeong Jang, Noah Zaitlen, Vasilis Ntranos (UCSF / Ntranos Lab)
+- **Claim:** Challenges the prevailing view that unaligned sequence-only PLMs have hit a hard ceiling on variant effect prediction (VEP). Proposes a co-distillation framework where individual PLMs within the ESM family self-improve by distilling the most confident predictions from multiple models (e.g. ESM-1v ensembles, ESM-2 models).
+- **Benchmark & baselines:** Evaluated on ProteinGym substitution assays and clinical phenotypes in UK Biobank data. The authors release distilled single architectures spanning `VESM_35M`, `VESM_150M`, `VESM_650M`, `VESM_3B`, and an ensemble `VESM++`.
+- **Open status:** Open-source weights and precomputed proteome-wide scores available on Hugging Face (`ntranoslab/vesm`); inference code on GitHub.
+- **CPU feasibility:** High. `VESM_35M` has only 35M parameters and runs at full CPU speed on our 8-core machine, making it a drop-in replacement candidate for vanilla `ESM2-35M` in cheap zero-shot ensembles.
+- **Hype vs. evidence:** **HIGH RELEVANCE FOR CPU SCALING.** Co-distilling ensemble knowledge into a 35M-parameter architecture directly tests whether our CPU sequence prior can jump closer to 650M performance without requiring a GPU. Must be scored through `lab/proteingym.py` before accepting the reported VEP gains.
+
+### 63. SeqDance & ESMDance: Biophysical Dynamics-Informed PLMs (Hou, Zhao, & Shen, PNAS 2026)
+- **Paper:** *Protein language models trained on biophysical dynamics inform mutation effects*
+- **Citation / links:** [DOI:10.1073/pnas.2530466123](https://doi.org/10.1073/pnas.2530466123); [GitHub: ShenLab/SeqDance](https://github.com/ShenLab/SeqDance); open checkpoints on Zenodo / Hugging Face.
+- **Authors:** Chao Hou, Han Zhao, Yufeng Shen (Columbia University / Texas A&M University / Shen Lab)
+- **Claim:** Standard PLMs rely solely on sequence statistics or static crystal/AF coordinates and fail to model conformational dynamics. Authors introduce two models trained on dynamic biophysical properties (fluctuations, residue comovements, and dynamic contacts) derived from molecular dynamics and normal mode analysis (NMA) across >64,000 proteins.
+- **Benchmark & baselines:** Zero-shot mutation effect prediction on designed and viral proteins lacking deep evolutionary homologs, as well as folding stability assays.
+- **Result:** `SeqDance` (trained from scratch) encodes residue comovements and physical folding constraints without evolutionary MSAs. `ESMDance` (built on top of a frozen `ESM2-35M` backbone) significantly outperforms base ESM2 on designed and viral proteins where evolutionary alignments are sparse or absent.
+- **Open status:** GPL-3.0 licensed code on GitHub; model checkpoints public on Zenodo and Hugging Face.
+- **CPU feasibility:** High. `ESMDance` leverages an `ESM2-35M` backbone with lightweight dynamic heads, fully executable on 8 CPU cores.
+- **Hype vs. evidence:** **VALUABLE MECHANISTIC PRIORS.** Directly addresses kbrain's known viral failure mode (where both GEMME and ESM2-35M degrade). Training on analytical NMA dynamics bypasses expensive MD simulations at inference time.
+
+### 64. ProteoCast: Proteome-Wide Missense Variant Impact via GEMME (Abakarova et al., Nature Communications / JMB 2026)
+- **Paper:** *Proteome-wide prediction of the functional impact of missense variants with ProteoCast*
+- **Citation / links:** [Nature Communications DOI:10.1038/s41467-026-72140-1](https://doi.org/10.1038/s41467-026-72140-1); *JMB* web server paper [DOI:10.1016/j.jmb.2026.169657](https://doi.org/10.1016/j.jmb.2026.169657); [GitHub: PhyloSofS-Team/ProteoCast](https://github.com/PhyloSofS-Team/ProteoCast)
+- **Authors:** Marina Abakarova, Maria Inés Freiberger, Arnaud Liehrmann, Michael Rera, Élodie Laine (Sorbonne Université / LCQB / CNRS)
+- **Claim:** Evolutionary information alone, modeled through GEMME's spectral decomposition of conservation and co-variation, enables accurate proteome-wide mutation impact classification when paired with automated MSA quality control and calibrated thresholding.
+- **Benchmark & baselines:** Evaluated across the complete *Drosophila melanogaster* proteome (22,000 isoforms, 300 million mutations) and human ClinVar variants. Correctly classifies 85% of lethal mutations as impactful vs 13–18% of population variants. Provides a three-tier discrete impact classification (neutral, mild, impactful).
+- **Open status:** Fully open-source Python pipeline, public web server, and precomputed proteome predictions.
+- **CPU feasibility:** Complete. GEMME is pure analytical physics running in minutes on CPU.
+- **Hype vs. evidence:** **STRONG RIGOR FROM THE GEMME CREATORS.** While it reinforces GEMME's established accuracy rather than introducing a new neural architecture, its automated MSA curation and three-tier calibration provide a concrete benchmark for discrete clinical triage vs continuous rank-order scoring.

@@ -48,6 +48,24 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 - **Data/baseline:** DPLM public release ([bioRxiv DOI](https://doi.org/10.64898/2026.04.29.721692), [GitHub](https://github.com/yuexujiang/DPLM_release)); ProteinGym v1.3; ESM2-35M and GEMME fixed baselines. Units: assays, with phenotype strata prespecified.
 - **CPU:** Release inspection is minutes; inference is **blocked pending memory/runtime check**. No GPU or cloud resource may be created.
 
+### C43. VESM-35M Co-Distilled CPU Model vs ESM2-35M on ProteinGym
+- **Idea:** Evaluate VESM-35M (Ntranos Lab, Nature Methods 2026, `ntranoslab/vesm`) across all 217 ProteinGym substitution assays and compare against frozen ESM2-35M (0.3188) and ESM2-650M (0.4382). Test whether co-distillation of ESM ensembles into 35M parameters improves zero-shot Spearman on CPU.
+- **Why:** ESM2-35M is our primary fast sequence prior on CPU, but achieves only 0.3188 alone. If VESM-35M recovers a substantial portion of ESM-1v / ESM2-650M predictive power without increasing parameter size, it becomes a strictly superior sequence prior for CPU ensembling and low-N augmentation.
+- **Data/baseline:** Precomputed scores from `ntranoslab/vesm_scores` or CPU model weights from Hugging Face, evaluated with `lab/proteingym.py`. Baselines: ESM2-35M (0.3188) and ESM2-650M (0.4382). Units: assays (217 DMS assays), secondary proteins (186 UniProt IDs).
+- **CPU:** 5–15 minutes using staged scores or ~1-2 hours CPU inference. Zero GPU or cloud spend.
+
+### C44. ESMDance Dynamic Biophysical Prior for Viral & Low-Neff Target Ensembling
+- **Idea:** Evaluate ESMDance (Hou, Zhao, & Shen, PNAS 2026; `ShenLab/SeqDance`), which augments ESM2-35M with biophysical dynamics (fluctuations and comovements from Normal Mode Analysis across >64k proteins), specifically on the viral and low-alignment-depth ($N_{\text{eff}}/L \le 1.0$) subsets of ProteinGym.
+- **Why:** Our prior findings proved that MSA methods (GEMME) and sequence PLMs (ESM2-35M) degrade on viral targets and sparse alignments. Hou et al. report that ESMDance substantially outperforms ESM2 in zero-shot prediction of mutation effects for viral proteins and designs that lack deep evolutionary alignments by providing orthogonal physical flexibility/dynamics information.
+- **Data/baseline:** ProteinGym v1.3 viral assays (e.g. influenza, HIV, SARS-CoV-2) and low-$N_{\text{eff}}/L$ assays; ESMDance checkpoints from Zenodo / Hugging Face. Baselines: ESM2-35M alone and GEMME alone. Units: assays (stratified by viral taxon and $N_{\text{eff}}/L \le 1.0$).
+- **CPU:** 15–30 minutes on 8 CPU cores using the lightweight 35M backbone; zero GPU or cloud spend.
+
+### C45. ProteoCast Evolutionary Impact Stratification vs Continuous GEMME Scores
+- **Idea:** Test whether the discrete three-tier classification from ProteoCast (neutral, mild, impactful; Abakarova et al., Nat Commun / JMB 2026, Laine Lab) improves top-variant discovery or binary deleterious classification over raw continuous GEMME scores on clinical and cellular selection assays in ProteinGym.
+- **Why:** Continuous Spearman rank correlation can be driven by broad deleterious tails rather than discriminating between neutral and functional variants (Woolley et al. 2026). ProteoCast introduces an automated, MSA-calibrated thresholding scheme designed specifically for clinical/phenotypic triage. Evaluating its threshold boundaries on ProteinGym clarifies whether discrete binning adds calibration value over continuous rank-order.
+- **Data/baseline:** ProteinGym v1.3 clinical & cellular assays, GEMME raw scores, and ProteoCast classification rules (`PhyloSofS-Team/ProteoCast`). Baseline: Raw continuous GEMME scores. Units: assays.
+- **CPU:** <5 minutes; zero cloud spend.
+
 ## Starter slate (operator + Claude, 2026-11-01)
 
 ### C1. Cheap zero-shot ensemble vs its best member
@@ -296,7 +314,7 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 - **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
 - **CPU:** 5–10 minutes on 8 CPU cores (closed-form scikit-learn Ridge across 5 folds).
 
-### C39. Specificity-Aware Zero-Shot Audit: Native Fitness vs Altered Function
+### C42. Specificity-Aware Zero-Shot Audit: Native Fitness vs Altered Function
 - **Idea:** Reproduce the SpecificityStudio comparison on its public altered-specificity DMS assays. Score the overlapping substitutions with frozen Site-Independent, GEMME, ESM2-35M/650M, and any supplied open model scores; report per-assay Spearman, top-8/16/32 enrichment, and the correlation between each model's native-function and altered-function rankings when the same protein has both.
 - **Why:** ProteinGym mostly measures the phenotype under which a protein family evolved, while engineering often seeks a new specificity. A model can therefore be excellent at preserving native function yet actively suppress useful redesigns. This is a distinct failure mode from aggregate ProteinGym accuracy and a cheap test of whether the site-independent baseline is a safer prior for altered objectives.
 - **Data:** Public SpecificityStudio tables and source DMS assays from [bioRxiv DOI:10.64898/2026.06.10.731299](https://doi.org/10.64898/2026.06.10.731299); use only assays with an explicit wild-type sequence, mutation map, and directionality. Do not merge its metrics into ProteinGym's 217-assay mean.

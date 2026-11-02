@@ -62,9 +62,10 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
 - **Principal Investigators:** Alessandra Carbone & Elodie Laine.
 - **Key Contributions:**
   - **GEMME** (Global Epistatic Model for Mutation Effects; Laine et al., Mol Biol Evol 2019): Analytical spectral decomposition of evolutionary conservation and co-variation from MSAs.
+  - **ProteoCast** (Abakarova et al., Nature Communications 2026; JMB 2026): Scalable proteome-wide missense variant classification and automated MSA curation, classifying variants into 3-tier impacts across entire proteomes (validated on *Drosophila* and human ClinVar).
   - **JET / JET2+**: Joint Evolutionary Trees for identifying functional binding sites and catalytic residues.
-- **Relevance to kbrain:** **Critical.** GEMME is kbrain's primary CPU-native baseline. It achieves a 0.4743 mean Spearman on ProteinGym v1.3 with zero GPU training, zero backpropagation, and execution times measured in minutes.
-- **Open Science Stance:** Fully open-source C++ and Python implementations; web server available.
+- **Relevance to kbrain:** **Critical.** GEMME is kbrain's primary CPU-native baseline. It achieves a 0.4743 mean Spearman on ProteinGym v1.3 with zero GPU training, zero backpropagation, and execution times measured in minutes. ProteoCast provides a deployable, calibrated discrete triage standard directly compatible with GEMME.
+- **Open Science Stance:** Fully open-source C++ and Python implementations; web server available at Sorbonne.
 
 ### 2.4 Rost Lab (Technical University of Munich / TUM)
 - **Principal Investigator:** Burkhard Rost (Key researchers: Michael Heinzinger, Christian Dallago, Tim Bauer).
@@ -215,6 +216,22 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
   - **PoPMuSiC & BeAtMuSiC**: Classical, fast biophysical predictors for folding and binding free-energy changes ($\Delta\Delta G$).
 - **Relevance to kbrain:** Proves that transparent, parameter-free structural biophysics runs in milliseconds on CPU and matches or beats multi-billion parameter neural networks on ProteinGym.
 - **Open Science Stance:** Open source Python package (`pip install rsalor`) and GitHub repository at `3BioCompBio/RSALOR`.
+
+### 2.22 Shen Lab (Texas A&M University / Columbia University)
+- **Principal Investigators:** Yang Shen & Chao Hou.
+- **Key Contributions:**
+  - **SeqDance & ESMDance** (Hou, Zhao, & Shen, PNAS 2026, DOI: 10.1073/pnas.2530466123): Biophysics-informed protein language models trained on dynamic normal mode analysis (NMA) and MD trajectories across >64,000 proteins.
+  - **ESMDance** uses an ESM2-35M backbone and maps its representations onto dynamic property targets, substantially outperforming vanilla ESM2 on designed and viral proteins where evolutionary alignments are sparse.
+- **Relevance to kbrain:** Directly targets kbrain's known viral failure mode and low-Neff degradation. Normal mode dynamics provide an analytical, CPU-computable physical prior orthogonal to sequence likelihood.
+- **Open Science Stance:** GPL-3.0 licensed code on GitHub (`ShenLab/SeqDance`), open model checkpoints on Zenodo and Hugging Face.
+
+### 2.23 Ntranos Lab (University of California, San Francisco / UCSF)
+- **Principal Investigators:** Vasilis Ntranos & Noah Zaitlen (Key researcher: Tuan Dinh).
+- **Key Contributions:**
+  - **VESM** (Dinh et al., Nature Methods 2026, DOI: 10.1038/s41592-026-03050-9): Co-distillation framework compressing the collective ensemble knowledge of ESM models into single, compact architectures.
+  - Released `VESM_35M`, `VESM_150M`, `VESM_650M`, `VESM_3B`, and `VESM++`, demonstrating that sequence-only PLMs do not require structural coordinates or homology retrieval when co-distilled.
+- **Relevance to kbrain:** Directly enables CPU scaling: `VESM_35M` distills larger ESM models into a 35M-parameter model runnable at full CPU speed, offering a potentially superior drop-in sequence prior over vanilla ESM2-35M.
+- **Open Science Stance:** Open-source weights and precomputed proteome-wide scores on Hugging Face (`ntranoslab/vesm`), open code on GitHub.
 
 ---
 

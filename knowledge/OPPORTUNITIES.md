@@ -2,24 +2,6 @@
 
 Things worth building, betting on or doing next. Format: what, why now, evidence (cite), rough cost, next step.
 
-### 36. Published-Score Calibration Auditor
-- **What:** Reproducibility service for post-processing ensembles such as Delta V, emitting leakage and aggregation checks with trusted per-assay/per-protein results.
-- **Why now:** An open repository claims 0.5690 across 217 substitution assays, above the local reference, but has not been independently replayed.
-- **Evidence:** [Delta V](https://github.com/Travis42/little-scientist-delta-v); [ProteinGym](https://arxiv.org/abs/2306.12204).
-- **Rough cost:** Zero cloud spend; CPU minutes. **Next:** Execute C35 with transformations frozen before outcomes.
-
-### 38. Specificity-Aware Variant Prioritization Auditor
-- **What:** A vendor-neutral audit that distinguishes native-function preservation from altered-specificity discovery, reporting whether a model enriches useful redesigns or merely avoids deleterious mutations.
-- **Why now:** SpecificityStudio reports that zero-shot models strong on native-function benchmarks can be weak or inversely correlated on altered-function DMS, while site-independent scores can be more transferable in some families.
-- **Evidence:** [SpecificityStudio preprint, DOI:10.64898/2026.06.10.731299](https://doi.org/10.64898/2026.06.10.731299); ProteinGym benchmark context at [ProteinGym](https://proteingym.org/).
-- **Rough cost:** Zero cloud spend; CPU rank calculations after public tables are staged. **Next:** Execute C39 with frozen assay inclusion and separate native-function versus altered-function endpoints.
-
-### 37. Local-Geometry Fitness Residual Middleware
-- **What:** Interpretable local contact/burial and physicochemical residuals for frozen zero-shot rankings.
-- **Why now:** A 6,967-pair structural analysis finds mutation-induced deformation is local and AF3 misses strongest cases, motivating local features instead of mutant structure generation.
-- **Evidence:** [Liu, Calabrese & O'Hern, arXiv:2609.24842](https://arxiv.org/abs/2609.24842).
-- **Rough cost:** Zero cloud spend with staged structures; minutes CPU. **Next:** Run C36 with shuffled-site and phenotype controls; do not claim fitness improvement before the per-unit CI rule passes.
-
 ### 1. CPU-Native Protein Engineering Suite (`kbrain-predict`)
 - **What:** An open-source, zero-GPU command-line tool and Python package for zero-shot mutation-effect scoring
   combining GEMME (MSA spectral analysis) and ESM2-35M with automated alignment retrieval (ColabFold/MMseqs2).
@@ -386,6 +368,45 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Evidence:** Jiang et al., 2026 ([bioRxiv DOI:10.64898/2026.04.29.721692](https://doi.org/10.64898/2026.04.29.721692)); [public release](https://github.com/yuexujiang/DPLM_release).
 - **Rough cost:** Zero cloud spend for release inspection and staged scoring. Any GPU inference or paid compute requires a separate operator-approved proposal; do not create resources.
 - **Next step:** Execute C41 on the smallest assay subset that passes exact mutation mapping and CPU memory checks; report a null if DPLM does not beat fixed ESM2-35M/GEMME baselines.
+
+### 39. Published-Score Calibration Auditor
+- **What:** Reproducibility service for post-processing ensembles such as Delta V, emitting leakage and aggregation checks with trusted per-assay/per-protein results.
+- **Why now:** An open repository claims 0.5690 across 217 substitution assays, above the local reference, but has not been independently replayed.
+- **Evidence:** [Delta V](https://github.com/Travis42/little-scientist-delta-v); [ProteinGym](https://arxiv.org/abs/2306.12204).
+- **Rough cost:** Zero cloud spend; CPU minutes. **Next:** Execute C35 with transformations frozen before outcomes.
+
+### 40. Specificity-Aware Variant Prioritization Auditor
+- **What:** A vendor-neutral audit that distinguishes native-function preservation from altered-specificity discovery, reporting whether a model enriches useful redesigns or merely avoids deleterious mutations.
+- **Why now:** SpecificityStudio reports that zero-shot models strong on native-function benchmarks can be weak or inversely correlated on altered-function DMS, while site-independent scores can be more transferable in some families.
+- **Evidence:** [SpecificityStudio preprint, DOI:10.64898/2026.06.10.731299](https://doi.org/10.64898/2026.06.10.731299); ProteinGym benchmark context at [ProteinGym](https://proteingym.org/).
+- **Rough cost:** Zero cloud spend; CPU rank calculations after public tables are staged. **Next:** Execute C42 with frozen assay inclusion and separate native-function versus altered-function endpoints.
+
+### 41. Local-Geometry Fitness Residual Middleware
+- **What:** Interpretable local contact/burial and physicochemical residuals for frozen zero-shot rankings.
+- **Why now:** A 6,967-pair structural analysis finds mutation-induced deformation is local and AF3 misses strongest cases, motivating local features instead of mutant structure generation.
+- **Evidence:** [Liu, Calabrese & O'Hern, arXiv:2609.24842](https://arxiv.org/abs/2609.24842).
+- **Rough cost:** Zero cloud spend with staged structures; minutes CPU. **Next:** Run C36 with shuffled-site and phenotype controls; do not claim fitness improvement before the per-unit CI rule passes.
+
+### 42. VESM-35M Edge VEP Engine: Zero-GPU, Mobile/Edge Clinical Variant Scoring
+- **What:** A lightweight, CPU-optimized deployment package and scoring daemon using co-distilled `VESM_35M` (Dinh et al., Nature Methods 2026) that captures ensemble-level variant-effect accuracy in a 35M-parameter footprint runnable on standard laptops or edge diagnostic sequencers.
+- **Why now:** Clinical genetics and field sequencing devices need local, real-time variant pathogenicity scoring without shipping patient exomes to cloud GPU clusters. VESM demonstrates that co-distilling predictions across ESM models enables small models to recover higher-order variant constraints.
+- **Evidence:** Dinh et al., *Nature Methods* 2026 ([DOI:10.1038/s41592-026-03050-9](https://doi.org/10.1038/s41592-026-03050-9)); Hugging Face repository `ntranoslab/vesm`.
+- **Rough cost:** Zero cloud spend; runs in seconds on 8 CPU cores.
+- **Next step:** Execute Candidate C43 on ProteinGym v1.3; if VESM-35M beats ESM2-35M with a positive CI across 217 assays, replace ESM2-35M with VESM-35M in our zero-GPU ensemble pipeline.
+
+### 43. ESMDance Viral & Orphan Dynamic Screener: Dynamic NMA-Conditioned Variant Prioritization
+- **What:** A biophysics-informed variant scoring tool that couples lightweight sequence PLMs (ESM2-35M) with normal mode analysis (NMA) residue flexibility maps to predict mutational impacts on viral antigens, designed proteins, and orphan folds lacking deep evolutionary alignments.
+- **Why now:** Both sequence PLMs and MSA evolutionary models degrade severely on viral surface proteins (where evolutionary conservation reflects immune escape rather than intrinsic fitness) and de novo proteins lacking homologs. Hou et al. (PNAS 2026) demonstrated that dynamic biophysical targets derived from NMA allow models like ESMDance to substantially outperform ESM2 on viral and designed targets.
+- **Evidence:** Hou, Zhao, & Shen, *PNAS* 2026 ([DOI:10.1073/pnas.2530466123](https://doi.org/10.1073/pnas.2530466123)); `ShenLab/SeqDance`.
+- **Rough cost:** Zero cloud spend; analytical NMA and lightweight 35M forward passes run on CPU.
+- **Next step:** Execute Candidate C44 on the viral and low-Neff subsets of ProteinGym; compare directly against GEMME and vanilla ESM2-35M.
+
+### 44. ProteoCast Proteome-Wide Clinical Triage: Calibrated Discrete 3-Tier Pathogenicity Stratification
+- **What:** An automated variant triage service that converts continuous evolutionary epistatic scores (GEMME) into a calibrated three-tier classification (neutral, mild, impactful) with built-in MSA quality control, designed for proteome-wide interpretation of clinical missense variants.
+- **Why now:** Continuous Spearman rank metrics on ProteinGym are frequently dominated by large deleterious tails (Woolley et al. 2026), creating false confidence for clinical decision-making where a discrete threshold between benign polymorphisms and damaging mutations is required. The GEMME authors (Laine Lab) established and validated discrete triage boundaries across 300M mutations in *Drosophila* and human ClinVar.
+- **Evidence:** Abakarova et al., *Nature Communications* 2026 ([DOI:10.1038/s41467-026-72140-1](https://doi.org/10.1038/s41467-026-72140-1)); *JMB* 2026 ([DOI:10.1016/j.jmb.2026.169657](https://doi.org/10.1016/j.jmb.2026.169657)).
+- **Rough cost:** Zero cloud spend; pure analytical CPU calculations.
+- **Next step:** Execute Candidate C45 to test whether ProteoCast's three-tier thresholding outperforms raw continuous GEMME on clinical benchmark subsets.
 
 
 
