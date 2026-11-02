@@ -169,7 +169,9 @@ Our compute boundary (8 CPU cores, ~7 GB RAM, ~160 GB disk, no GPU) dictates our
    - *Question*: Given only 24 experimental mutant labels for a target protein, can a simple selection rule (e.g. small-sample Spearman or cross-validated ranking) accurately identify whether an MSA model (GEMME) or a PLM (ESM) will perform better on the remaining unobserved mutants?
    - *Feasibility*: Evaluated using `pg.low_n(aid, fit_predict, n_train=24)`. Runs in under 30 minutes on CPU.
 3. **Augmented Low-N Regression Under Contiguous Splits (Candidate C3)**:
-   - *Question*: Does Hsu et al.'s augmented ridge regression maintain its performance advantage over zero-shot alone when tested on `fold_contiguous_5` (where test positions are completely unseen during training), or does it degrade toward the zero-shot baseline?
+   - *Status*: **Open; random-split backtest parked (Task #184).** The supplied run record did not provide accepted primary-endpoint fields (`net_mean`, `ci_low`, `ci_high`, `n_units`) to the verdict process. Its per-protein deltas alone are not an adjudicable result; no claim of improvement is retained.
+   - *Question*: With a rerunnable, auditable result bundle, does Hsu et al.'s augmented ridge regression maintain an advantage over zero-shot alone on `fold_contiguous_5`, where test positions are completely unseen during training, or does it degrade toward the zero-shot baseline?
+   - *Required next test*: Freeze the contiguous folds and all ridge choices; use `lab/proteingym.py`; emit paired per-assay predictions and protein-clustered `kbstats.evaluate` fields (`net_mean`, `ci_low`, `ci_high`, `n_units`) before adjudication. Do not treat a random-split result as evidence for this position-disjoint question.
    - *Feasibility*: Fast closed-form ridge regression using numpy/scikit-learn across 5 folds. Runs in seconds per assay.
 4. **Explaining Small PLM Failure Modes (Candidate C4)**:
    - *Question*: How does the performance gap between small PLMs (ESM2-35M) and top MSA models (GEMME) correlate with MSA evolutionary depth ($N_{\text{eff}}/L$), taxon (virus vs eukaryote), sequence length, and functional assay type?
@@ -193,6 +195,14 @@ Our compute boundary (8 CPU cores, ~7 GB RAM, ~160 GB disk, no GPU) dictates our
 ---
 
 ## Verdicts (Ours, Dated, Newest First)
+
+### 2026-11-01: augmented-low-n-regression — PARKED (No Accepted Primary Endpoint)
+- **Hypothesis**: At 48 labelled mutants and five fixed random low-N replicates, a GEMME-augmented ridge model improves held-out Spearman over frozen GEMME, graded by target protein.
+- **Preregistration**: `inputs/augmented-low-n-regression.md` (Task #184); intended evaluator: `lab/proteingym.py` and protein-clustered `kbstats.evaluate`.
+- **Status / reason**: **PARKED.** The task completion record reported no accepted numeric primary metrics: `net_mean`, `ci_low`, `ci_high`, and `n_units` were missing. Therefore the preregistered pass criterion (`ci_low > 0`) could not be assessed.
+- **Available non-adjudicable output**: The handoff includes 186 keyed per-protein deltas (and 217 rows in `per_assay_results.csv`), but no accepted endpoint statistics in the completion record. These values are retained only as a diagnostic artifact, not pooled or interpreted as a result.
+- **Artifact conflict**: `inputs/results.md` and `inputs/summary.json` describe a PASS, but that conflicts with the authoritative parked task specification. Until a rerunnable evaluation produces and hands off the required paired aggregate metrics, the field records neither a pass nor a fail.
+- **Field impact**: No model, deployment note, or low-N performance claim follows from this attempt. A fresh contiguous-split, protein-clustered evaluation remains the appropriate next experiment.
 
 ### 2026-11-01: cheap-zero-shot-ensemble — REJECTED (Null Result vs GEMME)
 - **Hypothesis**: An unweighted 5-model rank-average ensemble of cheap CPU-runnable zero-shot models (GEMME, EVmutation, Site-Independent, VESPA, ESM2-35M) statistically significantly outperforms the best individual member (GEMME) across 217 ProteinGym v1.3 DMS substitution assays evaluated by independent protein target (186 UniProt proteins).
