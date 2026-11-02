@@ -265,6 +265,21 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Minimal CPU/GPU evaluation using open SAE checkpoints; fast visual graph outputs.
 - **Next step:** Prototype Candidate C27 to measure whether 3D contact density gating replicates SAE causal circuit benefits on ProteinGym.
 
+### 26. Pre-Screening Likelihood Auditor & Model Router for Biologics Discovery (PrefRank Engine)
+- **What:** An automated pre-screening audit and model routing service for biologics discovery platforms that evaluates the wild-type target sequence's pseudo-perplexity / implicit preference under pre-trained PLMs before deciding whether to deploy zero-shot PLMs, build custom MSA-based evolutionary models (GEMME/EVE), or fallback to structure-conditioned methods.
+- **Why now:** Commercial biotechs routinely deploy ESM-2 or ESM-3 to novel therapeutic targets, orphan enzymes, or viral antigens without checking whether the target sequence falls in the model's pretraining support. Gordon, Lu, and Abbeel (ICLR 2025 / bioRxiv) proved that zero-shot PLM ranking collapses when wild-type sequences lie in the low-likelihood tail, explaining unexplained failures in deep mutational scanning prescreens. Providing a fast (<30s on CPU) pre-screening test that flags under-preferred sequences prevents biotechs from ordering flawed mutational libraries.
+- **Evidence:** Gordon, Lu, Abbeel, 2025 ([bioRxiv:10.1101/2024.10.03.616542](https://doi.org/10.1101/2024.10.03.616542); ICLR 2025); ProteinGym v1.3 benchmark assays.
+- **Rough cost:** Zero GPU compute; fast pseudo-perplexity evaluation using ESM2-35M on CPU in seconds.
+- **Next step:** Execute Candidate C28 to test whether WT pseudo-perplexity provides an unsupervised routing edge between ESM2 and GEMME across 186 ProteinGym proteins.
+
+### 27. Disorder-Aware Structure-Sequence Fusion Middleware for Protein Engineering (IDR-Guard API)
+- **What:** A lightweight middleware library and API for protein engineering pipelines that dynamically masks and modulates structure-based variant effect predictions (SaProt, ESM-IF1, ProteinMPNN) based on local AlphaFold pLDDT and intrinsic disorder metrics, falling back to sequence PLMs and evolutionary MSAs in disordered or flexible regions.
+- **Why now:** Structure-aware predictors and inverse folding models are widely treated as strictly superior to sequence models, but Sharma & Gitter (arXiv:2504.16886, ICLR 2025) proved they suffer severe prediction collapse in intrinsically disordered regions (IDRs) and flexible loops due to spurious contacts in predicted AlphaFold coordinates. In kbrain's Task #255 GNM structural dynamics audit, 130 of 217 assays failed a strict 95% structure confidence cutoff. An intelligent disorder-aware gating layer protects engineering teams from synthesized inactive loop variants while preserving high-accuracy structural predictions in folded catalytic cores.
+- **Evidence:** Sharma & Gitter, 2025 ([arXiv:2504.16886](https://arxiv.org/abs/2504.16886)); kbrain Task #255 GNM dynamics audit.
+- **Rough cost:** Zero cloud spend; fast per-residue pLDDT parsing and score masking on CPU in milliseconds.
+- **Next step:** Execute Candidate C29 to quantify bootstrap improvement of pLDDT/IDR-masked structure blends over unmasked baselines across ProteinGym.
+
+
 
 
 

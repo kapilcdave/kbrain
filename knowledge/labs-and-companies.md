@@ -144,6 +144,30 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
 - **Relevance to kbrain:** Provides the foundational biophysical explanation for why PLMs succeed or fail: zero-shot scores reflect internal spatial contact subgraphs, validating our hypotheses on 3D contact density gating.
 - **Open Science Stance:** Open bioRxiv preprints, open GitHub code and SAE checkpoints.
 
+### 2.13 Abbeel & Lu Groups (UC Berkeley)
+- **Principal Investigators:** Pieter Abbeel, Amy X. Lu.
+- **Key Contributions:**
+  - Computational determinants of zero-shot fitness prediction and model preference dynamics (Gordon, Lu, & Abbeel, ICLR 2025 / bioRxiv 2024, DOI: 10.1101/2024.10.03.616542).
+  - Demonstrated that a PLM's zero-shot mutation-effect accuracy is governed by the model's *implicit preference* (wild-type sequence likelihood / pseudo-perplexity), discovering an inverted-U "Goldilocks" effect where both under-represented and over-represented proteins experience degraded zero-shot accuracy.
+- **Relevance to kbrain:** Provides an unsupervised, label-free ($N=0$) metric—wild-type sequence pseudo-perplexity under a small CPU PLM (ESM2-35M)—to detect out-of-distribution targets and guide zero-shot routing between sequence PLMs and MSA physics.
+- **Open Science Stance:** Fully open code, OpenReview papers, bioRxiv preprints.
+
+### 2.14 Structural Bioinformatics & Biophysics Hub (Univ. of Copenhagen / DTU)
+- **Principal Investigators:** Kresten Lindorff-Larsen, Wouter Boomsma, Jes Frellsen.
+- **Key Contributions:**
+  - Grounding deep learning protein representations in rigorous statistical mechanics and thermodynamics.
+  - Formal free-energy interpretation of inverse folding models (Frellsen et al., NeurIPS / arXiv:2506.05596), establishing the partition function links between inverse folding log-odds ratios and thermodynamic $\Delta\Delta G$ across folded backbones and unfolded ensembles.
+- **Relevance to kbrain:** Grounds empirical zero-shot log-odds scoring heuristics in statistical mechanics, providing the theoretical justification for why single-structure log-odds succeed and defining where unfolded-state corrections are required.
+- **Open Science Stance:** Fully open Python implementations (`MachineLearningLifeScience/inverse_folding_free_energies`), open preprints, and NeurIPS proceedings.
+
+### 2.15 Gitter Lab (Univ. of Wisconsin-Madison & Morgridge Institute)
+- **Principal Investigator:** Anthony Gitter.
+- **Key Contributions:**
+  - Methodological evaluation of structure-based machine learning for protein engineering and mutation effect prediction (Sharma & Gitter, arXiv:2504.16886, ICLR Workshop 2025).
+  - Systematically evaluated the failure modes of inverse folding models (ProteinMPNN, ESM-IF1, MIF-ST) in intrinsically disordered regions (IDRs) and analyzed experimental PDB versus predicted AlphaFold coordinates.
+- **Relevance to kbrain:** Explains the exact bottleneck encountered in kbrain's Task #255 GNM structural dynamics evaluation (where 130/217 assays failed due to pLDDT < 70 or disordered regions), motivating our disorder-aware masking filter (Candidate C29).
+- **Open Science Stance:** Open source benchmark repositories on GitHub, OpenReview publications.
+
 ---
 
 ## 3. AI Foundation Model Consortia & Tech Giants
@@ -183,6 +207,14 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
 - **ProteinGym Standing:** Matches ProtBert and Amplify-120M zero-shot and representation benchmarks while achieving an 80% to 90% reduction in pre-training FLOPs.
 - **Relevance to kbrain:** Demonstrates high-throughput, low-memory PLM inference architectures optimized for standard commodity CPUs, highly aligned with edge deployment.
 - **Business Model:** Efficient AI architectures, quantum-inspired algorithms, and enterprise edge computing solutions.
+
+### 3.6 InstaDeep (BioNTech BioAI)
+- **Key Contributors:** Jacob Beck, Shikha Surana, Manus McAuliffe, Oliver Bent, Thomas D. Barrett, Juan Jose Garau Luis, Paul Duckworth.
+- **Key Contributions:**
+  - **Metalic** (ICLR 2025 / arXiv:2410.08355): Formulated low-data fitness prediction as meta-in-context learning across ProteinGym landscapes, setting SOTA low-N prediction with 18x fewer parameters than full-model fine-tuning.
+  - Biological sequence foundation models and active learning workflows for therapeutic antibody and mRNA vaccine design.
+- **Relevance to kbrain:** Confirms that meta-learning across protein fitness landscapes transfers prior adaptation knowledge, providing a sample-efficient alternative to parameter-heavy fine-tuning.
+- **Business Model:** BioAI subsidiary of BioNTech, deploying proprietary models for therapeutic discovery and enterprise collaborations.
 
 ---
 

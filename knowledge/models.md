@@ -540,3 +540,43 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Matches or exceeds ProtBert and Amplify-120M zero-shot and representation performance while reducing pre-training compute (FLOPs) by 80% to 90%. Dramatically improves inference throughput and memory footprint on standard CPU/edge hardware.
 - **Open Code / Weights / Data:** Model weights and training code open on Hugging Face / GitHub.
 - **Hype vs. Evidence:** **HIGH INDUSTRIAL RELEVANCE.** Proves that modern architectural innovations can slash PLM compute requirements by nearly an order of magnitude, making local CPU deployment and rapid inference feasible for edge laboratories.
+
+### 36. Protein Language Model Fitness is a Matter of Preference (Gordon et al., ICLR 2025)
+- **Paper:** *Protein Language Model Fitness is a Matter of Preference*
+- **Authors:** Cade W. Gordon, Amy X. Lu, Pieter Abbeel (UC Berkeley; ICLR 2025 / bioRxiv 2024)
+- **Citations / Links:** bioRxiv [DOI:10.1101/2024.10.03.616542](https://doi.org/10.1101/2024.10.03.616542); [OpenReview:UvPdpa4LuV](https://openreview.net/forum?id=UvPdpa4LuV)
+- **Claims:** Demonstrates that a protein language model's zero-shot mutation-effect accuracy on a target wild-type sequence is fundamentally governed by the model's *implicit preference*—the wild-type sequence likelihood / pseudo-perplexity assigned during pre-training. Identifies an inverted-U "Goldilocks" effect: both under-preferred wild-types (rare taxa, orphan proteins lacking training representation) and over-preferred wild-types (low-entropy, saturated representations) experience degraded zero-shot Spearman correlations.
+- **Benchmark & Baselines:** Evaluated across the ProteinGym substitution benchmark and multiple DMS assays using ESM-2 models (from 8M to 3B parameters).
+- **Result:** Explains why zero-shot PLMs fail abruptly on specific proteins despite strong global benchmark scores: wild-type sequence pseudo-perplexity accounts for substantial variance in per-assay Spearman $\rho$. Using influence functions, the authors prove that power-law sequence homology in the pretraining corpus drives this preference. Unsupervised fine-tuning on low-preference sequences recovers predictive accuracy.
+- **Open Code / Weights / Data:** GitHub repository and analysis scripts openly available.
+- **Hype vs. Evidence:** **EXPLANATORY RIGOR & LABEL-FREE ROUTER.** Replaces empirical guessing of "why ESM-2 failed" with an actionable, label-free biophysical diagnostic: evaluating wild-type pseudo-perplexity under a small CPU PLM (ESM2-35M) takes seconds and provides an unsupervised prior for model routing.
+
+### 37. Free Energy Interpretation of Inverse Folding Models (Frellsen et al., NeurIPS)
+- **Paper:** *Zero-shot protein stability prediction by inverse folding models: a free energy interpretation*
+- **Authors:** Jes Frellsen, Maher M. Kassem, Tone Bengtsen, Lars Olsen, Kresten Lindorff-Larsen, Jesper Ferkinghoff-Borg, Wouter Boomsma (University of Copenhagen / DTU; Advances in Neural Information Processing Systems, NeurIPS / arXiv:2506.05596)
+- **Citations / Links:** [arXiv:2506.05596](https://arxiv.org/abs/2506.05596); GitHub: `MachineLearningLifeScience/inverse_folding_free_energies`
+- **Claims:** Provides the first formal statistical-mechanical derivation connecting inverse folding log-likelihood ratios ($\Delta \log P = \log P(s_{\text{mut}} \mid X) - \log P(s_{\text{wt}} \mid X)$ in ESM-IF1, ProteinMPNN) to thermodynamic stability changes ($\Delta\Delta G = \Delta G_{\text{mut}} - \Delta G_{\text{wt}}$). Formulates the thermodynamic partition function including both the folded native backbone and the unfolded-state ensemble.
+- **Benchmark & Baselines:** MegaScale high-throughput $\Delta\Delta G$ datasets, FireProtDB, and stability-related deep mutational scans in ProteinGym.
+- **Result:** Proves mathematically that standard single-structure inverse folding log-odds ratios succeed because the unfolded-state ensemble free energy behaves approximately as an effective background amino acid reference propensity. However, when inverse folding models are evaluated on flexible loops or disordered fragments, they hallucinate folded-state preferences, explaining why naive unfolded-state Monte Carlo proposals fail.
+- **Open Code / Weights / Data:** Full Python implementation open at `github.com/MachineLearningLifeScience/inverse_folding_free_energies`.
+- **Hype vs. Evidence:** **THEORETICAL FOUNDATION.** Bridges heuristic deep learning scoring with classical statistical mechanics and thermodynamic free energies, showing where inverse folding priors faithfully mirror $\Delta\Delta G$ and where background corrections are required.
+
+### 38. Structure-Based Zero-Shot Pitfalls & Disordered Region Vulnerabilities (Sharma & Gitter, ICLR)
+- **Paper:** *Exploring zero-shot structure-based protein fitness prediction*
+- **Authors:** Arnav Sharma, Anthony Gitter (University of Wisconsin-Madison / Morgridge Institute for Research; arXiv:2504.16886, ICLR Workshop on Generative and Experimental Perspectives for Biomolecular Design)
+- **Citations / Links:** [arXiv:2504.16886](https://arxiv.org/abs/2504.16886); [OpenReview](https://openreview.net/forum?id=e7s052p8d7)
+- **Claims:** Systematically evaluates structural modeling choices for zero-shot protein fitness prediction on ProteinGym (assessing ProteinMPNN, ESM-IF1, MIF-ST). Evaluates experimental PDB structures vs AlphaFold2 predictions, multimeric context, and intrinsically disordered regions (IDRs).
+- **Benchmark & Baselines:** ProteinGym v1.3 substitution benchmark (217 assays), comparing structure-based models against sequence PLMs (ESM-2) and simple multimodal consensus ensembles.
+- **Result:** Identifies that structure-based models suffer severe performance degradation in IDRs and flexible loops, where predicted AlphaFold coordinates introduce artificial, noisy steric contacts. Matches between experimental conformations and functional assay conditions are critical. Furthermore, simple multimodal consensus ensembling (e.g. ESM-2 + ESM-IF1) serves as a robust ceiling, consistently outperforming either modality in isolation.
+- **Open Code / Weights / Data:** Benchmark code, structure-matched splits, and evaluation scripts available on GitHub.
+- **Hype vs. Evidence:** **CRITICAL METHODOLOGICAL DIAGNOSTIC.** Explains the structural coverage and confidence bottleneck observed in empirical evaluations (such as kbrain's Task #255 GNM structural dynamics audit, where 130/217 assays failed due to pLDDT < 70 or disordered regions).
+
+### 39. Meta-Learning In-Context with Protein Language Models (Metalic, ICLR 2025)
+- **Paper:** *Metalic: Meta-Learning In-Context with Protein Language Models*
+- **Authors:** Jacob Beck, Shikha Surana, Manus McAuliffe, Oliver Bent, Thomas D. Barrett, Juan Jose Garau Luis, Paul Duckworth (InstaDeep; ICLR 2025)
+- **Citations / Links:** [arXiv:2410.08355](https://arxiv.org/abs/2410.08355); [OpenReview](https://openreview.net/forum?id=01iBf30Vra)
+- **Claims:** Formulates low-N protein fitness prediction as meta-in-context learning. Rather than fine-tuning massive models per assay or using frozen zero-shot heuristics, Metalic meta-trains an in-context learning adapter across a distribution of protein fitness tasks, learning to adapt rapidly to unseen protein landscapes with few labeled mutants.
+- **Benchmark & Baselines:** ProteinGym low-data benchmark across random and contiguous splits, compared against standard PLM fine-tuning, zero-shot baselines, and ridge regression.
+- **Result:** Achieves new state-of-the-art low-data fitness prediction on ProteinGym with 18x fewer parameters than competing full-parameter fine-tuning models, demonstrating strong out-of-task generalization.
+- **Open Code / Weights / Data:** Code and model checkpoints available via InstaDeep / OpenReview.
+- **Hype vs. Evidence:** **HIGH PRACTICAL UTILITY.** Validates that few-shot adaptation trajectories are shared across diverse proteins, offering a scalable alternative to parameter-heavy fine-tuning in data-scarce engineering regimes.

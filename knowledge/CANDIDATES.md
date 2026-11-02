@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C29. Intrinsic Disorder & pLDDT Masking Filter for Structure-Augmented Zero-Shot Ensembles (The Sharma-Gitter Disordered Filter)
+- **Idea:** Benchmark whether filtering or gating structure-based scores (SaProt-35M, ProteinMPNN, ESM-IF1) by local AlphaFold2 pLDDT and predicted disorder—relying exclusively on sequence PLMs (ESM2-35M) or evolutionary MSAs (GEMME) at positions with pLDDT < 70 or high disorder—improves overall zero-shot ranking performance across ProteinGym substitution assays compared to naive unmasked structure-sequence blends.
+- **Why:** Sharma & Gitter (arXiv:2504.16886, ICLR 2025) proved that structure-based inverse folding and 3D token models collapse severely in intrinsically disordered regions (IDRs) and flexible loops, where predicted AlphaFold conformations generate spurious, rigid physical contacts. In kbrain's Task #255 GNM structural dynamics audit, 130 of 217 assays failed a strict 95% structure confidence cutoff, leaving the dynamics evaluation underpowered. A position-resolved confidence mask allows exploiting high-confidence folded cores without suffering hallucinated penalties in disordered segments.
+- **Data:** `pg.published_scores()` for SaProt-35M, ESM2-35M, and GEMME; per-residue pLDDT extracted from AlphaFold Database (AFDB) PDB structures.
+- **Baseline:** Fixed unmasked 50/50 SaProt-35M + ESM2-35M rank blend (and GEMME alone).
+- **Units:** Proteins (`by="protein"` across UniProt IDs with AFDB structures).
+- **CPU:** < 2 minutes on 8 CPU cores (precomputed scores and cached pLDDT).
+
+### C28. WT Pseudo-Perplexity Gating for Zero-Shot Model Routing (The Gordon-Abbeel Likelihood Prior)
+- **Idea:** Evaluate whether wild-type sequence pseudo-perplexity (or average masked log-likelihood) under ESM2-35M provides an unsupervised, label-free ($N=0$) decision boundary to route between sequence PLMs (ESM2-35M / 650M) and MSA-based statistical physics (GEMME). Test whether wild-types with low pseudo-perplexity (high sequence likelihood) are routed to ESM2, while outlier/orphan proteins with high pseudo-perplexity (under-preferred sequences) are routed to GEMME.
+- **Why:** Gordon, Lu, and Abbeel (ICLR 2025 / bioRxiv 2024, DOI: 10.1101/2024.10.03.616542) demonstrated that PLM zero-shot fitness prediction accuracy is dictated by the model's implicit preference for the wild-type sequence, exhibiting an inverted-U relationship where under-represented sequences experience severe performance degradation. Because GEMME builds a target-specific MSA directly from sequence databases and does not rely on a frozen pretraining distribution, it is immune to PLM pretraining corpus gaps. An unsupervised WT perplexity router requires zero labeled mutants and runs on CPU in minutes.
+- **Data:** ProteinGym v1.3 substitution reference table (`pg.reference()`), published scores for GEMME and ESM2-35M / ESM2-650M.
+- **Baseline:** Fixed 50/50 GEMME + ESM2 blend (and GEMME alone).
+- **Units:** Proteins (`by="protein"` across 186 UniProt IDs) via `improvement_units()`.
+- **CPU:** 2–3 minutes on 8 CPU cores (computing WT pseudo-perplexity on 186 sequences with ESM2-35M).
+
 ### C27. 3D Contact-Dense Residue Sensitivity Weighting (The Green SAE Causal Filter)
 - **Idea:** Benchmark whether weighting or gating zero-shot PLM substitution scores by local 3D contact density (residues within 8 Å sphere around the mutation site in AlphaFold structures) improves Spearman rank correlation and top-$K$ enrichment over raw unweighted PLM scores across ProteinGym assays.
 - **Why:** Mohanty et al. (Green Lab, bioRxiv 2026, DOI: 10.64898/2026.08.28.747907) proved using Sparse Autoencoders and causal activation patching on ESM-2 that the model's zero-shot mutation predictions are causally mediated by latent circuits that map directly to 3D physical contact networks. When a residue has few physical contacts (disordered loops / high solvent accessibility), PLM sequence log-odds are prone to hallucinating severe penalties that do not reflect true biophysical sensitivity. Modulating PLM scores by contact density tests whether this causal circuit insight can be operationalized training-free on CPU.
