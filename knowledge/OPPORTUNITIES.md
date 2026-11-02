@@ -279,6 +279,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero cloud spend; fast per-residue pLDDT parsing and score masking on CPU in milliseconds.
 - **Next step:** Execute Candidate C29 to quantify bootstrap improvement of pLDDT/IDR-masked structure blends over unmasked baselines across ProteinGym.
 
+### 28. Consensus "Variant Soundness" Harmonization Engine for MAVE/DMS Repositories (SoundMave)
+- **What:** A data harmonization and consensus rank-fusion engine that cross-indexes multi-assay DMS datasets from MaveDB, ProteinGym, and internal partner screens, computing "variant soundness" scores to filter assay-specific artifacts and produce high-confidence consensus mutational landscapes for pharmaceutical drug targets.
+- **Why now:** Heterogeneous DMS assays evaluating the same protein often exhibit conflicting measurements due to differing host cells, expression constructs, or FACS selection gates. Arnese & Gambardella (Nature / npj 2026) demonstrated that synthesizing ~1,100 MAVEs through overlap-aware rank fusion isolates a consensus constraint landscape strongly enriched for structural stability and ClinVar clinical pathogenicity. Biopharma teams licensing DMS data for ML training or target validation need clean, consensus-harmonized ground truth.
+- **Evidence:** Arnese & Gambardella, 2026 ([DOI:10.1038/s44320-026-00252-3](https://doi.org/10.1038/s44320-026-00252-3)); MaveDB repository.
+- **Rough cost:** Zero cloud spend; fast automated cross-assay rank alignment and fusion scripts on CPU.
+- **Next step:** Run Candidate C30 on multi-assay ProteinGym proteins to benchmark consensus correlation gains.
+
+### 29. RankReg-Powered Active Learning Controller for Automated Biofoundries (BioFoundry-RankReg)
+- **What:** An active learning controller software package designed for automated robotic biofoundries (e.g. Adaptyv Bio, Ginkgo Bioworks, academic high-throughput screening hubs) that replaces standard MSE regression heads with RankReg (hybrid ranking-regression loss).
+- **Why now:** Directed evolution campaigns frequently fail because standard MSE surrogate models overfit the non-linear dynamic range and measurement noise of initial microplate batches ($N \le 48$), failing to rank high-potential variants accurately for subsequent synthesis rounds. Xu et al. (REAP / RankReg, Nature Communications 2026) demonstrated that jointly optimizing ranking fidelity and quantitative accuracy yielded 57- to 104-fold catalytic gains in automated enzyme campaigns. Providing a drop-in Python/REST API controller allows biofoundries to boost hit rates immediately.
+- **Evidence:** Xu et al., 2026 ([DOI:10.1038/s41467-026-76264-2](https://doi.org/10.1038/s41467-026-76264-2)); REAP closed-loop platform.
+- **Rough cost:** Zero GPU compute; fast convex/L-BFGS optimization on local workstation CPU.
+- **Next step:** Execute Candidate C31 to benchmark RankReg against standard Ridge across ProteinGym low-N splits.
+
 
 
 

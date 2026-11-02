@@ -580,3 +580,33 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Achieves new state-of-the-art low-data fitness prediction on ProteinGym with 18x fewer parameters than competing full-parameter fine-tuning models, demonstrating strong out-of-task generalization.
 - **Open Code / Weights / Data:** Code and model checkpoints available via InstaDeep / OpenReview.
 - **Hype vs. Evidence:** **HIGH PRACTICAL UTILITY.** Validates that few-shot adaptation trajectories are shared across diverse proteins, offering a scalable alternative to parameter-heavy fine-tuning in data-scarce engineering regimes.
+
+### 40. ESMRank: Learning-to-Rank Missense Variant Effects from Deep Mutational Scanning Consensus (Arnese & Gambardella, Nature / npj 2026)
+- **Paper:** *ESMRank: learning-to-rank prediction of missense variant effects from deep mutational scanning data*
+- **Authors:** Roberto Arnese, Gennaro Gambardella (Telethon Institute of Genetics and Medicine / TIGEM; npj Systems Biology and Applications / Nature Portfolio 2026)
+- **Citations / Links:** [DOI:10.1038/s44320-026-00252-3](https://doi.org/10.1038/s44320-026-00252-3); PubMed: [42966765](https://pubmed.ncbi.nlm.nih.gov/42966765/)
+- **Claims:** Demonstrates that redundancy among partially overlapping deep mutational scanning experiments (~1,100 MAVEs spanning over 2 million missense variants) is not noise, but can be synthesized via "variant soundness"—an overlap-aware rank-fusion algorithm—into an assay-agnostic consensus landscape of mutational constraint. Guided by this integrated signal, develops ESMRank, a sequence-based learning-to-rank predictor combining ESM-2 representations with explicit physicochemical descriptors.
+- **Benchmark & Baselines:** Evaluated under strict protein-level partitioning across abundance-, folding-, and stability-related assays in ProteinGym v1.3 and Domainome, compared against ESM-2, GEMME, and standard regression baselines.
+- **Result:** ESMRank significantly outperforms standard predictors across folding and stability assays. Predicted deleterious variants are heavily enriched for ClinVar pathogenic annotations and strongly correlate with experimental CFTR folding efficiency and channel conductance. Proves that learning-to-rank loss functions directly optimize the rank ordering essential for directed evolution and clinical genetics.
+- **Open Code / Weights / Data:** Fully open Python implementation, model checkpoints, and variant soundness tables.
+- **Hype vs. Evidence:** **METHODOLOGICALLY RIGOROUS & HIGH IMPACT.** Resolves the tension of integrating heterogeneous DMS assays by moving from noisy scalar regression to rank-fusion and learning-to-rank objectives, showing that cross-assay consistency isolates structural stability constraints.
+
+### 41. InstructPLM-mu: Structure-Instructed Fine-Tuning of Sequence PLMs (Xu et al., Briefings in Bioinformatics 2026)
+- **Paper:** *InstructPLM-mu: protein fitness prediction from structure instructions*
+- **Authors:** Jiaxin Xu, Yucheng Shi, Linwei Lang, Tianyi Cui, Ziqian Zhang, Guanlin Chen, Jiezhong Qiu, Pheng-Ann Heng (Chinese University of Hong Kong / Tencent AI Lab; Briefings in Bioinformatics 2026)
+- **Citations / Links:** [DOI:10.1093/bib/bbag400](https://doi.org/10.1093/bib/bbag400); PubMed: PMC13652651
+- **Claims:** Investigates whether a pretrained sequence-only PLM (ESM-2), when fine-tuned with structural instruction prompts and cross-attention adapters, can match the fitness prediction performance of end-to-end multimodal foundation models (such as ESM-3) without incurring the immense pretraining compute.
+- **Benchmark & Baselines:** ProteinGym v1.3 substitution benchmark and supervised fitness prediction, systematically comparing three feature-fusion designs and fine-tuning recipes against ESM-2, SaProt, and ESM-3.
+- **Result:** ESM-2 augmented with structure instructions during fine-tuning achieves performance comparable to ESM-3. Systematically reveals that structural feature fusion geometry and fine-tuning strategy dominate raw parameter scale, offering a compute-efficient recipe for injecting AlphaFold coordinates into sequence models.
+- **Open Code / Weights / Data:** Benchmark code, instruction templates, and fine-tuning scripts available via Briefings in Bioinformatics / GitHub.
+- **Hype vs. Evidence:** **PRAGMATIC COMPUTE EFFICIENCY.** Demonstrates that edge laboratories do not need to pretrain multi-billion-parameter multimodal transformers from scratch; lightweight structural instruction tuning on existing sequence PLMs recovers multimodal accuracy.
+
+### 42. LoMuS: Low-Rank Sequence Multi-Representation for Protein Stability Prediction (Infante et al., Bioinformatics 2026)
+- **Paper:** *LoMuS: low-rank adaptation with sequence multi-representation improves protein stability prediction*
+- **Authors:** Salvatore Infante, Anupam Singh, Ahsanur Kabir (AI2Bio Lab; Bioinformatics 2026)
+- **Citations / Links:** [DOI:10.1093/bioinformatics/btag509](https://doi.org/10.1093/bioinformatics/btag509); GitHub: `kabir-ai2bio-lab/LoMuS`
+- **Claims:** Introduces LoMuS, a multi-representation deep learning architecture that predicts experimental protein stability changes ($\Delta\Delta G$ and cDNA proteolysis) directly from primary sequences without requiring 3D structural coordinates, by fusing explicit physicochemical descriptors with low-rank adapted (LoRA) protein language model embeddings.
+- **Benchmark & Baselines:** Evaluated across MegaScale high-throughput proteolysis, ProteinGym stability assays, held-out protein domains, and out-of-distribution label regimes, compared directly against sequence-only PLM baselines.
+- **Result:** Consistently outperforms sequence-only baselines with an absolute gain of at least +10% in Spearman rank correlation. Demonstrates that explicit physicochemical descriptors provide an indispensable orthogonal signal that compensates for the lack of 3D atomic coordinates.
+- **Open Code / Weights / Data:** Complete code, data preparation pipelines, training recipes, and configs open at `github.com/kabir-ai2bio-lab/LoMuS`.
+- **Hype vs. Evidence:** **HIGH UTILITY FOR FAST EDGE SCREENING.** Validates kbrain's architectural philosophy: explicit biophysical features combined with small adapted PLMs provide a robust, GPU-light alternative to expensive structural forward passes.

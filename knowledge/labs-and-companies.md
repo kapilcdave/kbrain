@@ -168,6 +168,30 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
 - **Relevance to kbrain:** Explains the exact bottleneck encountered in kbrain's Task #255 GNM structural dynamics evaluation (where 130/217 assays failed due to pLDDT < 70 or disordered regions), motivating our disorder-aware masking filter (Candidate C29).
 - **Open Science Stance:** Open source benchmark repositories on GitHub, OpenReview publications.
 
+### 2.16 Peking University / Gao Lab & ChemBio Hub
+- **Principal Investigator:** Yi Qin Gao (Key researchers: Zechen Chen, Tianyu Sun, Zun Wang).
+- **Key Contributions:**
+  - **JustEvo** (Chen et al., JCTC 2026, DOI: 10.1021/acs.jctc.6c01288): Prior-guided adaptive Mixture-of-Experts (MoE) framework for low-data and multifunctional directed evolution on ProteinGym.
+  - **Prot2Chat** (Wang et al., Bioinformatics 2025): Multimodal protein large language model integrating early fusion of sequence, structure, and biochemical text instructions.
+- **Relevance to kbrain:** Directly addresses our low-N directed evolution track: proves that dynamic ranking agreement weighting across heterogeneous surrogate experts outperforms single-architecture regressors on ProteinGym benchmarks while enabling multi-objective Pareto optimization.
+- **Open Science Stance:** Peer-reviewed publications in JCTC and Bioinformatics with reproducible evaluation benchmarks.
+
+### 2.17 Computational Precision Medicine Lab (TIGEM / Gambardella Lab)
+- **Principal Investigators:** Gennaro Gambardella & Roberto Arnese (Telethon Institute of Genetics and Medicine / TIGEM).
+- **Key Contributions:**
+  - **ESMRank** (Arnese & Gambardella, Nature / npj Systems Biology and Applications 2026, DOI: 10.1038/s44320-026-00252-3): Learning-to-rank variant effect prediction from >1,100 MAVEs and 2M missense mutations.
+  - **Variant Soundness:** Overlap-aware rank-fusion algorithm that harmonizes cross-assay experimental redundancy into a consensus landscape enriched for biophysical folding and stability constraints.
+- **Relevance to kbrain:** Provides a rigorous method to extract consensus signal from multi-assay protein targets in ProteinGym (e.g. beta-lactamase, PTEN, TP53, SARS-CoV-2 RBD), proving that pairwise ranking loss isolates structural stability better than noisy scalar regression.
+- **Open Science Stance:** Open access Nature Portfolio publication, openly accessible variant constraint scores and Python implementations.
+
+### 2.18 Frontier Synthetic Biology & Biocatalysis Hub (Tianjin Univ. / Yuan Lab)
+- **Principal Investigators:** Yingjin Yuan & Zhenglin Yuchi (Key researcher: Jianing Xu).
+- **Key Contributions:**
+  - **REAP & RankReg** (Xu et al., Nature Communications 2026, DOI: 10.1038/s41467-026-76264-2): Automated closed-loop enzyme engineering driven by **RankReg**, a hybrid loss function jointly optimizing ranking fidelity and quantitative MSE accuracy.
+  - Demonstrated automated discovery of distal and catalytic hotspots yielding 57-fold activity increases on P450 BM3 and 104-fold on Sortase A in five experimental cycles.
+- **Relevance to kbrain:** Solves the core statistical flaw in low-N surrogate modeling: standard MSE regression overfits assay scale noise, while RankReg preserves the rank ordering essential for directed evolution candidate nomination.
+- **Open Science Stance:** Nature Communications open access, open software routines for ranking-guided exploration.
+
 ---
 
 ## 3. AI Foundation Model Consortia & Tech Giants

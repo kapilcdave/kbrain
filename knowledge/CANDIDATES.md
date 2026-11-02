@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C31. Hybrid Ranking-Regression Loss (RankReg) vs Pure Ridge Regression in Low-N Regimes (N=24, 48)
+- **Idea:** Benchmark a hybrid ranking-regression loss function (RankReg: $\min_w \alpha \mathcal{L}_{\text{MSE}}(y, \hat{y}) + (1-\alpha) \mathcal{L}_{\text{Rank}}(y, \hat{y})$ with pairwise ranking hinge/logistic loss) against standard MSE-minimizing Ridge regression across ProteinGym substitution assays at $N \in \{24, 48, 96\}$ under both `fold_random_5` and `fold_contiguous_5`. Inputs are frozen zero-shot scores (GEMME, ESM2-35M) and one-hot indicators.
+- **Why:** Standard supervised models in directed evolution optimize MSE, which overfits absolute assay measurement noise and non-linear readout compression at the expense of candidate rank ordering. Conversely, pure pairwise ranking objectives lose metric calibration. Xu et al. (REAP / RankReg, Nature Communications 2026, DOI: 10.1038/s41467-026-76264-2) proved that joint ranking-regression optimization enabled rapid functional hotspot discovery and 57- to 104-fold activity gains in automated enzyme campaigns. Optimizing RankReg on CPU via fast SciPy L-BFGS takes seconds per assay and directly tests whether rank-preserving supervision beats standard Ridge on held-out mutants.
+- **Data:** ProteinGym v1.3 substitution assays with `fold_random_5` and `fold_contiguous_5` in `data/proteingym/dms/` and `pg.published_scores`.
+- **Baseline:** Standard MSE-minimizing Ridge regression (Candidate C3) and frozen zero-shot priors alone.
+- **Units:** Proteins (`by="protein"` across 186 UniProt IDs) via `improvement_units()`.
+- **CPU:** 3–5 minutes on 8 CPU cores.
+
+### C30. Cross-Assay "Variant Soundness" Consensus Gating for Multi-Assay Protein Targets (The ESMRank Protocol)
+- **Idea:** For proteins with multiple overlapping DMS assays in ProteinGym (e.g., beta-lactamase, GB1, PTEN, TP53, SARS-CoV-2 RBD, CFTR), compute the cross-experiment rank-fusion consensus score ("variant soundness" from Arnese & Gambardella, Nature / npj 2026). Evaluate whether zero-shot foundation models (GEMME, ESM2-35M, SaProt-35M) correlate significantly higher with the consensus rank landscape than with individual raw assay readouts, and whether filtering out variants with high inter-assay divergence clarifies true biophysical model accuracy.
+- **Why:** Arnese & Gambardella (Nature / npj 2026, DOI: 10.1038/s44320-026-00252-3) demonstrated across ~1,100 MAVEs that cross-assay disagreement represents experiment-specific noise (e.g. selection thresholds, FACS gating, host cell stress), whereas overlap-aware rank fusion isolates a consensus landscape enriched for structural stability constraints. Testing this across ProteinGym's multi-assay proteins reveals whether foundation models are unfairly penalized by assay-specific noise and establishes a clean, consensus benchmark for variant effect prediction.
+- **Data:** ProteinGym v1.3 assays for proteins with $\ge 2$ independent DMS datasets and precomputed zero-shot predictions (`data/proteingym/zero_shot/`).
+- **Baseline:** Raw single-assay Spearman rank correlations.
+- **Units:** Proteins (multi-assay UniProt IDs) via `improvement_units()`.
+- **CPU:** 1–2 minutes on 8 CPU cores.
+
 ### C29. Intrinsic Disorder & pLDDT Masking Filter for Structure-Augmented Zero-Shot Ensembles (The Sharma-Gitter Disordered Filter)
 - **Idea:** Benchmark whether filtering or gating structure-based scores (SaProt-35M, ProteinMPNN, ESM-IF1) by local AlphaFold2 pLDDT and predicted disorder—relying exclusively on sequence PLMs (ESM2-35M) or evolutionary MSAs (GEMME) at positions with pLDDT < 70 or high disorder—improves overall zero-shot ranking performance across ProteinGym substitution assays compared to naive unmasked structure-sequence blends.
 - **Why:** Sharma & Gitter (arXiv:2504.16886, ICLR 2025) proved that structure-based inverse folding and 3D token models collapse severely in intrinsically disordered regions (IDRs) and flexible loops, where predicted AlphaFold conformations generate spurious, rigid physical contacts. In kbrain's Task #255 GNM structural dynamics audit, 130 of 217 assays failed a strict 95% structure confidence cutoff, leaving the dynamics evaluation underpowered. A position-resolved confidence mask allows exploiting high-confidence folded cores without suffering hallucinated penalties in disordered segments.

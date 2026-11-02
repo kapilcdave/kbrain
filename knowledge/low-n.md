@@ -50,6 +50,14 @@ While zero-shot foundation models (ESM-2, GEMME, VenusREM2) predict broad fitnes
 |    y_pred = Prior_k*(x) where k* = argmax_k Corr(Prior_k(D_train), y_train)             |
 |    - Routes between evolutionary (GEMME) and sequence (ESM2) priors using N=24 labels.  |
 +-----------------------------------------------------------------------------------------+
+| 7. Prior-Guided Adaptive Mixture-of-Experts (JustEvo; Chen et al., JCTC 2026)           |
+|    y_pred = sum_k w_k(Agreement(D_train)) * Expert_k(x)                                  |
+|    - Dynamically weights heterogeneous surrogate experts by empirical ranking alignment. |
++-----------------------------------------------------------------------------------------+
+| 8. Hybrid Ranking-Regression Loss / RankReg (Xu et al., Nat Commun 2026)                |
+|    min_w alpha * L_MSE(y, f(x)) + (1 - alpha) * L_Rank(y, f(x))                          |
+|    - Jointly optimizes ranking fidelity and numerical calibration on low-N feedback.     |
++-----------------------------------------------------------------------------------------+
 ```
 
 ### Paradigm 1: Pure Empirical Models (One-Hot Features)
@@ -83,6 +91,18 @@ While zero-shot foundation models (ESM-2, GEMME, VenusREM2) predict broad fitnes
 - [Beck et al. (ICLR 2025 / arXiv:2410.08355)](https://arxiv.org/abs/2410.08355) introduced **Metalic** (*Meta-Learning In-Context with Protein Language Models*), training an in-context adaptation layer across a distribution of ProteinGym fitness tasks.
 - Rather than fine-tuning massive models on sparse labels (which causes catastrophic forgetting and overfitting), Metalic leverages meta-learning to map few-shot demonstration exemplars directly into conditioned fitness predictions.
 - Sets a new state-of-the-art performance mark for low-data regimes on ProteinGym while using **18x fewer parameters** than competing fine-tuned architectures, demonstrating that few-shot adaptation trajectories are meta-transferable across unrelated protein targets.
+
+### Paradigm 7: Prior-Guided Adaptive Mixture-of-Experts (JustEvo, Chen et al. JCTC 2026)
+- [Chen et al. (JCTC 2026, DOI: 10.1021/acs.jctc.6c01288)](https://doi.org/10.1021/acs.jctc.6c01288) introduced **JustEvo**, an adaptive closed-loop framework coordinating prior-guided cold-start batch selection with multi-representation Mixture-of-Experts (MoE) ensembling.
+- Before wet-lab data arrives, JustEvo selects an informative initial screening batch using an unassisted mutation prior. After initial experimental measurements ($N \le 48$) are acquired, it trains specialized surrogate experts over heterogeneous representations (sequence PLM embeddings, explicit physicochemical descriptors, evolutionary conservation) and dynamically combines their predictions based on empirical ranking agreement.
+- Evaluated on an 81-landscape ProteinGym benchmark collection, JustEvo achieved a normalized top-5 candidate fitness of 0.862 under finite acquisition budgets, outperforming EVOLVEpro (0.849) and RelaVDEP (0.818) while expanding multiobjective Pareto fronts (fluorescence and stability) by 872% in experimental EYFP engineering.
+
+### Paradigm 8: Hybrid Ranking-Regression Loss (RankReg / REAP, Xu et al. Nat Commun 2026)
+- [Xu et al. (Nature Communications 2026, DOI: 10.1038/s41467-026-76264-2)](https://doi.org/10.1038/s41467-026-76264-2) introduced **RankReg** within the automated robotic enzyme engineering platform REAP.
+- Standard low-N supervised surrogates optimize Mean Squared Error (MSE), which tends to overfit absolute assay measurement scale and noise at the expense of rank ordering. Conversely, pure ranking objectives (like pairwise hinge or ListNet loss) lose metric calibration.
+- RankReg solves this by jointly optimizing ranking fidelity and quantitative accuracy:
+  $$\mathcal{L}_{\text{RankReg}} = \alpha \mathcal{L}_{\text{MSE}}(y, \hat{y}) + (1-\alpha) \mathcal{L}_{\text{Rank}}(y, \hat{y})$$
+- Directly incorporating experimental ranking feedback enabled rapid identification of functional hotspots in both catalytic cores and distal regions, driving 57-fold activity gains in cytochrome P450 BM3 and 104-fold enhancement in Sortase A within 5 cycles.
 
 ---
 
@@ -136,6 +156,8 @@ Recent decision-benchmarking literature ([Ding et al., bioRxiv Oct 2026](https:/
 
 ## 6. Key References
 
+- **Chen et al., JCTC 2026:** *JustEvo: A Prior-Guided Adaptive Mixture-of-Experts Framework for Multifunctional Protein Directed Evolution.* [DOI:10.1021/acs.jctc.6c01288](https://doi.org/10.1021/acs.jctc.6c01288)
+- **Xu et al., Nat Commun 2026:** *Rank-guided learning accelerates automated enzyme engineering (REAP / RankReg).* [DOI:10.1038/s41467-026-76264-2](https://doi.org/10.1038/s41467-026-76264-2)
 - **Harding-Larsen et al., Bioinform Adv / bioRxiv 2026:** *PRIZM: Combining Low-N Data and Zero-shot Models to Design Enhanced Protein Variants.* [DOI:10.1093/bioadv/vbag299](https://doi.org/10.1093/bioadv/vbag299)
 - **Beck et al., ICLR 2025:** *Metalic: Meta-Learning In-Context with Protein Language Models.* [arXiv:2410.08355](https://arxiv.org/abs/2410.08355)
 - **Hsu et al., Nat Biotechnol 2022:** *Learning protein fitness landscapes with mutation-augmented neural networks.* [DOI:10.1038/s41587-021-01146-5](https://doi.org/10.1038/s41587-021-01146-5)
