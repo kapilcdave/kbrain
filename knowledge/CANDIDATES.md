@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C21. Explicit Geometric Contact Density Residual for Zero-Shot Interface DMS Assays (CIR-DDG Residual)
+- **Idea:** On the 13 ProteinGym binding assays and complex interface targets (e.g., SARS-CoV-2 RBD-ACE2, antibody-antigen interfaces), evaluate whether adding an explicit, training-free geometric contact density residual (coordination number within 8 Å, interface distance, relative solvent accessibility computed from PDB structures via Biopython) to frozen zero-shot PLM scores (ESM2-35M, SaProt-35M, GEMME) improves interface mutation Spearman correlation over raw scores.
+- **Why:** Yu et al. (CIR-DDG, arXiv:2608.27530, Aug 2026) showed that zero-shot PLMs and structure models systematically drop critical interface contact geometry in their scalar predictions, and that adding 22 interpretable contact descriptors boosted absolute Spearman correlation by +0.026 to +0.081 on SARS-CoV-2 RBD interface mutations without any retraining.
+- **Data:** ProteinGym v1.3 binding assays (`coarse_selection_type == 'Binding'`), PDB/AlphaFold structures, and precomputed zero-shot scores (`data/proteingym/zero_shot/`).
+- **Baseline:** Raw published zero-shot scores (ESM2-35M, ESM2-650M, GEMME) alone.
+- **Units:** Assays (13 binding assays).
+- **CPU:** 1–2 minutes on 8 CPU cores using Biopython PDB contact parsing.
+
+### C20. Historical Utility Prior for 24-Label Model Routing (AssayRouter for ProteinGym)
+- **Idea:** Replace noisy support-set argmax correlation selection in Candidate C2 (24-label routing) with a meta-learned historical utility prior: train a cross-assay linear utility regressor across completed ProteinGym assays (leave-one-protein-out) that maps model support-set agreement, variance, and entropy to the held-out marginal utility of each frozen predictor (GEMME, ESM2-35M, SaProt-35M, ESM2-650M), selecting an optimal convex predictor combination on a new assay with $N=24$ support labels.
+- **Why:** Xu et al. (AssayRouter, arXiv:2609.37285, Sep 2026) proved that when selecting among frozen predictors with $N \in [16, 64]$ labels, choosing the empirical best model on the support set (`Support-CV@1`) suffers from high selection variance and failure to generalize. Historical utility priors transferred across completed assays lowered negative log-likelihood by 0.0409 and stabilized model ensembling.
+- **Data:** ProteinGym v1.3 substitution reference and precomputed scores (`pg.published_scores`).
+- **Baseline:** Argmax support-set Spearman selection (Candidate C2 baseline) and fixed uniform ensemble.
+- **Units:** Proteins (`by="protein"` across all 186 UniProt IDs).
+- **CPU:** ~3 minutes on 8 CPU cores.
+
 ### C19. Orthogonal Feature Projection: Quantifying Pure Structural Variance in Small PLMs
 - **Idea:** Orthogonally project out standard amino-acid physicochemical features (charge, hydropathy, volume, polarity from AAindex) from frozen ESM2-35M and SaProt-35M residue embeddings across all 217 ProteinGym substitution assays, evaluating how much of the zero-shot Spearman correlation remains.
 - **Why:** Sarmiento et al. (arXiv:2608.25548, Aug 2026) demonstrated that a substantial fraction of apparent PLM prediction accuracy is attributable to linear projection of basic tabular amino acid properties rather than learned 3D structural context. Measuring the Spearman correlation of the residual orthogonal embedding $E_{orth} = (I - P_{AA})E$ tests whether small PLMs (ESM2-35M) retain genuine contextual fitness modeling capacity or collapse once basic physicochemical heuristics are subtracted.

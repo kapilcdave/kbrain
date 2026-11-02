@@ -209,6 +209,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero GPU spend; closed-form linear algebraic anti-symmetrization executed on standard CPU.
 - **Next step:** Execute Candidate C18 on the ProteinGym MegaScale stability assays to quantify the exact generalization uplift over unconstrained ridge regression.
 
+### 18. Meta-Utility Predictor Router for Low-N Directed Evolution Campaigns (AssayRouter-Protein)
+- **What:** An automated meta-routing service trained across hundreds of historical deep mutational scans that observes 24–48 experimental labels from an initial screening round and selects an optimal convex ensemble of frozen predictors (ESM-2, SaProt, GEMME) based on predicted post-fit marginal utility.
+- **Why now:** Commercial directed evolution platforms (Cradle, Generate:Biomedicines, Arzeda) waste wet-lab rounds testing uncalibrated zero-shot predictors. Selecting models via support-set cross-validation on 24 labels is noisy and prone to overfitting. AssayRouter (Xu et al., arXiv:2609.37285, Sep 2026) proved that cross-assay historical utility priors outperform support-set CV by 0.0409 NLL across external regression benchmarks.
+- **Evidence:** Xu et al., 2026 ([arXiv:2609.37285](https://arxiv.org/abs/2609.37285)); kbrain Candidate C2 findings.
+- **Rough cost:** Zero GPU compute; fast linear meta-regression inference in milliseconds on CPU.
+- **Next step:** Execute Candidate C20 on ProteinGym's 217 assays under leave-one-protein-out evaluation to benchmark against unregularized 24-label model selection.
+
+### 19. Interface-Aware Geometric Adapter Service for Biologics Affinity Maturation (CIR-Engine)
+- **What:** A plug-and-play geometric residual adapter that intercepts sequence PLM scores (ESM-2, SaProt) for antibody-antigen or viral receptor complexes and injects 22 interpretable cross-chain geometric contact descriptors.
+- **Why now:** Biopharma affinity maturation campaigns frequently struggle with false-positive binding predictions from 1D sequence PLMs that cannot detect cross-chain steric clashes or interface contact densities. CIR-DDG (Yu et al., arXiv:2608.27530, Aug 2026) demonstrated that adding 22 explicit geometric descriptors boosts interface mutation correlation by +0.026 to +0.081 on SARS-CoV-2 RBD DMS without retraining base predictors.
+- **Evidence:** Yu et al., 2026 ([arXiv:2608.27530](https://arxiv.org/abs/2608.27530)); SKEMPI 2.0 and ProteinGym binding benchmarks.
+- **Rough cost:** Zero GPU compute; PDB contact extraction and linear adapter scoring on standard CPU.
+- **Next step:** Execute Candidate C21 across ProteinGym's binding assays to quantify the bootstrap gain of explicit contact density correction over raw zero-shot PLM baselines.
+
 
 
 

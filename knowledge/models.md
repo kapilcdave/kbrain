@@ -410,3 +410,43 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Demonstrates that standard tabular biochemical descriptors explain a substantial fraction of PLM fitness variance, but a robust non-reducible residual variance remains that correlates with spatial contact topology.
 - **Open Code / Weights / Data:** Python implementation open on arXiv / GitHub.
 - **Hype vs. Evidence:** **VALUABLE AUDITING TOOL FOR KBRAIN.** Provides an exact mathematical framework to audit whether our low-N regressors and zero-shot scores are discovering genuine contextual biology or merely re-indexing amino-acid lookup tables.
+
+### 23. Explicit Cross-Chain Geometry Residual Correction for Interface Mutants (CIR-DDG)
+- **Paper:** *CIR-DDG: backbone-agnostic residual correction of antibody-antigen affinity changes with explicit cross-chain geometry*
+- **Authors:** Weilun Yu, Zhiheng Zou, Yonggui Huang, Honggang Qi, Geguang Pu (arXiv, Aug 2026)
+- **Citations / Links:** [arXiv:2608.27530](https://arxiv.org/abs/2608.27530); GitHub: [ecnuabmlab/CIR-ddG](https://github.com/ecnuabmlab/CIR-ddG)
+- **Claims:** Heterogeneous protein complex predictors (PLM-based or equivariant GNNs) routinely drop critical interface geometry in their scalar outputs, failing to preserve explicit cross-chain contact density and site-partner context. CIR-DDG introduces a lightweight residual adapter combining a fixed base model prediction with 22 interpretable geometric descriptors (cross-chain distance, contact coordination number, partner residue context).
+- **Benchmark & Baselines:** SKEMPI 2.0 (343 complexes, 5-fold CV) across six diverse backbones, and independent zero-shot transfer on the SARS-CoV-2 RBD-ACE2 deep mutational scan (3,669 substitutions).
+- **Result:** Improves interface mutation Spearman correlation across all six backbones on SKEMPI by +0.0346 to +0.1296 (RMSE drops by 0.0074–0.0408 kcal/mol). Transferred zero-shot without retraining to the SARS-CoV-2 RBD-ACE2 DMS benchmark, boosting absolute interface Spearman correlation by +0.026 to +0.081 across all backbones.
+- **Open Code / Weights / Data:** Open source at GitHub: `ecnuabmlab/CIR-ddG`.
+- **Hype vs. Evidence:** **CRITICAL PRACTICAL LESSON FOR CPU ARCHITECTURES.** Proves that simple, CPU-computable geometric contact features can provide an orthogonal, training-free additive correction to black-box PLM predictions on protein-protein interfaces.
+
+### 24. Order-Resolved Epistatic Information Tracking & Reproducibility in PLMs (ORBIT-FMIB)
+- **Paper:** *ORBIT-FMIB: Tracking Order-Resolved Epistatic Information Through ESM-2*
+- **Authors:** Maryam Rahimimovassagh, Ivan Garibay, Niloofar Yousefi (arXiv, Sept 2026)
+- **Citations / Links:** [arXiv:2610.00672](https://arxiv.org/abs/2610.00672)
+- **Claims:** Formulates a diagnostic framework combining Walsh-based interaction decomposition with subset-conditioned neural dependence estimation to track whether ESM-2 retains higher-order epistatic interaction information as strongly as first- and second-order information across its representation hierarchy.
+- **Benchmark & Baselines:** Evaluated on synthetic fitness landscapes with known epistatic structures and the dense four-site GB1 combinatorial deep mutational scan across ESM-2 layer depths.
+- **Result:** Provides an exemplary negative/reproducibility result. While an initial production run suggested ESM-2 selectively loses higher-order epistasis ($\Delta_{\mathrm{HO-LO}} = -0.107$), a rigorous matched replication across seeds and critic pairings substantially reduced the contrast to $\Delta_{\mathrm{HO-LO}} = -0.017$, with sign instability ($-0.011$ to $+0.015$). Concludes there is currently no robust evidence that ESM-2 representation hierarchy selectively degrades higher-order epistatic information.
+- **Open Code / Weights / Data:** Diagnostic framework and replication code open on arXiv / GitHub.
+- **Hype vs. Evidence:** **EXEMPLARY RIGOR BENCHMARK.** A vital methodological warning for kbrain: probing combinatorial epistasis with neural critics without matched replication easily mistakes critic evaluation artifacts for fundamental PLM representation limitations.
+
+### 25. Transferable Historical Utility Priors for Low-N Predictor Routing (AssayRouter)
+- **Paper:** *AssayRouter: Historical Utility Priors for Frozen Molecular Predictor Routing*
+- **Authors:** Dong Xu, Zhangfan Yang, Jiantao Wu, Shipeng Zhang, Zexuan Zhu (arXiv, Sept 2026)
+- **Citations / Links:** [arXiv:2609.37285](https://arxiv.org/abs/2609.37285)
+- **Claims:** Laboratories facing a new target assay with only 16–64 labels cannot reliably pick the best predictor using support-set correlation or cross-validation alone due to high noise and selection variance. AssayRouter treats completed historical assays as pseudo-targets, labeling each candidate model by its post-fit held-out utility (the reduction in discovery loss when added to the local predictor). A shared meta-regressor learns to predict candidate utility solely from model behavior on the support set, outputting a convex blend of top predictors.
+- **Benchmark & Baselines:** Evaluated across 24 external regression assays across six frozen interface families against support-set CV (`Support-CV@4`).
+- **Result:** Lowers strict four-call negative log-likelihood (NLL) by 0.0409 over standard support-set cross-validation and generalizes across leave-one-interface-out predictor families.
+- **Open Code / Weights / Data:** Method and training pipelines open on arXiv.
+- **Hype vs. Evidence:** **DIRECTLY ACTIONABLE FOR KBRAIN LOW-N REGIMES.** Directly solves the empirical instability observed in our Candidate C2 (24-label routing): by substituting noisy support-set argmax selection with historical utility priors learned across completed ProteinGym assays, 24-label routing can become robust and monotonic.
+
+### 26. Global Mutation Perturbation Regimes & Protein Fragility Maps (RegimeFormer & RegimeAtlas)
+- **Paper:** *RegimeFormer: A Large Protein Model of Global Perturbation Regimes*
+- **Authors:** Siyuan Ma, Yi Chai, Yi Wu, Qixin Zhang, Yajing Yuan (arXiv, Aug 2026)
+- **Citations / Links:** [arXiv:2608.26586](https://arxiv.org/abs/2608.26586)
+- **Claims:** Sequence PLMs predict local mutational shifts but lack an explicit global representation of how whole protein scaffolds respond to perturbation. RegimeFormer harmonizes 202M non-redundant sequences across the tree of life (with a 1M protein high-resolution inference layer over 407M residues) into RegimeAtlas, identifying universal protein perturbation regimes that organize residue fragility, structural adaptability, and uncertainty.
+- **Benchmark & Baselines:** Evaluated on experimental DMS benchmarks, structural confidence metrics, and evolutionary constraint tasks against standard zero-shot PLMs.
+- **Result:** Conditioning variant predictions on global perturbation regimes produces substantial improvements in substitution effect prediction, with the largest relative gains emerging under unseen-protein, unseen-family, and low-homology evaluation regimes.
+- **Open Code / Weights / Data:** Pre-computed residue perturbation atlas and inference code available via RegimeAtlas.
+- **Hype vs. Evidence:** **SOLID FOUNDATION CONCEPT.** Demonstrates that global protein fragility/plasticity is an orthogonal macro-property that regularizes local point mutation predictions.
