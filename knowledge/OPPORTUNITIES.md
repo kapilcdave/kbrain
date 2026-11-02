@@ -62,6 +62,28 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Next step:** Execute Candidate C8 across the 69 multi-mutant assays in `lab/` to establish exact quantitative
   degradation deltas for GEMME vs ESM2-650M under strong epistatic regimes.
 
+### 6. Forward-Validated 24-Label Model Router
+- **What:** A dry-run decision layer that uses an initial batch of 24 measured mutants to choose or weight
+  frozen GEMME and ESM2-650M scores for the remainder of a target's mutation library.
+- **Why now:** The frozen hard-selection rule has passed a protein-clustered ProteinGym benchmark, while its
+  negative label-shuffle control shows that the gain depends on real label-model association. The result is
+  not ready for operational use because it has only been tested with random within-assay splits.
+- **Evidence:** The kbrain
+  [label-efficient model-selection finding](findings/label-efficient-model-selection.md) reports a
+  **+0.01645** mean per-protein held-out Spearman gain over GEMME (95% CI **[+0.00776, +0.02608]**;
+  186 proteins). A label-free blend gained **+0.01583**, and secondary softmax weighting gained **+0.03183**,
+  so a forward test must compare all frozen alternatives. Data and protocol are based on ProteinGym v1.3
+  ([Notin et al., arXiv:2306.12204](https://arxiv.org/abs/2306.12204)); model references are GEMME
+  ([Laine et al., 2019](https://doi.org/10.1093/molbev/msz179)) and ESM2
+  ([Lin et al., 2023](https://doi.org/10.1126/science.ade2574)).
+- **Rough cost:** Zero cloud spend for packaging and a replay-only dry run on published scores. For one
+  completely unseen target lacking published ESM2-650M scores, propose a hard ceiling of **$25** for GPU
+  inference after the target, sequence length, mutation library, provider, and exact quote are fixed; no
+  resource may be created without operator approval.
+- **Next step:** Identify one public, wholly unseen DMS target; preregister the target-level holdout and the
+  hard-selection, softmax, static-blend, and GEMME procedures before inspecting its labels. Request operator
+  approval separately if generating ESM2-650M scores would incur any spend.
+
 
 
 
