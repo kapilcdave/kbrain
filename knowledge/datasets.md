@@ -203,6 +203,17 @@ Zero-shot and structure-aware predictors depend on underlying sequence and struc
 | **Holo vs. Apo Structural Leakage** | Using experimental PDB structures crystallized with co-factors or drug ligands leaks active-site coordinates to inverse-folding models that would not be present in apo structures. | Standardize structural inputs on predicted AlphaFold2 coordinates to ensure unbiased apo backbones. |
 | **DMS Assay Saturation & Non-Linearity** | In cellular growth selections, high-activity mutants plateau once growth rate reaches maximum doubling time; low-activity mutants drop below detection threshold (sequencing zero-floor). | Use monotonic rank correlation (Spearman $\rho$), never linear Pearson $r$, when evaluating DMS scores. |
 | **Protein-Level Non-Independence** | ProteinGym's 217 assays cover 186 UniProt IDs; multiple assays measure the same protein under different conditions. Treating all 217 assays as independent underestimates variance. | Resample independent units by clustering on UniProt ID (`by="protein"` in `improvement_units`) with bootstrap confidence intervals. |
+| **Viability Bimodality & Deleterious Tail Inflation** | Deep mutational scanning assays typically exhibit bimodal fitness distributions: a large cluster of non-viable/unfolded variants with strongly negative scores, and a narrower distribution of functional/near-WT variants. High aggregate Spearman $\rho$ is often driven entirely by separating dead from alive mutants, masking a total failure to rank among viable variants ([Woolley et al., bioRxiv 2026](https://doi.org/10.64898/2026.06.04.730121)). | Report stratified rank correlations for the viable stratum ($y \ge y_{\text{wt}}$ or top 50%) alongside global Spearman $\rho$ to audit fine-grained functional ranking power. |
+
+### 8.1 The Viable-Subspace Evaluation Criterion (Woolley-Wilke Precedent)
+In applied protein engineering and directed evolution, experimentalists do not need an algorithm to distinguish between a functional enzyme and an unfolded null mutant; simple viability filters or laboratory selection assays already accomplish this. The critical engineering challenge is **ranking among viable variants** ($y \ge y_{\text{wt}}$) to identify mutations that improve activity, thermostability, or binding affinity. 
+
+Woolley et al. (bioRxiv June/Oct 2026) demonstrated that:
+1. Aggregate ProteinGym Spearman correlations give an overly optimistic picture of zero-shot utility because predicting catastrophic loss-of-function is easy for evolutionary models.
+2. When evaluated strictly within the subset of viable mutants, rank correlations for leading foundation models (ESM-2, ESM-1v, Tranception) collapse toward zero ($\rho \approx 0.05 \pm 0.10$).
+3. On "new-to-nature" phenotypes where natural selection has not operated, zero-shot evolutionary log-odds correlate negligibly or negatively with experimental enhancements.
+
+Therefore, robust evaluation of variant effect models must include stratified viable-subspace diagnostics.
 
 ---
 

@@ -480,3 +480,33 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Shows that zero-shot PLMs (including ESM-1v, ESM-2, Tranception) act almost exclusively as linear additive predictors. When applied to non-epistatic combinations, rank correlation remains high ($\rho > 0.50$), but when applied to strongly epistatic multi-mutants, zero-shot rank correlation collapses towards zero ($\rho < 0.15$).
 - **Open Code / Weights / Data:** Analysis scripts and epistatic decomposition pipelines available on GitHub.
 - **Hype vs. Evidence:** **CORNERSTONE RIGOR BENCHMARK.** Establishes mathematically why zero-shot models fail in multi-round combinatorial protein engineering: zero-shot PLMs lack mechanisms to model context-dependent sign epistasis without explicit interaction parameterization or supervised low-N fine-tuning.
+
+### 30. Evidence Scaling for Zero-Shot Protein Reasoning with LLMs (BioEvidence)
+- **Paper:** *Evidence Scaling for Zero-Shot Protein Reasoning with Large Language Models*
+- **Authors:** Zitong Hao, Chaoyang Wang, Dongyuan Li, Yiquan Wang (bioRxiv, Oct 2026)
+- **Citations / Links:** [bioRxiv preprint](https://doi.org/10.64898/2026.09.27.754822)
+- **Claims:** Proposes BioEvidence, a training-free and model-agnostic prompting interface that converts structural context (DSSP secondary structure, relative solvent accessibility, pLDDT from AF2) and evolutionary conservation (alignment residue frequencies) into structured natural language evidence blocks for frozen general-purpose LLMs.
+- **Benchmark & Baselines:** Evaluated on the ProteinGym substitution benchmark (217 assays under PG-LLM protocol) against specialized sequence and structure foundation models.
+- **Result:** External biological evidence acts as a primary, complementary scaling axis to model parameter count. Rich multimodal evidence enables frozen LLMs to achieve competitive parity with specialized protein language models without parameter fine-tuning, maintaining robustness on temporally held-out post-cutoff assays.
+- **Open Code / Weights / Data:** Prompt templates and evidence extraction scripts available on bioRxiv / GitHub.
+- **Hype vs. Evidence:** **ELEGANT INFORMATION-THEORETIC VALIDATION.** Confirms that variant effect prediction in LLMs is fundamentally an evidence-synthesis problem; when provided explicit local structural geometry and conservation, general-purpose LLMs can execute effective zero-shot ranking.
+
+### 31. Multi-Agent Chain-of-Thought Structural Auditing (VenusRAR)
+- **Paper:** *Rank-and-Reason: Multi-Agent Collaboration Accelerates Zero-Shot Protein Mutation Prediction*
+- **Authors:** Yafeng Liang, Nanqing Dong, Liang Hong, et al. (Shanghai Jiao Tong University / ai4protein, arXiv, Feb 2026)
+- **Citations / Links:** [arXiv:2602.00197](https://arxiv.org/abs/2602.00197); GitHub: [ai4protein/VenusRAR](https://github.com/ai4protein/VenusRAR)
+- **Claims:** Formulates zero-shot mutation prediction as a two-stage agentic workflow: a Rank-stage combining multimodal zero-shot predictions with context-aware weighting, followed by a Reason-stage where a Virtual Expert Panel executes Chain-of-Thought (CoT) reasoning to audit candidate substitutions against structural clash, solvent accessibility, and local confidence markers.
+- **Benchmark & Baselines:** ProteinGym-DMS99 and prospective wet-lab validation on the *Cas12i3* CRISPR nuclease against raw zero-shot foundation models.
+- **Result:** Improves the Top-5 Hit Rate by up to 367% on ProteinGym-DMS99. In wet-lab validation on *Cas12i3*, VenusRAR achieved a 46.7% positive hit rate and discovered variants with 4.23-fold and 5.05-fold activity increases.
+- **Open Code / Weights / Data:** Pipeline and agent configurations open at `github.com/ai4protein/VenusRAR`.
+- **Hype vs. Evidence:** **HIGH-VALUE ENGINEERING EVIDENCE.** Demonstrates that post-inference structural auditing of candidate mutations removes unphysical false positives that deceive raw scalar log-odds models, dramatically boosting prospective hit rates.
+
+### 32. Inherent Limitations & Viability Bimodality in Zero-Shot Mutation Prediction
+- **Paper:** *Overestimating zero-shot fitness prediction: Broad benchmarks mask local failures and practical limitations* (updated as *Inherent limitations of zero-shot mutation prediction in protein engineering*)
+- **Authors:** Phillip R. Woolley, Aaron L. Feller, Andrew D. Ellington, Claus O. Wilke (UT Austin, bioRxiv, June/Oct 2026)
+- **Citations / Links:** [bioRxiv preprint](https://doi.org/10.64898/2026.06.04.730121)
+- **Claims:** Conducts a rigorous diagnostic dissection of zero-shot model performance across ProteinGym and related DMS datasets, demonstrating that aggregate Spearman rank correlations are predominantly driven by separating viable/functional mutants from completely broken/deleterious mutants (the bimodal tail).
+- **Benchmark & Baselines:** 95 zero-shot models evaluated across ProteinGym, stratified into full-assay vs viable-subspace regimes ($y \ge y_{\text{wt}}$), and tested on "new-to-nature" phenotypes.
+- **Result:** When evaluation is restricted to the viable functional subspace—the exact regime where directed evolution operates to select improved variants—zero-shot model rank correlation collapses to near zero ($\rho \approx 0$). Furthermore, on new-to-nature functional assays, zero-shot predictions show zero or negative correlation with true enhancement.
+- **Open Code / Weights / Data:** Diagnostic evaluation scripts and stratified analysis notebooks open on GitHub.
+- **Hype vs. Evidence:** **FOUNDATIONAL RIGOR CRITIQUE.** Proves mathematically and empirically why high leaderboard Spearman scores can be deceptive for protein engineering: zero-shot models function primarily as blunt lethality/unfolding filters rather than fine-grained optimizers of functional activity.

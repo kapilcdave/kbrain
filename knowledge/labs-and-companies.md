@@ -111,6 +111,22 @@ The field of protein mutation-effect prediction sits at the convergence of evolu
 - **Relevance to kbrain:** Demonstrates why static AlphaFold structures fail on allosteric and dynamic mutational effects; backbone ensemble sampling is often needed to recover subtle negative impacts.
 - **Open Science Stance:** Open academic tools and Zenodo DMS repositories.
 
+### 2.9 Wilke Lab & Ellington Lab (University of Texas at Austin)
+- **Principal Investigators:** Claus O. Wilke (Integrative Biology) & Andrew D. Ellington (Molecular Biosciences).
+- **Key Contributions:**
+  - Biophysical determinants of protein evolution, structural tolerance, and deep mutational scanning landscape topology.
+  - Foundational benchmarking critique: Woolley et al. (bioRxiv 2026, DOI: 10.64898/2026.06.04.730121), showing that broad zero-shot benchmark correlations mask local prediction collapse within viable/functional mutants, and exposing the fundamental divergence between natural evolutionary fitness and directed protein engineering goals.
+- **Relevance to kbrain:** Vital reality check on benchmark interpretation. High global Spearman $\rho$ across an entire DMS assay does not imply that a model can prioritize top gain-of-function variants in directed evolution.
+- **Open Science Stance:** Open source code, reproducible computational pipelines, open data sharing.
+
+### 2.10 ai4protein Research Group (Shanghai Jiao Tong University / SIIS)
+- **Key Researchers:** Liang Hong, Yafeng Liang, Nanqing Dong.
+- **Key Contributions:**
+  - Multi-agent collaboration frameworks for protein mutation-effect prediction: **VenusRAR** (arXiv:2602.00197, Feb 2026).
+  - Integrates multimodal computational predictions (Rank stage) with automated Chain-of-Thought (CoT) structural auditing (Reason stage) to filter steric clashes and unphysical substitutions, boosting Top-5 Hit Rate in directed evolution campaigns by up to 367%.
+- **Relevance to kbrain:** Demonstrates that post-inference structural auditing of candidate mutations removes unphysical false positives that deceive raw scalar log-odds models, dramatically boosting prospective hit rates.
+- **Open Science Stance:** Open GitHub repositories (`ai4protein/VenusRAR`), reproducible benchmarking code.
+
 ---
 
 ## 3. AI Foundation Model Consortia & Tech Giants

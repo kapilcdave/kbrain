@@ -237,6 +237,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero cloud spend; CPU runtime benchmarks and ONNX/C++ compilation on standard commodity hardware.
 - **Next step:** Benchmark AINN-P1 CPU throughput and memory footprint against ESM2-35M on full-length titin and viral surface proteins.
 
+### 22. Viable-Subspace Model Auditor & Lead Optimizer (ViableRank-Audit)
+- **What:** A specialized auditing tool and commercial evaluation service that stress-tests foundation models (ESM-2, SaProt, Tranception) strictly within the viable functional subspace ($y \ge y_{\text{wt}}$ or top 50% fitness) rather than full-assay bimodal distributions.
+- **Why now:** Commercial biotechs commonly pick top variants from zero-shot PLMs believing a high global Spearman correlation ($\rho \approx 0.45$) guarantees top-variant enrichment. Woolley et al. (bioRxiv 2026) proved that broad benchmark correlations are inflated by obvious deleterious/unfolded variants, and that rank correlations collapse to near zero among fit variants. An independent auditor that measures viable-subspace discrimination prevents biotech clients from squandering $50k+ per library synthesis round on false-positive candidates.
+- **Evidence:** Woolley et al., 2026 ([bioRxiv:10.64898/2026.06.04.730121](https://doi.org/10.64898/2026.06.04.730121)); ProteinGym v1.3 DMS distributions.
+- **Rough cost:** Zero cloud spend; fast analytical evaluation on existing ProteinGym scores in minutes on CPU.
+- **Next step:** Execute Candidate C24 to quantify the exact drop in Spearman correlation across all published leaderboard models.
+
+### 23. Structural Chain-of-Thought Sanity-Check Middleware for Generative PLMs (VenusRAR API)
+- **What:** A lightweight API middleware plugin for protein design platforms and generative PLMs (e.g., ESM-3, ProGen2, EvolutionaryScale) that intercepts proposed substitutions and executes automated biophysical auditing (steric clash detection, buried polar/charge penalty, pLDDT confidence gating) before variants are scheduled for wet-lab synthesis.
+- **Why now:** Generative sequence models and unconstrained PLMs frequently hallucinate chemically implausible substitutions in core packing regions that appear statistically plausible to sequence-only heads. Liang et al. (arXiv:2602.00197, VenusRAR) demonstrated that an automated structural audit panel increased top-5 wet-lab hit rates by up to 367% on DMS99 and delivered 4- to 5-fold activity gains in Cas12i3.
+- **Evidence:** Liang et al., 2026 ([arXiv:2602.00197](https://arxiv.org/abs/2602.00197)); GitHub `ai4protein/VenusRAR`.
+- **Rough cost:** Negligible compute; fast Biopython/structural geometry calculations on standard CPU.
+- **Next step:** Prototype the steric clash and SASA filter on ProteinGym benchmark assays with available AlphaFold PDBs (Candidate C25).
+
 
 
 

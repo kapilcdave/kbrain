@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C25. Post-PLM Structural Steric & SASA Gating for Top-K Candidate Selection (VenusRAR CPU Filter)
+- **Idea:** Simulate prospective directed evolution candidate selection (Top-$K$ with $K \in \{20, 50, 96\}$) from zero-shot foundation models (ESM2-650M, SaProt-35M, GEMME) with and without a training-free structural audit filter (rejecting mutations that introduce severe atomic van der Waals clashes $>0.4$ Å in AlphaFold2 backbones, or bury charged residues [Arg, Lys, Asp, Glu] in core positions where relative solvent accessibility $\text{RSA} < 0.05$). Measure whether structural auditing improves top-$K$ mean true experimental fitness and positive hit rate compared to raw unconstrained PLM ranking.
+- **Why:** Liang et al. (VenusRAR, arXiv:2602.00197, Feb 2026) showed that zero-shot PLMs frequently assign high statistical likelihoods to mutations that violate elementary physical packing rules, and that an automated structural audit boosted Top-5 Hit Rate by up to 367% on ProteinGym-DMS99 while yielding 4- to 5-fold activity improvements on Cas12i3. We can validate this training-free hypothesis across ProteinGym assays with available AlphaFold coordinates on CPU in minutes.
+- **Data:** ProteinGym v1.3 DMS substitution assays (`dms/`), AlphaFold2 PDB structures, and precomputed zero-shot model scores (`zero_shot/`).
+- **Baseline:** Top-$K$ mean fitness of raw, unconstrained zero-shot PLM ranking (e.g. ESM2-650M or GEMME).
+- **Units:** Proteins (`by="protein"` across UniProt IDs with AF2 structures).
+- **CPU:** 2–3 minutes on 8 CPU cores using Biopython PDB contact and RSA routines.
+
+### C24. Viable-Subspace Zero-Shot Collapse Auditor (The Woolley-Wilke Bimodality Test)
+- **Idea:** Benchmark all primary zero-shot model classes (GEMME, ESM2-35M, SaProt-35M, ESM2-650M, EVE, Tranception) across the 217 ProteinGym substitution assays stratified into two subsets: (1) full assay (standard leaderboard Spearman), versus (2) viable variants only ($y \ge y_{\text{wt}}$ or top 50% fitness percentile). Quantify the magnitude of Spearman correlation collapse ($\Delta \rho_{\text{viable} - \text{full}}$) across model classes.
+- **Why:** Woolley et al. (bioRxiv June/Oct 2026, DOI: 10.64898/2026.06.04.730121) proved that broad benchmark correlations are heavily inflated by the binary separation between functional and non-functional/unfolded variants (bimodal tails). For directed protein engineering, where engineers only select among viable variants to find functional gains, zero-shot models reportedly collapse towards $\rho \approx 0$. Testing this across our trusted evaluator will reveal which model classes (e.g., structure-aware vs Potts vs pure sequence PLMs) retain real functional ranking power among fit variants.
+- **Data:** ProteinGym v1.3 substitution reference table and precomputed zero-shot predictions (`data/proteingym/zero_shot/`).
+- **Baseline:** Full-assay Spearman correlation vs Viable-subspace Spearman correlation.
+- **Units:** Proteins (`by="protein"` across 186 UniProt IDs) via `improvement_units()`.
+- **CPU:** 1–2 minutes on 8 CPU cores (purely analytical ranking over existing precomputed scores).
+
 ### C23. Hard-Threshold MSA Resilience Gating vs. Uniform Ensembling
 - **Idea:** Test a hard-threshold gating policy between GEMME and ESM2-650M conditioned on extreme alignment sparsity ($N_{\text{eff}} / L \le 1.0$ vs. $N_{\text{eff}} / L > 1.0$), evaluating whether strict unaligned sequence PLM routing exclusively on the 36 sparse ProteinGym assays outperforms an unconditional 50/50 uniform blend.
 - **Why:** Arora et al. (PG-LLM, bioRxiv 2026) proved that unaligned parametric sequence representations maintain ranking power at low alignment depth where evolutionary/MSA methods collapse. In our previous finding (`findings/msa-depth-gated-routing.md`), a soft continuous depth gate failed because depth acted as a general difficulty proxy rather than a calibrated mixing weight. Testing a hard step-function focused strictly on the $N_{\text{eff}}/L \le 1.0$ boundary provides the clean falsification test for MSA-depth routing.
