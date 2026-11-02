@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C23. Hard-Threshold MSA Resilience Gating vs. Uniform Ensembling
+- **Idea:** Test a hard-threshold gating policy between GEMME and ESM2-650M conditioned on extreme alignment sparsity ($N_{\text{eff}} / L \le 1.0$ vs. $N_{\text{eff}} / L > 1.0$), evaluating whether strict unaligned sequence PLM routing exclusively on the 36 sparse ProteinGym assays outperforms an unconditional 50/50 uniform blend.
+- **Why:** Arora et al. (PG-LLM, bioRxiv 2026) proved that unaligned parametric sequence representations maintain ranking power at low alignment depth where evolutionary/MSA methods collapse. In our previous finding (`findings/msa-depth-gated-routing.md`), a soft continuous depth gate failed because depth acted as a general difficulty proxy rather than a calibrated mixing weight. Testing a hard step-function focused strictly on the $N_{\text{eff}}/L \le 1.0$ boundary provides the clean falsification test for MSA-depth routing.
+- **Data:** ProteinGym v1.3 substitution reference table and precomputed zero-shot predictions for GEMME and ESM2-650M (`pg.published_scores`).
+- **Baseline:** Fixed 50/50 uniform blend of GEMME and ESM2-650M.
+- **Units:** Proteins (`by="protein"` across 186 UniProt IDs) via `improvement_units()`.
+- **CPU:** 1–2 minutes on 8 CPU cores.
+
+### C22. Mutational Depth ($K$) Generalization Decay Profiler on ProteinGym Multi-Mutants
+- **Idea:** Benchmark all primary model classes (GEMME, ESM2-35M, SaProt-35M, ESM2-650M, Tranception, FoldX) on the 69 ProteinGym multi-mutant assays stratified strictly by mutational edit distance ($K \in \{1, 2, 3, 4+\}$). Determine whether structure-informed representations (SaProt-35M) or co-evolutionary Potts terms (GEMME) decay slower than pure sequence PLM masked-marginals (ESM2) as mutational depth grows.
+- **Why:** Schmirler et al. (DeePEn, bioRxiv 2026) and Kolchina et al. (bioRxiv 2026) demonstrated that zero-shot PLMs behave additively and degrade rapidly at higher edit distances. Determining which architecture best retains ranking correlation at $K \ge 3$ will identify the optimal foundation model for multi-site protein engineering.
+- **Data:** ProteinGym v1.3 multi-mutant assays (`dms/`) and precomputed scores (`zero_shot/`).
+- **Baseline:** ESM2-650M Spearman rank correlation stratified by edit distance $K$.
+- **Units:** Assays or proteins across the 69 multi-mutant assays.
+- **CPU:** ~3 minutes on 8 CPU cores.
+
 ### C21. Explicit Geometric Contact Density Residual for Zero-Shot Interface DMS Assays (CIR-DDG Residual)
 - **Idea:** On the 13 ProteinGym binding assays and complex interface targets (e.g., SARS-CoV-2 RBD-ACE2, antibody-antigen interfaces), evaluate whether adding an explicit, training-free geometric contact density residual (coordination number within 8 Å, interface distance, relative solvent accessibility computed from PDB structures via Biopython) to frozen zero-shot PLM scores (ESM2-35M, SaProt-35M, GEMME) improves interface mutation Spearman correlation over raw scores.
 - **Why:** Yu et al. (CIR-DDG, arXiv:2608.27530, Aug 2026) showed that zero-shot PLMs and structure models systematically drop critical interface contact geometry in their scalar predictions, and that adding 22 interpretable contact descriptors boosted absolute Spearman correlation by +0.026 to +0.081 on SARS-CoV-2 RBD interface mutations without any retraining.

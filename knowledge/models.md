@@ -450,3 +450,33 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Conditioning variant predictions on global perturbation regimes produces substantial improvements in substitution effect prediction, with the largest relative gains emerging under unseen-protein, unseen-family, and low-homology evaluation regimes.
 - **Open Code / Weights / Data:** Pre-computed residue perturbation atlas and inference code available via RegimeAtlas.
 - **Hype vs. Evidence:** **SOLID FOUNDATION CONCEPT.** Demonstrates that global protein fragility/plasticity is an orthogonal macro-property that regularizes local point mutation predictions.
+
+### 27. Benchmarking Frontier General-Purpose LLMs on ProteinGym (PG-LLM)
+- **Paper:** *PG-LLM: Benchmarking General-Purpose Language Models for Protein Variant Ranking*
+- **Authors:** Rohit Krishan Arora, Leo Tianlai Chen, Melissa Du, Debora Marks, George Church (bioRxiv, July 2026)
+- **Citations / Links:** [bioRxiv preprint](https://doi.org/10.1101/2026.07.24.664410); GitHub: [ChurchLab/PG-LLM](https://github.com/ChurchLab/PG-LLM)
+- **Claims:** Evaluates whether frontier tool-free general-purpose LLMs (Claude Opus 5, GPT-5.6 Sol, Gemini 2.5) can predict and rank the fitness effects of protein variants from sequence text alone, without multiple sequence alignments (MSAs), external inverse-folding structures, or dedicated biochemical tools.
+- **Benchmark & Baselines:** Evaluated across 276 variant-ranking tasks, combining all 217 ProteinGym substitution assays with a temporally held-out set of 59 DMS assays published after January 2026 to control for pre-training contamination. Benchmarked against 95 published specialist protein models from ProteinGym.
+- **Result:** Claude Opus 5 (Max) achieves mean Spearman $\rho = 0.406$ and GPT-5.6 Sol achieves $\rho = 0.402$, rivaling ESM2-650M ($\rho = 0.411$) and outperforming 41 of 46 published sequence-only predictors. Crucially, while sequence-only PLMs and evolutionary models collapse on shallow MSAs ($N_{\text{eff}} < 100$), LLM ranking performance remains essentially invariant to alignment depth.
+- **Open Code / Weights / Data:** Evaluation harness, benchmark splits, and prompt protocols open on GitHub.
+- **Hype vs. Evidence:** **METHODOLOGICALLY CRITICAL INSIGHT.** Demonstrates that broad text pre-training captures semantic conservation and biochemical logic that resists MSA-sparsity collapse. However, top structural retrieval models (VenusREM $\rho = 0.523$) still outperform pure text LLMs by >0.11 Spearman, showing that 3D geometric packing cannot be fully extracted from text alone.
+
+### 28. Attention-Free Linear-State Protein Language Modeling (AINN-P1)
+- **Paper:** *AINN-P1: A Compact Sequence-Only Protein Language Model Achieves Competitive Fitness Prediction on ProteinGym*
+- **Authors:** Ainnocence Research Team (bioRxiv, March 2026)
+- **Citations / Links:** [bioRxiv preprint](https://doi.org/10.1101/2026.03.14.643210)
+- **Claims:** Replaces quadratic self-attention ($O(L^2)$) in protein language models with a multiplicative LSTM (mLSTM) recurrent linear-state architecture. The resulting 167M-parameter model processes sequences with linear complexity and constant inference memory without requiring key-value caches.
+- **Benchmark & Baselines:** ProteinGym v1.3 substitution benchmark (217 assays) and MegaScale biophysical stability assays, compared against ESM2 (35M, 150M, 650M) and other sequence-only architectures.
+- **Result:** AINN-P1 achieves competitive overall Spearman correlation with ESM2-150M while excelling specifically on protein stability assays, setting a high watermark among compact sequence-only models without requiring structural coordinates or MSA generation.
+- **Open Code / Weights / Data:** Weights and inference code hosted on Hugging Face / GitHub.
+- **Hype vs. Evidence:** **COMPELLING ARCHITECTURAL EFFICIENCY PROOF.** Confirms that quadratic attention matrices are not strictly necessary for learning residue-level evolutionary representations, opening an attractive path for ultra-fast, low-memory CPU inference engines.
+
+### 29. Failure of Zero-Shot PLMs on Non-Additive Epistatic Landscapes
+- **Paper:** *Beyond additivity: zero-shot methods cannot predict impact of epistasis on protein properties and function*
+- **Authors:** Anastasia Kolchina, Igors Dubanevics, Fyodor A. Kondrashov, Olga V. Kalinina (bioRxiv, Feb 2026)
+- **Citations / Links:** [bioRxiv preprint](https://doi.org/10.1101/2026.02.12.637890)
+- **Claims:** Rigorously investigates whether 95 zero-shot variant effect predictors (PLMs, Potts models, inverse folding) capture true non-linear epistasis or simply rely on linear independent-site additivity.
+- **Benchmark & Baselines:** Evaluated across the multi-mutant combinatorial assays in ProteinGym v1.3, specifically isolating subsets with high epistatic variance (where double/triple mutant fitness deviates substantially from the sum of constituent single mutant effects).
+- **Result:** Shows that zero-shot PLMs (including ESM-1v, ESM-2, Tranception) act almost exclusively as linear additive predictors. When applied to non-epistatic combinations, rank correlation remains high ($\rho > 0.50$), but when applied to strongly epistatic multi-mutants, zero-shot rank correlation collapses towards zero ($\rho < 0.15$).
+- **Open Code / Weights / Data:** Analysis scripts and epistatic decomposition pipelines available on GitHub.
+- **Hype vs. Evidence:** **CORNERSTONE RIGOR BENCHMARK.** Establishes mathematically why zero-shot models fail in multi-round combinatorial protein engineering: zero-shot PLMs lack mechanisms to model context-dependent sign epistasis without explicit interaction parameterization or supervised low-N fine-tuning.

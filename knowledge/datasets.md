@@ -148,6 +148,22 @@ ProteinGym single-substitution assays include three standardized 5-fold cross-va
 - **Role in Protein Engineering:** Unlike static single-round DMS screens, directed evolution proceeds iteratively where each round samples variants conditioned on previous winners. TadA-Bench formalizes a fixed-data temporal replay challenge: models are trained on variants up to round $t$ and evaluated on their ability to rank variants that were actually screened in future round $t+1$.
 - **Rigor Insight & Split Illusion:** Random cross-validation splits show artificially inflated interpolation performance ($\rho > 0.70$). However, when evaluated on prospective future-round candidate ranking, model performance plunges ($\rho < 0.25$). Evolutionary sequence coverage, rather than local data point density, governs prospective discovery success.
 
+### 5.2 DeePEn: Depth-Sensitive Benchmark for Protein Engineering
+
+**DeePEn** (Schmirler et al., bioRxiv, June 2026; [bioRxiv preprint](https://doi.org/10.1101/2026.06.18.660142)):
+- **What:** A standardized benchmark suite built by extracting multi-mutational trajectories across ProteinGym deep mutational scanning datasets to evaluate fitness prediction models as a function of **mutational edit distance ($K$)** from wild-type.
+- **Why it matters:** Most benchmarks evaluate aggregate Spearman correlation heavily dominated by single amino-acid substitutions ($K=1$). Real-world protein engineering campaigns require introducing 3–6 simultaneous mutations to achieve targeted shifts in catalytic activity, thermal stability, or binding selectivity.
+- **Key Empirical Finding:** Unsupervised PLMs and supervised neural regressors exhibit steep monotonic performance decay as mutational distance increases. At $K \ge 3$, zero-shot model rank correlation drops by 40–70% compared to $K=1$, driven by unmodeled higher-order epistatic interactions and distribution shift. DeePEn establishes mutational distance stratification as an essential reporting requirement.
+
+### 5.3 Intrinsic Dataset Determinants of PLM Fitness Prediction
+
+**Dataset Dynamics** (Vieira, Lin, & Wilke, bioRxiv, March 2026; [DOI: 10.64898/2026.03.08.710389](https://doi.org/10.64898/2026.03.08.710389)):
+- **What:** Systematic empirical dissection of supervised transfer learning using PLM embeddings across viral vs. cellular DMS assays from ProteinGym.
+- **Why it matters:** PLM performance varies wildly across the 217 ProteinGym assays (Spearman ranging from $< 0.15$ to $> 0.85$). Vieira et al. identify the intrinsic dataset features that account for this variance:
+  1. **Viral vs. Cellular Regimes:** PLMs systematically underperform on viral surface proteins (e.g., HIV Env, Influenza HA, SARS-CoV-2 Spike) relative to conserved cellular enzymes. Viral targets experience active immune selection and structural plasticity, violating the neutral evolutionary drift assumptions embedded in UniRef-trained PLMs.
+  2. **Assay Dynamic Range & Non-Linearity:** Assays with severe selection bottlenecks or binary viability cutoffs penalize rank-order correlation compared to quantitative continuous fluorescence or kinetic readouts.
+  3. **Site Conservation Variance:** Datasets with uniform residue conservation offer poor discriminative signal for PLMs compared to assays with sharp contrasts between catalytic cores and flexible loops.
+
 ---
 
 ## 6. Clinical & Population Variation Repositories

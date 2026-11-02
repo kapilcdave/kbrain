@@ -223,6 +223,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero GPU compute; PDB contact extraction and linear adapter scoring on standard CPU.
 - **Next step:** Execute Candidate C21 across ProteinGym's binding assays to quantify the bootstrap gain of explicit contact density correction over raw zero-shot PLM baselines.
 
+### 20. Multi-Mutational Distance Decay Auditor for Protein Engineering Platforms (DeePEn-Audit)
+- **What:** An automated audit service for biopharma directed evolution campaigns that evaluates variant fitness predictors specifically across mutational distance strata ($K=1, 2, 3, 4+$) rather than aggregate single-mutant correlations.
+- **Why now:** Biotech teams designing multi-site enzyme variants frequently find that AI models boasting high ProteinGym scores ($\rho > 0.50$) fail completely when screening 3- to 5-site libraries. Schmirler et al. (DeePEn, bioRxiv 2026) and Kolchina et al. (bioRxiv 2026) proved that zero-shot PLM performance drops precipitously at $K \ge 3$ due to additive epistasis failure. An independent auditor that stress-tests candidate models against distance decay prevents costly synthesis failures.
+- **Evidence:** Schmirler et al., 2026 ([bioRxiv:10.1101/2026.06.18.660142](https://doi.org/10.1101/2026.06.18.660142)); Kolchina et al., 2026 ([bioRxiv:10.1101/2026.02.12.637890](https://doi.org/10.1101/2026.02.12.637890)).
+- **Rough cost:** Zero GPU compute; analytical stratification across ProteinGym multi-mutant assays in minutes on CPU.
+- **Next step:** Execute Candidate C22 to construct baseline decay curves for all leading public models.
+
+### 21. Constant-Memory Attention-Free PLM Inference Engine for Edge & Benchtop Scoring
+- **What:** A lightweight, CPU-optimized deployment package and scoring daemon using recurrent multiplicative LSTM (mLSTM) protein language models (AINN-P1 style) that eliminates $O(L^2)$ attention matrices and KV-cache memory overhead.
+- **Why now:** Wet-lab benches and clinical diagnostic sequencing devices need local, real-time variant scoring on long proteins without requiring high-memory GPU servers. AINN-P1 demonstrated that 167M-parameter mLSTM models match or exceed transformer PLMs on stability prediction with linear memory scaling and constant inference state size.
+- **Evidence:** Ainnocence, 2026 ([bioRxiv:10.1101/2026.03.14.643210](https://doi.org/10.1101/2026.03.14.643210)); ProteinGym v1.3 stability benchmarks.
+- **Rough cost:** Zero cloud spend; CPU runtime benchmarks and ONNX/C++ compilation on standard commodity hardware.
+- **Next step:** Benchmark AINN-P1 CPU throughput and memory footprint against ESM2-35M on full-length titin and viral surface proteins.
+
 
 
 
