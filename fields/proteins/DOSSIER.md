@@ -181,6 +181,11 @@ Our compute boundary (8 CPU cores, ~7 GB RAM, ~160 GB disk, no GPU) dictates our
 5. **Positional Prior Calibration from Few Labels (Candidate C5)**:
    - *Question*: Can 24 or 48 labels be used solely to fit a 1D position tolerance vector $\hat{\mu}_i$ that re-centers zero-shot scores, and does this improve correlation under random vs contiguous splits?
    - *Feasibility*: Simple 1D shrinkage/empirical Bayes estimator on CPU.
+6. **Structure-Token Edge Beyond Stability (Candidate C6)**:
+   - *Question*: On the frozen non-Stability ProteinGym subset (Activity, Binding, Expression, and OrganismalFitness), do published SaProt-35M structure-token scores improve per-protein DMS Spearman over published ESM2-35M sequence-only scores when both are paired on identical mutants?
+   - *Current status*: **Parked (Task #207; no endpoint evaluated).** The supplied Python 3.14.8 runtime cannot import the mandated staged `proteingym.py` evaluator because pandas, scipy, and scikit-learn are unavailable. The staged ProteinGym v1.3 data are present and validated, but no score vector, correlation, coverage result, confidence interval, or model comparison was produced.
+   - *Required next test*: Restore an evaluator-compatible local runtime containing pandas, scipy, and scikit-learn, then run the unchanged frozen `structure-tokens-nonstability-edge` preregistration using `lab/proteingym.py` and its protein-clustered `kbstats.evaluate` endpoint. Do not substitute an evaluator, expand the frozen subset, or infer this comparison from aggregate leaderboard scores.
+   - *Feasibility once unblocked*: $0; published scores are staged locally and the paired evaluation should finish within one CPU hour.
 
 ---
 
@@ -197,6 +202,12 @@ Our compute boundary (8 CPU cores, ~7 GB RAM, ~160 GB disk, no GPU) dictates our
 ---
 
 ## Verdicts (Ours, Dated, Newest First)
+
+### 2026-11-01: structure-tokens-nonstability-edge — PARKED (Evaluator Runtime Blocked)
+- **Hypothesis / frozen protocol**: The frozen zero-shot comparison asks whether published SaProt-35M structure-token scores rank DMS substitutions better than published ESM2-35M sequence-only scores on the 151 predeclared non-Stability ProteinGym v1.3 assays (120 UniProt IDs), with paired-mutant scoring and a protein-clustered endpoint. The frozen preregistration is `inputs/structure-tokens-nonstability-edge.md` (Task #204).
+- **Measured result**: **No numerical result.** The staged ProteinGym v1.3 dataset is present and validated, but the only supplied Python runtime is 3.14.8 and cannot import the trusted staged `proteingym.py` evaluator: `pandas`, `scipy`, and `scikit-learn` are unavailable. Consequently no score files were evaluated and no coverage exclusion, per-assay Spearman, protein-level difference, bootstrap confidence interval, control, or pass/fail endpoint exists.
+- **Verdict**: **PARKED / BLOCKED BY RUNTIME.** This is neither support for nor rejection of a non-Stability structure-token advantage; aggregate leaderboard values and the separate Stability question cannot answer the frozen paired comparison.
+- **Resumption condition**: Provide a local evaluator-compatible runtime containing pandas, scipy, and scikit-learn; rerun the unchanged frozen protocol through `lab/proteingym.py` and report the prespecified paired coverage, model means, and protein-clustered `kbstats.evaluate` fields. Do not replace the evaluator, alter the model pair or phenotype subset, or tune after restoration.
 
 ### 2026-11-01: contiguous-low-n-augmentation — PARKED (Evaluator Runtime Blocked)
 - **Hypothesis / frozen protocol**: The preregistered N=96 GEMME-augmented ridge with position-free amino-acid-pair indicators would improve held-out Spearman over frozen GEMME on ProteinGym v1.3 `fold_contiguous_5`, assessed as a protein-clustered paired endpoint. The frozen preregistration is `inputs/contiguous-low-n-augmentation.md`.
