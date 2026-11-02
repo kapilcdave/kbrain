@@ -98,6 +98,26 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Next step:** Execute Candidate C11 across ProteinGym `fold_contiguous_5` splits to determine whether subspace
   projection achieves a statistically positive CI over unassisted zero-shot priors on position-disjoint splits.
 
+### 8. Independent Structure-Token Stability Replication
+- **What:** A label-blind comparison of frozen SaProt-35M-AF2 and ESM2-35M scores on newly published, public
+  stability mutation data, deliberately sampling non-proteolysis platforms and longer or multi-domain proteins.
+- **Why now:** The parameter-matched comparison passed strongly on ProteinGym Stability, but 64 of 66 assays
+  came from one cDNA-display proteolysis platform and the other two assays had a negative mean difference.
+  Independent platform coverage is therefore the shortest path from a benchmark edge to an actionable model
+  choice for stability campaigns.
+- **Evidence:** The kbrain
+  [structure-token Stability finding](findings/structure-tokens-stability-edge.md) reports a **+0.135743** mean
+  per-protein Spearman improvement over ESM2-35M (95% CI **[+0.098878, +0.173060]**; 66 proteins), while
+  limiting the claim to the Tsuboyama-heavy regime. Data context: Tsuboyama et al., 2023,
+  [DOI:10.1038/s41586-023-06240-5](https://doi.org/10.1038/s41586-023-06240-5); model reference: Su et al.,
+  2024, [bioRxiv:2023.10.02.560515](https://doi.org/10.1101/2023.10.02.560515).
+- **Rough cost:** Zero cloud spend for target discovery, preregistration, and replay where public scores and an
+  open experimental or AlphaFold structure exist; expected local work is one research shift plus CPU scoring.
+  Any paid structure generation or GPU inference requires a separate costed proposal and operator approval.
+- **Next step:** Identify one public post-ProteinGym stability paper with mutation-level labels and a distinct
+  assay platform; before reading labels, freeze target inclusion, score orientation, mutant coverage, the
+  protein-level endpoint, and the same bootstrap settings used here.
+
 
 
 
