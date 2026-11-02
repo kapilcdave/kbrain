@@ -4,6 +4,26 @@ The niche: protein mutation-effect prediction on ProteinGym v1.3 (217 DMS substi
 runs on 8 CPU cores / 7 GB / no GPU and is scored only through `lab/proteingym.py`. Units = assays (or proteins:
 use `by="protein"` when one protein has several assays). The chief picks; the scout adds more.
 
+## Scout additions (2026-11-01)
+
+### C35. Reproduce and Stress-Test Delta V Calibration
+- **Idea:** Replay the public Delta V transformations using only published score columns, then score with `lab/proteingym.py`; report assay, protein, and category aggregates against frozen constituent baselines.
+- **Why:** The repository claims 0.5690 across 217 assays, but independent trusted-evaluator replay is absent and its many calibration steps may overfit or misaggregate.
+- **Data/baseline:** `pg.published_scores`, `pg.reference()`, public strategy/results; baseline fixed to VenusREM, ProSST-2048, GEMME, and the best constituent selected before outcomes. Units: assays and proteins.
+- **CPU:** 5--15 minutes over staged scores; zero cloud spend.
+
+### C36. Local Contact/RSA Residual for Perturbative Mutations
+- **Idea:** Add a preregistered local contact-density, burial/RSA proxy, and physicochemical-change residual to frozen GEMME, ESM2-35M, or ProSST ranks, with shuffled-site controls.
+- **Why:** Liu et al. report local mutation-induced deformation and AF3 failure on strong perturbations; whether that helps DMS fitness ranking is untested.
+- **Data/baseline:** Existing staged structures and ProteinGym scores only; raw frozen model score is the baseline. Units: assays or proteins, stratified by phenotype.
+- **CPU:** Minutes with Biopython on staged structures; zero cloud spend.
+
+### C37. DPLM-Evo Indel Audit and Substitution Transfer Check
+- **Idea:** Verify the reported indel comparison and separately test transfer to ProteinGym substitutions if open code/weights are runnable; never merge endpoints.
+- **Why:** DPLM-Evo reports 0.495 on indels versus ProGen2-M 0.464, but does not provide a directly comparable substitution leaderboard number.
+- **Data/baseline:** Public DPLM-Evo release if available and ProteinGym mutation tables; baseline ProGen2-M/same mutation type, units assays.
+- **CPU:** Blocked until open weights/code and CPU path are confirmed; no cloud resource authorized.
+
 ## Starter slate (operator + Claude, 2026-11-01)
 
 ### C1. Cheap zero-shot ensemble vs its best member

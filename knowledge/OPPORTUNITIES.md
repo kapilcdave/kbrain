@@ -2,6 +2,18 @@
 
 Things worth building, betting on or doing next. Format: what, why now, evidence (cite), rough cost, next step.
 
+### 36. Published-Score Calibration Auditor
+- **What:** Reproducibility service for post-processing ensembles such as Delta V, emitting leakage and aggregation checks with trusted per-assay/per-protein results.
+- **Why now:** An open repository claims 0.5690 across 217 substitution assays, above the local reference, but has not been independently replayed.
+- **Evidence:** [Delta V](https://github.com/Travis42/little-scientist-delta-v); [ProteinGym](https://arxiv.org/abs/2306.12204).
+- **Rough cost:** Zero cloud spend; CPU minutes. **Next:** Execute C35 with transformations frozen before outcomes.
+
+### 37. Local-Geometry Fitness Residual Middleware
+- **What:** Interpretable local contact/burial and physicochemical residuals for frozen zero-shot rankings.
+- **Why now:** A 6,967-pair structural analysis finds mutation-induced deformation is local and AF3 misses strongest cases, motivating local features instead of mutant structure generation.
+- **Evidence:** [Liu, Calabrese & O'Hern, arXiv:2609.24842](https://arxiv.org/abs/2609.24842).
+- **Rough cost:** Zero cloud spend with staged structures; minutes CPU. **Next:** Run C36 with shuffled-site and phenotype controls; do not claim fitness improvement before the per-unit CI rule passes.
+
 ### 1. CPU-Native Protein Engineering Suite (`kbrain-predict`)
 - **What:** An open-source, zero-GPU command-line tool and Python package for zero-shot mutation-effect scoring
   combining GEMME (MSA spectral analysis) and ESM2-35M with automated alignment retrieval (ColabFold/MMseqs2).

@@ -680,3 +680,24 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Proves that **all tested models experience a steep, monotonic performance collapse as mutational distance increases**. Furthermore, shows that single metrics like Spearman correlation fail to capture top-variant discovery requirements at high mutational depths, necessitating depth-stratified evaluation.
 - **Open Code / Weights / Data:** Benchmark datasets, splits, and evaluation scripts openly accessible on GitHub and Hugging Face.
 - **Hype vs. Evidence:** **CRITICAL VALIDATION FOR COMBINATORIAL RIGOR.** Validates kbrain's epistatic audit findings and confirms that zero-shot PLMs cannot be trusted for multi-point mutant design without explicit depth-aware evaluation.
+
+### 50. DPLM-Evo: Evolutionary Diffusion with Explicit Indel Modeling (Huang et al., ICML 2026)
+- **Citation / link:** [arXiv:2605.00182](https://arxiv.org/abs/2605.00182); [DPLM roadmap](https://bytedance.github.io/dplm)
+- **Claim:** Contextual evolutionary noising plus separate substitution/insertion/deletion heads enable variable-length generation and mutation scoring from one sequence.
+- **Benchmark/result:** Reports 0.495 Spearman on ProteinGym indels versus ProGen2-M 0.464; MSA methods ProFam and PoET score 0.530 and 0.517. This is not a directly comparable 217-assay substitution score.
+- **Open status:** The paper says code will be released through the roadmap; verify weights/code before use.
+- **Hype vs. evidence:** **PROMISING, NOT REPRODUCED.** The kernel is a useful ablation target, but indel and substitution claims must remain separate.
+
+### 51. Delta V: Open Post-Processing of Published ProteinGym Scores (Travis42, 2026)
+- **Citation / links:** [GitHub](https://github.com/Travis42/little-scientist-delta-v); [Zenodo](https://doi.org/10.5281/zenodo.21907349)
+- **Claim:** Pure-numpy quantile calibration, normalization, confidence blending of published VenusREM/S3F-MSA/ESM2-15B/ProSST/GEMME scores, residual propagation, and structure-aware penalties.
+- **Benchmark/result:** The repository reports 0.5690 flat mean across 217 substitution assays and 0.5698 by 186 proteins versus cited VenusREM 0.5357. These are self-reported and still depend on expensive constituent model scores.
+- **Open status:** Code, strategy, per-protein results, and analysis are public.
+- **Hype vs. evidence:** **HIGH-VALUE REPRODUCTION TARGET, NOT VERIFIED.** Replay through `lab/proteingym.py` to check leakage, aggregation, and overfit.
+
+### 52. Mutation-Induced Structural Deformation Is Local, and AF3 Misses Hard Cases (Liu, Calabrese & O'Hern, 2026)
+- **Citation / link:** [arXiv:2609.24842](https://arxiv.org/abs/2609.24842)
+- **Claim:** Across 6,967 wild-type/mutant X-ray pairs, deformation is concentrated near the mutation and decays beyond roughly 12--15 Å; AF3 resembles the wild-type fluctuation baseline and degrades for strongly perturbative mutations.
+- **Benchmark/result:** Structural-response benchmark, not a ProteinGym fitness leaderboard; normalized-deformation correlation reportedly falls to about 0.2 for the strongest perturbations.
+- **Open status:** Preprint and supplement are public; no DMS predictor is released.
+- **Hype vs. evidence:** **USEFUL MECHANISTIC EVIDENCE.** Supports local-contact/RSA residuals as a hypothesis, not as a demonstrated fitness gain.
