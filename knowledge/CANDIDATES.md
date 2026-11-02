@@ -41,6 +41,20 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C10. Decision-Benchmarked Crossover: At What N Does Empirical Ridge Overtake Zero-Shot Priors on Contiguous Splits?
+- **Idea:** Measure the exact training size $N \in \{12, 24, 48, 96, 192\}$ where a pure empirical ridge regression
+  (one-hot features alone) and an augmented ridge regression (one-hot + zero-shot prior) surpass frozen zero-shot
+  priors (GEMME, ESM2-35M) on held-out mutants under `fold_contiguous_5` (position-disjoint test mutants).
+- **Why:** Ding et al. (bioRxiv Oct 2026) established that wet-lab measurements overtake foundation models between
+  $N=50$ and $N=100$ in active acquisition. However, protein engineers face a critical dilemma: when mutating
+  unseen structural positions (the `fold_contiguous_5` regime), can empirical data at $N \approx 48-96$ generalize
+  without an evolutionary prior, or does the evolutionary prior retain an enduring margin? Pinpointing this crossover
+  resolves when a wet-lab team can stop relying on foundation models and rely purely on local assay feedback.
+- **Data:** Single-substitution assays with `fold_contiguous_5` in `data/proteingym/dms/` and `pg.published_scores`.
+- **Baseline:** Frozen zero-shot GEMME and ESM2-35M scores alone.
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** 5–10 minutes on 8 CPU cores (closed-form scikit-learn Ridge across 5 folds).
+
 ### C9. Structure-Aware vs Sequence-Only Small PLMs on CPU: SaProt-35M vs ESM2-35M by Selection Type
 - **Idea:** Compare SaProt-35M-AF2 against ESM2-35M across all 217 ProteinGym v1.3 DMS substitution assays
   (186 independent UniProt proteins) and test whether 3D structure conditioning (Foldseek 3Di tokens) provides

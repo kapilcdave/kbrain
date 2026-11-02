@@ -189,3 +189,45 @@ kbrain operates on 8 CPU cores and 7 GB RAM. We cannot train or serve 16B parame
    - **VESPA (0.4630):** Fast inference.
 3. **The Power of Ensembles:** Rank-averaging GEMME with small PLM logits or positional tolerance priors creates a drop-in zero-shot predictor that approaches 0.50 Spearman on CPU alone.
 4. **Low-N Supervised Adaptation:** In real protein engineering (24 to 96 measured labels), combining frozen zero-shot priors (GEMME, ESM2) via ridge regression or Bayesian linear regression outperforms any zero-shot model by 10-20 Spearman points.
+
+---
+
+## 5. Frontier Preprints & Critical Reality Checks (2026)
+
+Recent literature (2026 preprints) directly challenges the prevailing industry consensus that broad zero-shot benchmark leadership translates to real-world engineering discovery:
+
+### 1. Epistasis Blindness in Zero-Shot Predictors
+- **Paper:** *Beyond additivity: zero-shot methods cannot predict impact of epistasis on protein properties and function*
+- **Authors:** Anastasia Kolchina, Igors Dubanevics, Fyodor A. Kondrashov, Olga V. Kalinina (bioRxiv, Feb 2026)
+- **Citations / Links:** [bioRxiv:10.64898/2026.02.17.706292](https://doi.org/10.64898/2026.02.17.706292) | GitHub: [kalininalab/epistasis_proteingym](https://github.com/kalininalab/epistasis_proteingym)
+- **Claims:** Unsupervised variant effect predictors (VEPs) and protein language models fail to predict non-additive epistatic interactions. While models predict single substitutions and additive mutational combinations with reasonable accuracy, performance collapses when predicting variants exhibiting significant epistatic deviations.
+- **Benchmark & Baselines:** Evaluated 95 zero-shot models from ProteinGym across multi-mutant DMS datasets against additive single-mutation sums ($\sum \Delta s_i$).
+- **Open Code / Weights / Data:** Fully open. Benchmarking code on GitHub; uses publicly available ProteinGym multi-mutant substitutions.
+- **Hype vs. Evidence:** **HYPE PUNCTURED.** Disproves the belief that massive PLMs implicitly capture non-linear biochemical or thermodynamic cooperativity across multiple mutations. Standard zero-shot log-odds sums cannot navigate epistatic landscapes without explicit pairwise coupling or experimental supervision.
+
+### 2. Broad Benchmark Illusions & Local Prediction Failures
+- **Paper:** *Overestimating zero-shot fitness prediction: Broad benchmarks mask local failures and practical limitations*
+- **Authors:** Phillip R. Woolley, Aaron L. Feller, Andrew D. Ellington, Claus O. Wilke (bioRxiv, Jun 2026)
+- **Citations / Links:** [bioRxiv:10.64898/2026.06.04.730121](https://doi.org/10.64898/2026.06.04.730121)
+- **Claims:** High aggregate Spearman scores on broad benchmark suites (such as ProteinGym) mask widespread local prediction failures and dramatic protein-to-protein variance. Zero-shot models act primarily as coarse binary filters that separate dead/unfolded variants from functional ones. They lack resolution to distinguish among fit mutations, cannot optimize "new-to-nature" phenotypes, and are heavily confounded by cellular abundance and experimental noise.
+- **Benchmark & Baselines:** Systematic evaluation of sequence-only, structure-based, and hybrid foundation models across ProteinGym DMS assays.
+- **Open Code / Weights / Data:** Fully open preprint, data, and scripts.
+- **Hype vs. Evidence:** **HYPE REVISE.** Zero-shot models are useful for library depuration (pruning deleterious variants), but claiming they can "hallucinate" or rank top-tier functional variants for targeted protein engineering is scientifically unfounded.
+
+### 3. Decision Benchmarking & The Value of Wet-Lab Measurements
+- **Paper:** *Decision benchmarking reveals when protein foundation models add experimental value*
+- **Authors:** Wenze Ding, Chenlin Lu, Yao Li, Haipeng Gong, Zhiyong Wang (bioRxiv, Oct 2026)
+- **Citations / Links:** [bioRxiv:10.64898/2026.10.13.758966](https://doi.org/10.64898/2026.10.13.758966)
+- **Claims:** Formulates protein engineering as an active decision problem rather than a static ranking task. Evaluates 95 predictors across 217 ProteinGym assays (2.47M variants). Zero-shot ranking accuracy explains <20% of discovery variance. Calibrated computational priors add value only in early low-N rounds ($N \approx 20-100$). Experimental measurements surpass zero-shot foundation models after 50–100 wet-lab measurements for top-candidate discovery, and ~500 measurements for global landscape ranking.
+- **Benchmark & Baselines:** Iterative acquisition rounds across 217 ProteinGym assays compared against empirical measurements, budget-matched random screening, and additive linear models.
+- **Open Code / Weights / Data:** Fully open preprint and benchmarking code.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Replaces marketing claims with an empirical crossover curve: wet-lab screening budget rapidly outcompetes computational model size beyond $N=50-100$. Strongly justifies kbrain's strategic focus on the low-N supervised track ($N \in [24, 96]$).
+
+### 4. Mechanistic Interpretability & Latent 3D Spatial Circuits
+- **Paper:** *Towards Sparse Causal Features for Zero-shot Mutation Effect Prediction in a Protein Language Model*
+- **Authors:** Saishradha Mohanty, Manya Phutela, Anna G. Green (bioRxiv, Aug 2026)
+- **Citations / Links:** [bioRxiv:10.64898/2026.08.28.747907](https://doi.org/10.64898/2026.08.28.747907)
+- **Claims:** Dissects ESM-2 (650M) internal representations during zero-shot mutation scoring using Sparse Autoencoders (SAEs), integrated gradients, and activation patching. Demonstrates that causal prediction circuits map directly to residues in physical 3D contact with the mutated residue. Amino acid substitutions sharing biochemical properties reuse 40%–75% of causal feature circuits.
+- **Benchmark & Baselines:** ESM-2 (650M) zero-shot scoring on ProteinGym DMS assays (e.g. DNAJA1) evaluated by indirect causal effect vs raw activation magnitude.
+- **Open Code / Weights / Data:** Fully open code and SAE feature checkpoints.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Mechanistically explains why sequence-only PLMs perform well on stability: their internal representations learn emergent 3D contact maps from evolutionary co-variation. Also explains why explicit structure models offer only marginal incremental gains over ESM-2 on many standard single-point assays.

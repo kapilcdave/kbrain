@@ -42,5 +42,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero cloud spend; purely analytical evaluation using `pg.low_n` and `lab/proteingym.py`.
 - **Next step:** Preregister Candidate C2 / C3 to benchmark low-N ridge regression and model selection across all 217 assays.
 
+### 5. Epistasis & Multi-Mutant Audit Suite for Commercial Protein LLMs
+- **What:** A vendor-neutral benchmarking tool and audit report that stress-tests commercial foundation models
+  and PLMs on non-additive epistasis, using ProteinGym's 69 multi-mutant assays (~1.77M variants) and the Kalinina
+  lab epistasis metric framework.
+- **Why now:** Kolchina et al. (bioRxiv Feb 2026) and Woolley et al. (bioRxiv Jun 2026) proved that broad single-mutation
+  leaderboards mask catastrophic prediction failure on multi-mutant epistatic combinations. Biotech and pharma teams
+  licensing foundation models for combinatorial protein optimization need objective verification of whether a model
+  captures real physical epistasis or merely computes trivial additive sums of single-site log-odds.
+- **Evidence:** Kolchina et al., 2026 ([bioRxiv:10.64898/2026.02.17.706292](https://doi.org/10.64898/2026.02.17.706292));
+  Woolley et al., 2026 ([bioRxiv:10.64898/2026.06.04.730121](https://doi.org/10.64898/2026.06.04.730121)).
+- **Rough cost:** Zero GPU spend; analytical scoring over pre-computed published predictions on our 8-core CPU.
+- **Next step:** Execute Candidate C8 across the 69 multi-mutant assays in `lab/` to establish exact quantitative
+  degradation deltas for GEMME vs ESM2-650M under strong epistatic regimes.
+
+
 
 
