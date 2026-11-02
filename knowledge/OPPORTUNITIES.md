@@ -8,6 +8,12 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Evidence:** [Delta V](https://github.com/Travis42/little-scientist-delta-v); [ProteinGym](https://arxiv.org/abs/2306.12204).
 - **Rough cost:** Zero cloud spend; CPU minutes. **Next:** Execute C35 with transformations frozen before outcomes.
 
+### 38. Specificity-Aware Variant Prioritization Auditor
+- **What:** A vendor-neutral audit that distinguishes native-function preservation from altered-specificity discovery, reporting whether a model enriches useful redesigns or merely avoids deleterious mutations.
+- **Why now:** SpecificityStudio reports that zero-shot models strong on native-function benchmarks can be weak or inversely correlated on altered-function DMS, while site-independent scores can be more transferable in some families.
+- **Evidence:** [SpecificityStudio preprint, DOI:10.64898/2026.06.10.731299](https://doi.org/10.64898/2026.06.10.731299); ProteinGym benchmark context at [ProteinGym](https://proteingym.org/).
+- **Rough cost:** Zero cloud spend; CPU rank calculations after public tables are staged. **Next:** Execute C39 with frozen assay inclusion and separate native-function versus altered-function endpoints.
+
 ### 37. Local-Geometry Fitness Residual Middleware
 - **What:** Interpretable local contact/burial and physicochemical residuals for frozen zero-shot rankings.
 - **Why now:** A 6,967-pair structural analysis finds mutation-induced deformation is local and AF3 misses strongest cases, motivating local features instead of mutant structure generation.

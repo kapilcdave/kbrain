@@ -278,6 +278,14 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 - **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
 - **CPU:** 5–10 minutes on 8 CPU cores (closed-form scikit-learn Ridge across 5 folds).
 
+### C39. Specificity-Aware Zero-Shot Audit: Native Fitness vs Altered Function
+- **Idea:** Reproduce the SpecificityStudio comparison on its public altered-specificity DMS assays. Score the overlapping substitutions with frozen Site-Independent, GEMME, ESM2-35M/650M, and any supplied open model scores; report per-assay Spearman, top-8/16/32 enrichment, and the correlation between each model's native-function and altered-function rankings when the same protein has both.
+- **Why:** ProteinGym mostly measures the phenotype under which a protein family evolved, while engineering often seeks a new specificity. A model can therefore be excellent at preserving native function yet actively suppress useful redesigns. This is a distinct failure mode from aggregate ProteinGym accuracy and a cheap test of whether the site-independent baseline is a safer prior for altered objectives.
+- **Data:** Public SpecificityStudio tables and source DMS assays from [bioRxiv DOI:10.64898/2026.06.10.731299](https://doi.org/10.64898/2026.06.10.731299); use only assays with an explicit wild-type sequence, mutation map, and directionality. Do not merge its metrics into ProteinGym's 217-assay mean.
+- **Baseline:** Site-Independent and GEMME; secondary comparisons ESM2-35M/650M and published open predictors where coverage is complete. Freeze assay inclusion, score orientation, and top-k budgets before reading labels.
+- **Units:** Independent protein/phenotype assay pairs; cluster paired native-versus-altered comparisons by protein. Pass condition: a preregistered positive paired improvement or a reproducible null, with bootstrap CIs and assay-level—not mutant-level—units.
+- **CPU:** Minutes for rank calculations on precomputed scores; one data-engineering shift may be needed to stage and validate the public tables. No cloud or paid data/API spend.
+
 ### C9. Structure-Aware vs Sequence-Only Small PLMs on CPU: SaProt-35M vs ESM2-35M by Selection Type
 - **Idea:** Compare SaProt-35M-AF2 against ESM2-35M across all 217 ProteinGym v1.3 DMS substitution assays
   (186 independent UniProt proteins) and test whether 3D structure conditioning (Foldseek 3Di tokens) provides
