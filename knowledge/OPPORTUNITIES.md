@@ -167,6 +167,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
   inclusion, taxonomy, score orientation, coverage checks, all three rules, the protein-level endpoint, and
   bootstrap settings before inspecting labels. Do not retune an MSA-depth threshold on ProteinGym.
 
+### 12. Dynamics-Augmented Zero-Shot Fitness Engine (GNM-PLM)
+- **What:** A CPU-native protein variant scoring engine combining small sequence PLMs (ESM2-35M / 8M) and GEMME with analytical Gaussian Network Model (GNM) normal mode analysis computed from AlphaFold2 structures.
+- **Why now:** TriFit (Cho, arXiv:2604.12026, Apr 2026) showed that protein conformational dynamics provides the single largest marginal accuracy boost in mutation fitness prediction (AUROC 0.897). Unlike expensive molecular dynamics simulations, GNM normal mode analysis requires only an $L \times L$ contact Laplacian decomposition that runs in milliseconds on CPU, yielding physical residue flexibility and allosteric coupling metrics without GPU clusters.
+- **Evidence:** Cho, 2026 ([arXiv:2604.12026](https://arxiv.org/abs/2604.12026)); Bahar et al., 1997 (Biophys J); ProteinGym v1.3 benchmark.
+- **Rough cost:** Zero cloud spend; 1-2 engineering shifts to implement the SciPy C-alpha contact graph eigensolver and benchmark against ProteinGym targets.
+- **Next step:** Execute Candidate C14 across the 186 ProteinGym UniProt targets using AlphaFold2 structures to measure the bootstrap Spearman improvement over unweighted baseline priors.
+
+### 13. In-Context Few-Shot Learning Service for Rapid Wet-Lab Screening (TabPFN + PLM)
+- **What:** An automated few-shot prediction service for wet-lab protein engineers that ingests 24–96 experimental measurements and delivers zero-training Bayesian fitness predictions for uncharacterized library variants using TabPFN/TabICL coupled with frozen PLM embeddings.
+- **Why now:** Wet-lab teams executing directed evolution need fast iteration in 96-well plate cycles ($N \le 96$). Conventional supervised models (neural networks, fine-tuned PLMs) severely overfit on scarce labels, while standard ridge regression requires hyperparameter tuning and fails on unseen positions. Tabular in-context learners (Guan et al., arXiv:2606.31126, Jun 2026) evaluate frozen PLM embeddings in a single transformer forward pass on CPU, matching SOTA supervised regressors without gradient updates.
+- **Evidence:** Guan et al., 2026 ([arXiv:2606.31126](https://arxiv.org/abs/2606.31126)); Hollmann et al., 2023 (Nature); ProteinGym few-shot benchmark.
+- **Rough cost:** Zero GPU spend; fast CPU inference (<1 second per 96-variant plate).
+- **Next step:** Execute Candidate C15 to establish whether TabPFN provides a statistically significant bootstrap gain over standard ridge regression under strict position-disjoint splits (`fold_contiguous_5`).
+
 
 
 

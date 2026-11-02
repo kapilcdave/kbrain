@@ -42,7 +42,11 @@ While zero-shot foundation models (ESM-2, GEMME, VenusREM2) predict broad fitnes
 |    y_pred = w * Proj_LFS(z_mut - z_wt) + Prior(x)                                       |
 |    - Recovers a compact 5-10D assay-specific direction from PLM embedding deltas.      |
 +-----------------------------------------------------------------------------------------+
-| 5. Label-Efficient Model Selection / Routing (kbrain Finding 2026)                      |
+| 5. Tabular In-Context Learners (Guan et al., arXiv Jun 2026)                            |
+|    y_pred = TabPFN(D_train=(X_train, y_train), x_query=X_test)                          |
+|    - Maps frozen PLM embeddings + few labels to predictions in 1 forward pass on CPU.    |
++-----------------------------------------------------------------------------------------+
+| 6. Label-Efficient Model Selection / Routing (kbrain Finding 2026)                      |
 |    y_pred = Prior_k*(x) where k* = argmax_k Corr(Prior_k(D_train), y_train)             |
 |    - Routes between evolutionary (GEMME) and sequence (ESM2) priors using N=24 labels.  |
 +-----------------------------------------------------------------------------------------+
@@ -65,7 +69,12 @@ While zero-shot foundation models (ESM-2, GEMME, VenusREM2) predict broad fitnes
 - Rather than running high-dimensional non-linear regression (which overfits when $N \ll D$), Partial Least Squares (PLS) or principal subspace projection isolates a 5–10 dimensional **Linear Fitness Subspace (LFS)**.
 - Unlike one-hot features, $\Delta z$ retains continuous structural and chemical semantics across all positions, enabling generalization to positions unseen in the $N$ training points.
 
-### Paradigm 4: Label-Efficient Model Routing (kbrain 2026)
+### Paradigm 4: Tabular In-Context Learning (TabPFN / TabICL, Guan et al. 2026)
+- [Guan et al. (arXiv:2606.31126)](https://arxiv.org/abs/2606.31126) demonstrated that tabular foundation models pretrained on synthetic causal graphs (TabPFN, TabICL) can be repurposed as zero-training, few-shot regressors for protein fitness.
+- By pairing frozen PLM embeddings (e.g. ESM Cambrian) as input columns $X$ with measured assay fitness $y$, the tabular foundation model performs in-context Bayesian regression in a single transformer forward pass.
+- Eliminates hyperparameter tuning, gradient descent, and cross-validation overfitting on small datasets ($N \le 96$), matching or exceeding task-specific Gaussian processes and supervised regressors on ProteinGym and catalytic activity benchmarks while running instantaneously on CPU.
+
+### Paradigm 5: Label-Efficient Model Routing (kbrain 2026)
 - Instead of using $N=24$ measurements to fit model weights, use them to perform **hypothesis selection**: which foundation model's energy landscape best correlates with this specific assay?
 - Demonstrated by kbrain's [label-efficient model selection finding](findings/label-efficient-model-selection.md): dynamically switching between GEMME and ESM2-650M yields **+0.01645** held-out Spearman gain over GEMME (95% CI [+0.00776, +0.02608]).
 

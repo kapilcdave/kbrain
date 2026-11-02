@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C15. Tabular In-Context Learning (TabPFN) vs Ridge Regression in Low-N Regimes on Contiguous Splits
+- **Idea:** Benchmark TabPFN (an in-context transformer foundation model pretrained on synthetic causal graphs that generates Bayesian posterior predictions without gradient descent) against closed-form Ridge regression and frozen zero-shot priors at $N \in \{24, 48, 96\}$ on ProteinGym single-substitution assays under `fold_contiguous_5` (position-disjoint test mutants). Inputs are frozen zero-shot scores (GEMME, ESM2-35M) combined with one-hot indicators or PLS-reduced embedding deltas.
+- **Why:** Guan et al. (arXiv:2606.31126, Jun 2026) showed that TabPFN in-context learning paired with PLM representations matches or exceeds task-specific supervised regressors on ProteinGym. Standard regression models suffer from hyperparameter overfitting when $N \le 48$. Because TabPFN evaluates the dataset context in a single forward pass on CPU using an internal causal prior, it may prevent severe weight explosion on unseen structural positions.
+- **Data:** ProteinGym v1.3 single-substitution assays with `fold_contiguous_5` in `data/proteingym/dms/` and `pg.published_scores`.
+- **Baseline:** Frozen zero-shot GEMME / ESM2-35M scores alone and standard Ridge regression.
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** 5–10 minutes on 8 CPU cores (TabPFN CPU inference on small $N \le 96$ tables).
+
+### C14. CPU-Computable Gaussian Network Model (GNM) Dynamics as an Orthogonal Prior to Sequence PLMs
+- **Idea:** Compute analytical residue flexibility profiles (mean-square fluctuations / B-factors) from AlphaFold2 predicted C-alpha coordinates using the Gaussian Network Model (GNM; Kirchhoff contact Laplacian decomposition), and evaluate whether scaling zero-shot PLM/GEMME log-odds by GNM flexibility improves Spearman correlation over unweighted scores across ProteinGym substitution assays.
+- **Why:** Cho (arXiv:2604.12026, Apr 2026, TriFit) demonstrated that conformational dynamics provides the single largest marginal gain over sequence and static structure in variant effect prediction (AUROC 0.897). Unlike heavy molecular dynamics simulations, GNM normal mode analysis requires only an $L \times L$ Kirchhoff contact matrix inversion, executing analytically in <0.1 seconds per protein on an 8-core CPU. If dynamic rigidity penalizes mutations at functionally sensitive sites that sequence models miss, GNM provides an entirely GPU-free physical prior.
+- **Data:** AlphaFold2 C-alpha coordinates for 186 ProteinGym UniProt targets; published zero-shot GEMME and ESM2-35M scores from `pg.published_scores`.
+- **Baseline:** Published unweighted GEMME and ESM2-35M scores.
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** 2–5 minutes on 8 CPU cores (analytical GNM Laplacian eigensolver in SciPy).
+
 ### C13. Site-Mean Fitness Baseline vs Supervised Models Across Random and Contiguous Splits
 - **Idea:** Benchmark an explicit "Site-Mean Predictor" (predicting the empirical mean fitness of observed mutations at residue position $i$, falling back to the training global mean for unseen positions) across ProteinGym v1.3 single-substitution assays under both `fold_random_5` and `fold_contiguous_5` at $N \in \{24, 48, 96\}$, and compare against:
   (1) Frozen zero-shot GEMME and ESM2-35M priors.

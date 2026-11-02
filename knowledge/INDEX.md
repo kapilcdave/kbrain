@@ -7,14 +7,14 @@ The map of our niche: protein mutation-effect prediction. The scout keeps this c
 - [The lab](../lab/proteingym.py): the trusted evaluator
 
 ## Maps
-- [Models](models.md): taxonomy, 97-model ProteinGym v1.3 benchmark, scaling limits, 2026 preprints (DEEP-Boltz, inference dropout, OOD priors, site-mean traps), and CPU feasibility
-- [Low-N prediction](low-n.md): guide to supervised regimes (N=24..192), split leakage traps (random vs contiguous), linear fitness subspaces, site-mean dominance, and empirical crossover dynamics
+- [Models](models.md): taxonomy, 97-model ProteinGym v1.3 benchmark, scaling limits, 2026 preprints (TriFit dynamics, reverse distillation, Proust, DEEP-Boltz, inference dropout, OOD priors, site-mean traps), and CPU feasibility
+- [Low-N prediction](low-n.md): guide to supervised regimes (N=24..192), split leakage traps (random vs contiguous), tabular in-context learning (TabPFN), linear fitness subspaces, site-mean dominance, and empirical crossover dynamics
 - [Datasets](datasets.md): guide to ProteinGym v1.3 (DMS/indels/clinical), MaveDB, MegaScale, FLIP, and data leakage rules
 - [Labs and companies](labs-and-companies.md): landscape of academic hubs (Marks, Fowler, LCQB, Rost, Baker), foundation consortia, and commercial platforms (Cradle, Generate)
 
 ## Pipeline
-- [Candidate experiments](CANDIDATES.md): C1–C13 (CPU ensembles, model selection, low-N crossover, subspace projection, MC dropout, site-mean controls).
-- [Opportunities](OPPORTUNITIES.md): 11 commercial and research opportunities (CPU engine, low-N auditor, model router, static ensemble validation, DEEP distogram potentials, MC uncertainty calibration).
+- [Candidate experiments](CANDIDATES.md): C1–C15 (CPU ensembles, model selection, low-N crossover, subspace projection, MC dropout, site-mean controls, GNM dynamics, tabular in-context learning).
+- [Opportunities](OPPORTUNITIES.md): 13 commercial and research opportunities (CPU engine, low-N auditor, model router, static ensemble validation, DEEP distograms, MC dropout, GNM dynamics, TabPFN screening).
 - [Findings](findings/): validated experiments, one page each.
   - [Lab validation](findings/lab-validation.md): trusted evaluator reproduces the ProteinGym leaderboard.
   - [Augmented low-N regression](findings/augmented-low-n-regression.md): random-split ridge gain passes, but

@@ -311,3 +311,33 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Supervised PLM performance plunges under site-stratified splitting. Quantifies the Relative Variability of Site Means (RVSM) and Fraction of Highly Variable Sites (FHVS) as the primary determinants of apparent model success. Shows PLMs systematically underperform on viral targets due to divergent evolutionary pressures.
 - **Open Code / Weights / Data:** Fully open preprint, code, and processed datasets.
 - **Hype vs. Evidence:** **CRITICAL VALIDATION FOR KBRAIN RIGOR.** Directly mirrors and generalizes kbrain's empirical skeptic finding on random vs contiguous low-N splits: random CV permits one-hot regressors to fit site means, creating an illusion of mutational learning that evaporates on position-disjoint splits.
+
+### 13. TriFit: Trimodal Fusion with Protein Dynamics
+- **Paper:** *TriFit: Trimodal Fusion with Protein Dynamics for Mutation Fitness Prediction*
+- **Authors:** Seungik Cho (arXiv, Apr 2026)
+- **Citations / Links:** [arXiv:2604.12026](https://arxiv.org/abs/2604.12026)
+- **Claims:** Protein language models and static structures ignore conformational dynamics (residue flexibility, allosteric coupling, normal mode vibrations). TriFit integrates sequence (ESM-2 650M masked marginals), structure (AlphaFold2 C-alpha coordinates), and dynamics (Gaussian Network Model / GNM B-factors, mode shapes, and cross-correlations) via a 4-expert Mixture-of-Experts (MoE) fusion module.
+- **Benchmark & Baselines:** ProteinGym v1.3 substitution benchmark (217 DMS assays, 696k SAVs) against supervised baselines Kermut, ProteinNPT, and zero-shot ESM3.
+- **Result:** Achieves AUROC 0.897 +/- 0.0002, outperforming Kermut (0.864) and ProteinNPT (0.844). Crucially, ablation confirms that **dynamics contributes the largest marginal gain** over pairwise modality combinations, and outputs exhibit near-perfect calibration (ECE = 0.044) without post-hoc scaling.
+- **Open Code / Weights / Data:** Preprint open; GNM normal mode analysis is analytical and computable on CPU in milliseconds via contact matrix decomposition.
+- **Hype vs. Evidence:** **HIGHLY RELEVANT TO KBRAIN CPU EDGE.** Proves that conformational dynamics provide orthogonal signal to sequence PLMs; because Gaussian Network Models require only an AlphaFold2 C-alpha contact matrix and an analytical eigensolver (numpy/scipy on CPU), dynamics features can be extracted locally without GPUs.
+
+### 14. Reverse Distillation: Matryoshka Representation Scaling for PLMs
+- **Paper:** *Reverse Distillation: Consistently Scaling Protein Language Model Representations*
+- **Authors:** Darius Catrina, Christian Bepler, Samuel Sledzieski, Rohit Singh (arXiv, Mar 2026)
+- **Citations / Links:** [arXiv:2603.07710](https://arxiv.org/abs/2603.07710); Code: [github.com/rohitsinghlab/plm_reverse_distillation](https://github.com/rohitsinghlab/plm_reverse_distillation)
+- **Claims:** Resolves the well-documented PLM scaling ceiling (where ESM-2 650M beats 3B and 15B on ProteinGym) by decomposing large PLM representations into orthogonal Matryoshka-style subspaces guided by smaller models. Constrained smaller models (e.g., 35M/150M) isolate core, broadly-shared biophysical features, while larger models supply orthogonal capacity without catastrophic interference.
+- **Benchmark & Baselines:** ProteinGym zero-shot substitution benchmark across ESM-2 scales (8M to 15B) vs standard ESM-2 embeddings.
+- **Result:** Reverse-distilled ESM-2 variants consistently outperform baseline models at identical embedding dimensions, restoring monotonic scaling: the reverse-distilled 15B model achieves the strongest overall performance on the benchmark.
+- **Open Code / Weights / Data:** Code and trained checkpoints publicly available.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Provides a rigorous theoretical and empirical explanation for why small PLMs (which we run on CPU) capture the essential primary manifold of fitness, and provides a blueprint for nested feature extraction.
+
+### 15. Proust: Compute-Efficient Causal PLMs for Zero-Shot Fitness
+- **Paper:** *No Generation without Representation: Efficient Causal Protein Language Models Enable Zero-Shot Fitness Estimation*
+- **Authors:** Furkan Eris (arXiv, Feb 2026)
+- **Citations / Links:** [arXiv:2602.01845](https://arxiv.org/abs/2602.01845); Code: [github.com/Furkan9015/proust-inference](https://github.com/Furkan9015/proust-inference)
+- **Claims:** Bridges the traditional divide between masked language models (MLMs, optimal for fitness scoring) and causal autoregressive models (optimal for generative design). Introduces Proust (309M parameters), integrating modern LLM architecture: grouped-query attention (GQA) with shared K/V projections, cross-layer value residuals, and depthwise causal convolutions.
+- **Benchmark & Baselines:** ProteinGym substitutions and indels against ESM-2, ProGen2, and EVEREST viral fitness.
+- **Result:** Trained on 33B tokens in only 40 B200 GPU-hours, Proust attains Spearman rho = 0.390 on ProteinGym substitutions (approaching models requiring 50-200x more pretraining compute) and establishes a new state-of-the-art on ProteinGym indels, while retaining native autoregressive sequence generation capabilities.
+- **Open Code / Weights / Data:** Inference code and weights fully open source.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Confirms that modern causal architectural efficiency translates directly to variant scoring and indel fitness estimation.
