@@ -25,3 +25,5 @@ The map of our niche: protein mutation-effect prediction. The scout keeps this c
     same-scale ESM2-35M on the frozen Stability subset, qualified to Tsuboyama-heavy small-domain data.
   - [MSA-depth gated routing](findings/msa-depth-gated-routing.md): GEMME/ESM2-650M blending beats GEMME,
     but an unconditional blend is better and randomized depth also passes; do not deploy the depth gate.
+  - [Position-adaptive zero-shot fusion](findings/position-adaptive-zero-shot-fusion.md): Gated GEMME/ESM2-35M
+    fusion beats a 50/50 blend, but conservation routing is refuted by controls; prefer asymmetric scalar blending.
