@@ -58,6 +58,10 @@ While zero-shot foundation models (ESM-2, GEMME, VenusREM2) predict broad fitnes
 |    min_w alpha * L_MSE(y, f(x)) + (1 - alpha) * L_Rank(y, f(x))                          |
 |    - Jointly optimizes ranking fidelity and numerical calibration on low-N feedback.     |
 +-----------------------------------------------------------------------------------------+
+| 9. Probabilistic Preferential Learning / PKermut (Van der Flier et al., bioRxiv 2026)   |
+|    P(u > v | x_u, x_v) = sigma((f(x_u) - f(x_v)) / sqrt(2) * s)                         |
+|    - Learns pairwise preference relations over top candidates; tested on quantile CV.    |
++-----------------------------------------------------------------------------------------+
 ```
 
 ### Paradigm 1: Pure Empirical Models (One-Hot Features)
@@ -104,6 +108,12 @@ While zero-shot foundation models (ESM-2, GEMME, VenusREM2) predict broad fitnes
   $$\mathcal{L}_{\text{RankReg}} = \alpha \mathcal{L}_{\text{MSE}}(y, \hat{y}) + (1-\alpha) \mathcal{L}_{\text{Rank}}(y, \hat{y})$$
 - Directly incorporating experimental ranking feedback enabled rapid identification of functional hotspots in both catalytic cores and distal regions, driving 57-fold activity gains in cytochrome P450 BM3 and 104-fold enhancement in Sortase A within 5 cycles.
 
+### Paradigm 9: Probabilistic Preferential Learning & Quantile Extrapolation (PKermut, Van der Flier et al. 2026)
+- [Van der Flier et al. (bioRxiv June 2026, DOI: 10.1101/2026.06.18.599602)](https://doi.org/10.1101/2026.06.18.599602) introduced **PKermut**, a Gaussian process model trained directly on pairwise preference judgments:
+  $$P(\text{variant } u \succ \text{variant } v \mid x_u, x_v) = \Phi\left(\frac{f(x_u) - f(x_v)}{\sqrt{2}\sigma_n}\right)$$
+- Evaluated on 69 ProteinGym datasets under both standard cross-validation and a strict *quantile cross-validation scheme* where top-performing variants are completely held out from training to simulate extrapolative directed evolution.
+- **The Empirical Reality Check:** Despite the theoretical appeal of preference learning for ranking, standard regression-based Kermut outperformed PKermut on the majority of datasets. Preferential learning introduces high variance unless the pairwise comparison sampling graph is densely sampled, demonstrating that metric calibration remains essential in low-N active learning.
+
 ---
 
 ## 3. Split Leakage Traps & Rigorous Cross-Validation
@@ -124,7 +134,7 @@ In kbrain's [augmented low-N finding](findings/augmented-low-n-regression.md):
 
 ### Independent Confirmation in the Literature (2026 Preprints)
 The kbrain skepticism regarding split leakage has received independent peer confirmation across 2026 preprints:
-- **Site-Mean Dominance ([Vieira, Lin, & Wilke, bioRxiv Mar 2026](https://doi.org/10.64898/2026.03.08.710389)):** Systematic benchmarking established that a trivial baseline model predicting only the *site mean fitness* matches or exceeds complex supervised PLMs on many assays under random splits. The apparent supervised "edge" of PLMs drops dramatically under site-stratified splitting, proving that random splits reward memorizing site tolerance rather than learning biochemical substitution rules.
+- **Site-Mean Dominance & RVSM ([Vieira, Lin, & Wilke, bioRxiv 2026](https://doi.org/10.1101/2026.03.11.584488)):** Evaluated 74 DMS datasets across viral (41) and cellular (33) targets. Formalized two intrinsic data features: **Relative Variability of Site Means (RVSM)** and **Fraction of Highly Variable Sites (FHVS)**. On high-RVSM datasets, a trivial baseline predicting only the empirical *site mean fitness* matches or exceeds complex supervised PLMs. When evaluated under site-stratified splits (disjoint positions), apparent PLM advantages evaporate, proving that pooled random splits measure position-mean memorization rather than amino-acid substitution physics.
 - **Modality-Specific OOD Extrapolation ([Vithayapalert, Piriyajitakonkij, & Grisoni, bioRxiv Oct 2026](https://doi.org/10.64898/2026.10.06.756934)):** On FLIP2 and ProteinGym out-of-distribution splits, structural priors (AlphaFold2 coordinates/3Di tokens) confer generalization across unseen protein backbones, but **co-evolutionary/MSA trunk representations** are strictly necessary to extrapolate fitness predictions to unobserved mutation positions. In the absence of an MSA, PLMs fail to generalize to position-disjoint folds.
 - **Mutation-Dense Extrapolation Limits ([Talpir & Fleishman, bioRxiv May 2026](https://doi.org/10.64898/2026.05.01.722313)):** In combinatorial engineering and mutation-dense design tasks, sequence PLMs fail to outperform simple homology baselines (PSSMs / position-specific scoring matrices). Supervised surrogate models navigating multiple mutations require explicit structural or biophysical regularization rather than unconstrained sequence embeddings.
 
@@ -158,6 +168,8 @@ Recent decision-benchmarking literature ([Ding et al., bioRxiv Oct 2026](https:/
 ## 6. Key References
 
 - **Chen et al., JCTC 2026:** *JustEvo: A Prior-Guided Adaptive Mixture-of-Experts Framework for Multifunctional Protein Directed Evolution.* [DOI:10.1021/acs.jctc.6c01288](https://doi.org/10.1021/acs.jctc.6c01288)
+- **Van der Flier et al., bioRxiv 2026:** *Acquiring Improved Protein Variants With Probabilistic Preferential Learning.* [DOI:10.1101/2026.06.18.599602](https://doi.org/10.1101/2026.06.18.599602)
+- **Vieira, Lin, & Wilke, bioRxiv 2026:** *Intrinsic dataset features drive mutational effect prediction by protein language models.* [DOI:10.1101/2026.03.11.584488](https://doi.org/10.1101/2026.03.11.584488)
 - **Xu et al., Nat Commun 2026:** *Rank-guided learning accelerates automated enzyme engineering (REAP / RankReg).* [DOI:10.1038/s41467-026-76264-2](https://doi.org/10.1038/s41467-026-76264-2)
 - **Harding-Larsen et al., Bioinform Adv / bioRxiv 2026:** *PRIZM: Combining Low-N Data and Zero-shot Models to Design Enhanced Protein Variants.* [DOI:10.1093/bioadv/vbag299](https://doi.org/10.1093/bioadv/vbag299)
 - **Beck et al., ICLR 2025:** *Metalic: Meta-Learning In-Context with Protein Language Models.* [arXiv:2410.08355](https://arxiv.org/abs/2410.08355)
