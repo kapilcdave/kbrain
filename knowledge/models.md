@@ -725,3 +725,25 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Benchmark/baselines:** Small, curated specificity DMS sets, with comparisons among sequence PLMs, evolutionary/site-independent scores, and other zero-shot predictors. This is a different endpoint from the 217-assay ProteinGym aggregate and should not be folded into its leaderboard mean.
 - **Open status:** The preprint and companion database are publicly described; verify the released tables, exact assay inclusion, and score orientation before replay. No new weights are required for an initial audit if model scores are supplied.
 - **Hype vs. evidence:** **IMPORTANT BUT PRELIMINARY.** The biological distinction is actionable and directly challenges “high ProteinGym score implies engineering utility,” but the curated set is small and specificity assays are heterogeneous. Treat it as a candidate for external validation, not a general refutation of ProteinGym.
+
+### 56. EvoIF: Evolutionary and Inverse-Folding Profiles for Fitness (Jiao et al., Bioinformatics 2026)
+- **Paper:** *Evolutionary profiles for protein fitness prediction*
+- **Citation / links:** [DOI:10.1093/bioinformatics/btag525](https://doi.org/10.1093/bioinformatics/btag525); [PMC full text](https://pmc.ncbi.nlm.nih.gov/articles/PMC13430659/); [Zenodo code archive](https://doi.org/10.5281/zenodo.20139484)
+- **Claim:** EvoIF combines retrieved-homolog evolutionary profiles with inverse-folding logits through a compact transition block, then scores mutations with calibrated log-odds. An MSA-enabled variant adds target-family information.
+- **Benchmark/result:** ProteinGym's 217 assays and >2.5M mutants; the abstract reports competitive performance and improved robustness across function types, MSA depths, taxa, and mutation depths, but no directly comparable mean Spearman in the abstract.
+- **Open status:** Code is archived on Zenodo; audit checkpoints, data construction, and inference requirements before calling it CPU-feasible.
+- **Hype vs. evidence:** **PROMISING, NOT VERIFIED.** The complementary-signal hypothesis is testable against our published-score baselines; exact claims require `lab/proteingym.py` reproduction.
+
+### 57. DeePEn: Depth-Sensitive Protein-Engineering Benchmark (Schmirler et al., bioRxiv 2026)
+- **Citation / link:** [bioRxiv record/abstract](https://www.lifescience.net/preprints/20649/deepen-a-depth-sensitive-benchmark-for-protein-eng/)
+- **Claim:** Evaluates generalization as the number of simultaneous substitutions increases from wild type or from observed training data, rather than reporting one aggregate fitness score.
+- **Benchmark/result:** Four ProteinGym DMS datasets with multi-mutant coverage; the authors report that all tested models degrade with mutational distance and no single metric captures every engineering objective.
+- **Open status:** Public preprint abstract and benchmark description; confirm released tables/code and assay identities before reuse.
+- **Hype vs. evidence:** **USEFUL EVALUATION DESIGN, NOT NEW SOTA.** It reinforces a distance-stratified audit and should not be conflated with the 217-assay leaderboard mean.
+
+### 58. Split and Aggregation Sensitivity in ProteinGym Supervised Evaluation (Trivedi et al., 2026)
+- **Citation / link:** [SSRN record/PDF](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7599298)
+- **Claim:** Studies how supervised ProteinGym model rankings change with split choice and aggregation, highlighting protocol sensitivity as a source of conflicting results.
+- **Benchmark/result:** ProteinGym supervised benchmark; the indexed abstract reports split/aggregation comparisons, but detailed protocol and numerical claims require direct audit.
+- **Open status:** Public SSRN paper; code/data release was not established in this shift.
+- **Hype vs. evidence:** **METHODOLOGY ALERT.** Relevant to fixed random/modulo/contiguous folds, but not evidence for a model improvement until reproduced with the trusted evaluator.

@@ -360,6 +360,13 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero cloud spend; replay over published scores and existing labels is minutes on CPU. The first product should expose uncertainty and crossover ranges, not hard universal thresholds.
 - **Next step:** Execute Candidate C38 with top-$K$ discovery and global-ranking endpoints preregistered separately; do not market the thresholds until replayed.
 
+### 37. Evolutionary-Profile / Inverse-Folding Fitness Audit (`EvoIF-CPU`)
+- **What:** A reproducible audit and, if validated, CPU-oriented implementation of EvoIF-style mutation scoring that combines homolog profiles with inverse-folding probabilities.
+- **Why now:** EvoIF is a recent peer-reviewed, lightweight method with a public Zenodo archive and a direct ProteinGym claim, making it a concrete alternative to large PLMs and possible complement to GEMME/ProSST.
+- **Evidence:** Jiao et al., *Bioinformatics* 2026 ([DOI:10.1093/bioinformatics/btag525](https://doi.org/10.1093/bioinformatics/btag525)); [Zenodo archive](https://doi.org/10.5281/zenodo.20139484). The reported benchmark advantage remains unverified by kbrain.
+- **Rough cost:** Zero cloud spend for release inspection and staged-score replay; local inference cost unknown until checkpoint and MSA requirements are inspected.
+- **Next step:** Execute C39, with a hard stop if the release cannot produce exact ProteinGym mutation scores under the workstation budget.
+
 
 
 

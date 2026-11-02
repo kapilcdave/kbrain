@@ -30,6 +30,12 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 - **Data/baseline:** `pg.load_assay`, `pg.published_scores`, and existing low-N folds. Baselines fixed before scoring: best published zero-shot member, calibrated fixed blend, ridge/additive model, random acquisition, and model-guided acquisition. Report per-assay and per-protein units; discovery must be preregistered separately from leaderboard Spearman.
 - **CPU:** 5–20 minutes using staged scores and scikit-learn; zero cloud spend. A full acquisition simulation may need chunking to stay under the session limit.
 
+### C39. EvoIF Profile-Transfer Audit on ProteinGym
+- **Idea:** Reproduce released EvoIF/EvoIF-MSA scores if checkpoints and inference code are available, then score exact mutation rows with `lab/proteingym.py`; compare against GEMME, ESM2-35M, ProSST-2048, and a rank blend. Stratify by MSA depth, taxon, phenotype, and mutational distance.
+- **Why:** EvoIF claims complementary evolutionary and inverse-folding profiles improve robustness, directly overlapping kbrain's cheap ensemble thesis, but its abstract does not provide a directly comparable mean Spearman or CPU cost.
+- **Data/baseline:** Zenodo release (DOI 10.5281/zenodo.20139484), ProteinGym v1.3, and frozen published-score baselines. Freeze score orientation, assay inclusion, and checkpoint before evaluation; units are assays, with proteins secondary.
+- **CPU:** 15–60 minutes if scores can be generated locally; if inference requires unavailable GPU memory or large MSA searches, stop after release audit and hand off to the data engineer. Zero cloud spend.
+
 ## Starter slate (operator + Claude, 2026-11-01)
 
 ### C1. Cheap zero-shot ensemble vs its best member
