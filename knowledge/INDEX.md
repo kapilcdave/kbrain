@@ -14,4 +14,7 @@ The map of our niche: protein mutation-effect prediction. The scout keeps this c
 ## Pipeline
 - [Candidate experiments](CANDIDATES.md): the chief picks from here.
 - [Opportunities](OPPORTUNITIES.md): things to build, bet on or do next.
-- [Findings](findings/): validated experiments, one page each. First: [lab validation](findings/lab-validation.md)
+- [Findings](findings/): validated experiments, one page each.
+  - [Lab validation](findings/lab-validation.md): trusted evaluator reproduces the ProteinGym leaderboard.
+  - [Augmented low-N regression](findings/augmented-low-n-regression.md): random-split ridge gain passes, but
+    the single-substitution stratum is null and unseen-position design remains unvalidated.

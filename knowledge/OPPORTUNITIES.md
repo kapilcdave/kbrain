@@ -38,9 +38,15 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Why now:** Startups like Cradle Bio sell SaaS subscriptions promising rapid fitness optimization with minimal wet-lab
   measurements. However, prospective wet-lab customers lack vendor-neutral tools to verify whether complex active learning
   algorithms genuinely beat simple zero-shot ranked screening under realistic experimental noise and position-unseen constraints.
-- **Evidence:** Hsu et al., 2022 (Nat Biotechnol); ProteinGym CV benchmarks; kbrain finding on cheap-zero-shot ensembles.
+- **Evidence:** The kbrain [augmented low-N regression finding](findings/augmented-low-n-regression.md) passed its
+  random-split endpoint (+0.00994 mean per-protein Spearman; 95% CI [+0.00451, +0.01570]) but was null in
+  single-mutant-dominated proteins (+0.00071; 95% CI [-0.00393, +0.00474]). This demonstrates why an auditor
+  must separate random-split gains from position-unseen design claims. Data and folds: ProteinGym v1.3
+  ([Notin et al., arXiv:2306.12204](https://arxiv.org/abs/2306.12204)); augmentation precedent:
+  [Hsu et al., 2022, DOI:10.1038/s41587-021-01146-5](https://doi.org/10.1038/s41587-021-01146-5).
 - **Rough cost:** Zero cloud spend; purely analytical evaluation using `pg.low_n` and `lab/proteingym.py`.
-- **Next step:** Preregister Candidate C2 / C3 to benchmark low-N ridge regression and model selection across all 217 assays.
+- **Next step:** Run a frozen, single-substitution-only evaluation on ProteinGym's fixed `fold_contiguous_5`
+  splits, with all test positions absent from training and paired improvements clustered by UniProt protein.
 
 ### 5. Epistasis & Multi-Mutant Audit Suite for Commercial Protein LLMs
 - **What:** A vendor-neutral benchmarking tool and audit report that stress-tests commercial foundation models
