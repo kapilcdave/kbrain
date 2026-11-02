@@ -87,6 +87,11 @@ In kbrain's [augmented low-N finding](findings/augmented-low-n-regression.md):
 - **The Stratification Attack:** When stratified by mutational complexity, the gain was driven almost entirely by **multiple-mutant assays** (+0.03362), while the single-substitution-only stratum was statistically **null** (+0.00071; 95% CI [-0.00393, +0.00474]).
 - On single substitutions, random-split gains often merely reflect position-variance absorption rather than true mutational effect learning. Under `fold_contiguous_5`, one-hot models cannot even evaluate unseen positions.
 
+### Independent Confirmation in the Literature (2026 Preprints)
+The kbrain skepticism regarding split leakage has received independent peer confirmation across 2026 preprints:
+- **Site-Mean Dominance ([Vieira, Lin, & Wilke, bioRxiv Mar 2026](https://doi.org/10.64898/2026.03.08.710389)):** Systematic benchmarking established that a trivial baseline model predicting only the *site mean fitness* matches or exceeds complex supervised PLMs on many assays under random splits. The apparent supervised "edge" of PLMs drops dramatically under site-stratified splitting, proving that random splits reward memorizing site tolerance rather than learning biochemical substitution rules.
+- **Modality-Specific OOD Extrapolation ([Vithayapalert, Piriyajitakonkij, & Grisoni, bioRxiv Oct 2026](https://doi.org/10.64898/2026.10.06.756934)):** On FLIP2 and ProteinGym out-of-distribution splits, structural priors (AlphaFold2 coordinates/3Di tokens) confer generalization across unseen protein backbones, but **co-evolutionary/MSA trunk representations** are strictly necessary to extrapolate fitness predictions to unobserved mutation positions. In the absence of an MSA, PLMs fail to generalize to position-disjoint folds.
+
 ---
 
 ## 4. The Empirical Crossover Frontier: Foundation Models vs Wet-Lab Data

@@ -41,6 +41,25 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C13. Site-Mean Fitness Baseline vs Supervised Models Across Random and Contiguous Splits
+- **Idea:** Benchmark an explicit "Site-Mean Predictor" (predicting the empirical mean fitness of observed mutations at residue position $i$, falling back to the training global mean for unseen positions) across ProteinGym v1.3 single-substitution assays under both `fold_random_5` and `fold_contiguous_5` at $N \in \{24, 48, 96\}$, and compare against:
+  (1) Frozen zero-shot GEMME and ESM2-35M priors.
+  (2) Pure empirical one-hot ridge regression.
+  (3) Zero-shot augmented ridge regression (Hsu et al. 2022).
+- **Why:** Vieira, Lin, & Wilke (bioRxiv Mar 2026) demonstrated that a simple site-mean model matches or outperforms complex supervised PLMs across numerous DMS assays under random splits because random splits permit extensive position-variance leakage. kbrain's skeptic verified that augmented ridge gains at $N=48$ were concentrated in multi-mutants and null on single substitutions. Measuring the Site-Mean Predictor directly establishes a decisive negative control: it quantifies exactly how much apparent supervised gain is trivial position tolerance memorization (which collapses to zero under `fold_contiguous_5`) vs transferable mutational biophysics.
+- **Data:** ProteinGym v1.3 single-substitution assays with `fold_random_5` and `fold_contiguous_5` in `data/proteingym/dms/` and `pg.published_scores`.
+- **Baseline:** Frozen zero-shot GEMME / ESM2-35M and pure Site-Mean Predictor.
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** 3–5 minutes on 8 CPU cores (closed-form group means and scikit-learn Ridge).
+
+### C12. Inference-Time Monte Carlo Dropout on CPU PLMs (ESM2-35M / 8M)
+- **Idea:** Inject an inference-only stochastic dropout layer ($p=0.1$, $K=10$ stochastic forward passes) between the embedding layer and transformer blocks of CPU-runnable ESM2-35M (or ESM2-8M), compute the Monte Carlo average marginal log-odds across passes ($\bar{s}(x) = \frac{1}{K}\sum_{k=1}^K \log \frac{P_k(x_{mut})}{P_k(x_{wt})}$), and evaluate whether this test-time stochastic ensemble beats deterministic single-pass ESM2-35M across ProteinGym DMS substitution assays.
+- **Why:** Ravuri & Lawrence (arXiv:2506.14793, Jun 2025) demonstrated that test-time dropout boosts zero-shot Spearman correlations by up to ~22% for small PLMs (8M and 35M parameters) without any fine-tuning or retraining. If marginalizing over representation uncertainty via 10 CPU passes yields a statistically significant positive bootstrap CI over deterministic ESM2-35M on ProteinGym, it delivers a CPU-native accuracy upgrade that narrows the gap to 650M GPU models at zero hardware spend.
+- **Data:** ProteinGym v1.3 single-substitution assays; ESM2-35M PyTorch weights executed on CPU.
+- **Baseline:** Published deterministic ESM2-35M scores (`pg.published_scores(aid, "ESM2 (35M)")`).
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** 15–30 minutes on 8 CPU cores (10 fast PyTorch CPU forward passes per wild-type sequence).
+
 ### C11. Subspace Projection vs One-Hot Ridge in Low-N Regimes (N=24, 48) on Contiguous Folds
 - **Idea:** Compare two CPU-tractable feature representations for low-N fitness prediction under `fold_contiguous_5` (position-disjoint test mutants):
   (1) Standard one-hot amino acid indicators + frozen zero-shot prior (augmented ridge baseline from C3).

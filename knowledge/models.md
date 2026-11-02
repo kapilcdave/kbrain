@@ -271,3 +271,43 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Matches Amplify-120M and ProtBert performance with an **80%–90% reduction in pre-training FLOPs**, narrowing the gap to ESM2 when controlling for pre-training data.
 - **Open Code / Weights / Data:** Open-source architecture and checkpoints.
 - **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Validates that architectural modernization is more consequential than raw parameter count in compute-constrained regimes.
+
+### 9. Inference-Only Dropout for Training-Free Zero-Shot Boosting
+- **Paper:** *Protein Language Model Zero-Shot Fitness Predictions are Improved by Inference-only Dropout*
+- **Authors:** Aditya Ravuri, Neil D. Lawrence (arXiv, Jun 2025)
+- **Citations / Links:** [arXiv:2506.14793](https://arxiv.org/abs/2506.14793)
+- **Claims:** Injecting a simple stochastic dropout layer ($p \approx 0.1$) solely at inference time between the PLM featurizer/embedding layer and its transformer blocks, then averaging log-probabilities across multiple stochastic forward passes (Monte Carlo dropout), consistently boosts zero-shot mutational effect prediction accuracy on ProteinGym. Crucially, this requires **no retraining or fine-tuning**, functioning effectively even on models (such as standard ESM-2 checkpoints) originally trained with zero dropout.
+- **Benchmark & Baselines:** ProteinGym DMS substitution subsets evaluated across ESM-2 model scales (8M, 35M, 150M, 650M) against deterministic single forward-pass zero-shot scoring.
+- **Result:** Median Spearman rank correlation coefficient (SRCC) increases across protein families, with relative improvements reaching **up to ~22% SRCC on small models** (8M and 35M parameter regimes). An optimal dropout rate of $p = 0.1$ is remarkably robust across architectures.
+- **Open Code / Weights / Data:** Preprint open; implementation is standard PyTorch CPU compatible (`torch.nn.functional.dropout`).
+- **Hype vs. Evidence:** **HIGHLY ACTIONABLE FOR KBRAIN.** Demonstrates that test-time uncertainty marginalization lifts small, CPU-runnable PLMs toward larger GPU counterparts at the cost of only $K$ forward passes (minutes on CPU).
+
+### 10. Distogram Encoded Energetic Potentials (DEEP-Boltz)
+- **Paper:** *DEEP: Extracting Latent Energetic Landscapes from Protein Structure Predictors*
+- **Authors:** Zsófia Rózsa, Gábor Erdős (bioRxiv, Oct 2026)
+- **Citations / Links:** [bioRxiv:10.64898/2026.10.15.759389](https://doi.org/10.64898/2026.10.15.759389)
+- **Claims:** Modern biomolecular structure predictors learn latent energetic representations in their pairwise distance distribution heads (distograms). The DEEP framework extracts effective statistical potentials directly from these distograms using the model's terminal distance state as an internal reference, requiring **zero training on experimental stability data**.
+- **Benchmark & Baselines:** Evaluated on 64 biophysical stability DMS assays from ProteinGym (134k+ variants) against all 97 published zero-shot methods on the leaderboard, plus 180,000+ Rosetta decoy conformations.
+- **Result:** Applied to Boltz-2 (**DEEP-Boltz**), achieves a mean per-assay Spearman correlation of **0.720**, numerically outperforming every published zero-shot baseline on the ProteinGym stability track and matching top supervised predictors. Intriguingly, applying DEEP to AlphaFold2 yields strong decoy discrimination but significantly weaker mutation sensitivity, indicating Boltz-2 possesses uniquely sequence-sensitive internal energetic representations.
+- **Open Code / Weights / Data:** Preprint and computational tool open on GitHub / bioRxiv.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED / FRONTIER RESULT.** Establishes that next-generation biomolecular structure foundation models (Boltz-2) encode thermodynamic stability landscapes within their distograms without explicit energy supervision.
+
+### 11. Generalization Across Distribution Shifts via Structural & Co-evolutionary Priors
+- **Paper:** *Generalizing Protein Fitness Prediction Across Distribution Shifts via Structural and Co-evolutionary Priors*
+- **Authors:** Nopsinth Vithayapalert, Maytus Piriyajitakonkij, Francesca Grisoni (bioRxiv, Oct 2026)
+- **Citations / Links:** [bioRxiv:10.64898/2026.10.06.756934](https://doi.org/10.64898/2026.10.06.756934)
+- **Claims:** Protein fitness predictors frequently collapse when directed evolution forces out-of-distribution (OOD) extrapolation to unseen positions or distinct protein backbones. By pairing structure-aware PLMs with pooled representations from an AlphaFold-style trunk (integrating MSA co-evolution and sequence), models attain robust OOD generalization.
+- **Benchmark & Baselines:** FLIP2 benchmark suite and ProteinGym OOD splits across mutational distance, position-holdout, and backbone-holdout shifts against ESM-2, ProSST, and SaProt baselines.
+- **Result:** Dissects exact prior contributions: **structural priors** drive generalization across unseen protein backbones, whereas **co-evolutionary trunk representations (MSAs)** are specifically required to enable generalization to unmutated structural positions.
+- **Open Code / Weights / Data:** Fully open preprint and benchmarking code.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Replaces vague claims about "general intelligence" in PLMs with mechanistic clarity: structure gives fold invariance, while evolutionary MSAs give positional extrapolative power.
+
+### 12. Intrinsic Dataset Features and the Site-Mean Leakage Trap
+- **Paper:** *Intrinsic dataset features drive mutational effect prediction by protein language models*
+- **Authors:** Luiz C. Vieira, Sophia Lin, Claus O. Wilke (bioRxiv, Mar 2026)
+- **Citations / Links:** [bioRxiv:10.64898/2026.03.08.710389](https://doi.org/10.64898/2026.03.08.710389)
+- **Claims:** High reported supervised and transfer-learning accuracies on DMS benchmarks are heavily confounded by dataset-level site effects. A naive baseline that predicts only the **empirical site mean fitness** matches or exceeds complex supervised PLMs on numerous assays. Furthermore, random cross-validation splits in benchmarks like ProteinGym induce severe data leakage: models memorize position-specific tolerance rather than learning general mutational biophysics.
+- **Benchmark & Baselines:** Systematic evaluation across ProteinGym viral and cellular DMS datasets under random vs site-stratified splits against site-mean-only baselines and ESM architectures.
+- **Result:** Supervised PLM performance plunges under site-stratified splitting. Quantifies the Relative Variability of Site Means (RVSM) and Fraction of Highly Variable Sites (FHVS) as the primary determinants of apparent model success. Shows PLMs systematically underperform on viral targets due to divergent evolutionary pressures.
+- **Open Code / Weights / Data:** Fully open preprint, code, and processed datasets.
+- **Hype vs. Evidence:** **CRITICAL VALIDATION FOR KBRAIN RIGOR.** Directly mirrors and generalizes kbrain's empirical skeptic finding on random vs contiguous low-N splits: random CV permits one-hot regressors to fit site means, creating an illusion of mutational learning that evaporates on position-disjoint splits.

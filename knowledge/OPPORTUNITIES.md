@@ -118,6 +118,34 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
   assay platform; before reading labels, freeze target inclusion, score orientation, mutant coverage, the
   protein-level endpoint, and the same bootstrap settings used here.
 
+### 9. Distogram-Derived Energetic Scoring for High-Throughput Stability Profiling
+- **What:** An open-source scoring module implementing Distogram Encoded Energetic Potentials (DEEP) over modern
+  biomolecular structure foundation models (Boltz-2), extracting zero-shot stability and $\Delta\Delta G$ proxies
+  from predicted residue-pair distograms without experimental stability training.
+- **Why now:** Rózsa & Erdős (bioRxiv Oct 2026) demonstrated that DEEP-Boltz achieves **0.720** mean per-assay Spearman
+  across 64 ProteinGym stability assays, numerically outperforming all 97 published zero-shot methods on the benchmark.
+  Protein design teams currently spend days running physics engines (FoldX, Rosetta) or fine-tuning supervised regressors;
+  extracting statistical potentials directly from structure prediction distograms bridges structural biology and fitness ranking.
+- **Evidence:** Rózsa & Erdős, 2026 ([bioRxiv:10.64898/2026.10.15.759389](https://doi.org/10.64898/2026.10.15.759389));
+  ProteinGym v1.3 stability benchmark.
+- **Rough cost:** Zero cloud spend if evaluating published distograms or cached representations; local CPU scoring costs minutes.
+  Any full Boltz structure generation requires a separate costed GPU proposal and operator approval.
+- **Next step:** Audit the DEEP open repository; verify whether pre-computed Boltz-2 distograms exist for ProteinGym targets
+  or assess feasibility of lightweight CPU extraction.
+
+### 10. Inference-Time Uncertainty Calibration for Small Enterprise PLMs
+- **What:** A lightweight CPU-native inference wrapper for small protein language models (ESM2-35M, SaProt-35M) that performs
+  test-time Monte Carlo dropout ($p=0.1$) between the featurizer and transformer blocks, returning both a variance-reduced
+  fitness prediction and an epistemic uncertainty estimate per mutant.
+- **Why now:** Wet-lab protein engineering teams using local CPU workstations cannot host 650M–3B parameter models, yet standard
+  ESM2-35M point predictions underperform by ~0.12 Spearman compared to ESM2-650M. Ravuri & Lawrence (arXiv Jun 2025) proved
+  that test-time dropout boosts small PLM zero-shot Spearman correlations by up to ~22% without any fine-tuning. Adding epistemic
+  uncertainty estimates enables active learning algorithms to distinguish between high-confidence candidates and exploratory designs.
+- **Evidence:** Ravuri & Lawrence, 2025 ([arXiv:2506.14793](https://arxiv.org/abs/2506.14793)); ProteinGym v1.3 benchmark.
+- **Rough cost:** Zero cloud spend; 1-2 engineering shifts to build the PyTorch CPU wrapper and evaluate across ProteinGym assays.
+- **Next step:** Execute Candidate C12 on ProteinGym substitution assays to establish the exact CPU runtime and Spearman improvement
+  delta on our 8-core CPU environment.
+
 
 
 
