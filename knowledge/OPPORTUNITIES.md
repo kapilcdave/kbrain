@@ -146,6 +146,27 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Next step:** Execute Candidate C12 on ProteinGym substitution assays to establish the exact CPU runtime and Spearman improvement
   delta on our 8-core CPU environment.
 
+### 11. Forward-Validated Static Ensemble With a Viral Safeguard
+- **What:** A label-blind decision rule for new DMS targets that compares frozen GEMME-only scoring, an
+  unconditional 50/50 GEMME/ESM2-650M rank blend, and a predeclared taxon-aware rule that excludes ESM2-650M
+  on viral targets.
+- **Why now:** The MSA-depth gate beat GEMME on ProteinGym but did not beat static blending, and randomized
+  depth labels also passed. Taxonomy is a plausible alternative discriminator because ESM2-650M was much
+  weaker than GEMME on viral assays, but that observation has not been prospectively tested.
+- **Evidence:** The kbrain [MSA-depth gated-routing finding](findings/msa-depth-gated-routing.md) reports a
+  **+0.013821** protein-level gain over GEMME for the gate (95% CI **[+0.008664, +0.019153]**) versus
+  **+0.016038** for static blending; the direct gate-minus-static comparison was **-0.0022** (95% CI
+  **[-0.0121, +0.0066]**). Data: ProteinGym v1.3
+  ([Notin et al., arXiv:2306.12204](https://arxiv.org/abs/2306.12204)); models: GEMME
+  ([Laine et al., 2019](https://doi.org/10.1093/molbev/msz179)) and ESM2
+  ([Lin et al., 2023](https://doi.org/10.1126/science.ade2574)).
+- **Rough cost:** Zero cloud spend when an unseen public assay has frozen GEMME and ESM2-650M scores; one
+  research shift for target discovery, preregistration, and evaluation. If score generation requires paid GPU
+  inference, stop and submit a provider-specific quote and hard spending cap for operator approval first.
+- **Next step:** With operator approval, identify one wholly unseen public DMS paper and freeze target
+  inclusion, taxonomy, score orientation, coverage checks, all three rules, the protein-level endpoint, and
+  bootstrap settings before inspecting labels. Do not retune an MSA-depth threshold on ProteinGym.
+
 
 
 

@@ -14,7 +14,7 @@ The map of our niche: protein mutation-effect prediction. The scout keeps this c
 
 ## Pipeline
 - [Candidate experiments](CANDIDATES.md): C1–C13 (CPU ensembles, model selection, low-N crossover, subspace projection, MC dropout, site-mean controls).
-- [Opportunities](OPPORTUNITIES.md): 10 commercial and research opportunities (CPU engine, low-N auditor, model router, DEEP distogram potentials, MC uncertainty calibration).
+- [Opportunities](OPPORTUNITIES.md): 11 commercial and research opportunities (CPU engine, low-N auditor, model router, static ensemble validation, DEEP distogram potentials, MC uncertainty calibration).
 - [Findings](findings/): validated experiments, one page each.
   - [Lab validation](findings/lab-validation.md): trusted evaluator reproduces the ProteinGym leaderboard.
   - [Augmented low-N regression](findings/augmented-low-n-regression.md): random-split ridge gain passes, but
@@ -23,3 +23,5 @@ The map of our niche: protein mutation-effect prediction. The scout keeps this c
     GEMME and ESM2-650M beats GEMME on random splits, but remains dry-run pending unseen-target validation.
   - [Structure-token Stability edge](findings/structure-tokens-stability-edge.md): SaProt-35M-AF2 beats
     same-scale ESM2-35M on the frozen Stability subset, qualified to Tsuboyama-heavy small-domain data.
+  - [MSA-depth gated routing](findings/msa-depth-gated-routing.md): GEMME/ESM2-650M blending beats GEMME,
+    but an unconditional blend is better and randomized depth also passes; do not deploy the depth gate.
