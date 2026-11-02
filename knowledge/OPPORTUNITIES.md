@@ -195,6 +195,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Minimal compute; closed-form regularized interaction matrices ($L \times L \times 20 \times 20$ sparse tensor operations) executed on standard multi-core CPU.
 - **Next step:** Execute Candidate C17 on ProteinGym combinatorial assays to determine the sample size $N$ of single/double mutants needed to reliably predict higher-order combinatorial fitness.
 
+### 16. Chronological Campaign Replay Auditor for Enterprise Directed Evolution
+- **What:** A prospective audit suite for biotechs running multi-round directed evolution that grades protein engineering ML models against historical campaigns using strict temporal replay rather than misleading random cross-validation.
+- **Why now:** Gao et al. (arXiv:2606.02624, TadA-Bench) demonstrated that random CV splits overestimate prospective hit rates by 3–4x. Biotechs executing 24- or 96-well multi-round campaigns waste significant library synthesis budget on variants that fail in future rounds due to interpolation illusions.
+- **Evidence:** Gao et al., 2026 ([arXiv:2606.02624](https://arxiv.org/abs/2606.02624)); ProteinGym low-N split diagnostics.
+- **Rough cost:** Pure CPU analytical benchmarking; zero GPU or wet-lab spend.
+- **Next step:** Construct an automated temporal replay evaluator using public multi-round directed evolution trajectories.
+
+### 17. Thermodynamic Anti-Symmetry Enforcer for Biologics Stability & De-immunization
+- **What:** A lightweight, model-agnostic mathematical wrapper that enforces physical forward-reverse anti-symmetry ($\Delta\Delta G_{A \to B} = -\Delta\Delta G_{B \to A}$) on any black-box protein stability or fitness predictor.
+- **Why now:** Shivram et al. (arXiv:2606.08100) proved that state-of-the-art PLMs and structure models suffer from pervasive forward-reverse asymmetry, generating high rates of false-positive stabilizing mutations in therapeutic candidate optimization.
+- **Evidence:** Shivram et al., 2026 ([arXiv:2606.08100](https://arxiv.org/abs/2606.08100)); MegaScale biophysical stability benchmarks.
+- **Rough cost:** Zero GPU spend; closed-form linear algebraic anti-symmetrization executed on standard CPU.
+- **Next step:** Execute Candidate C18 on the ProteinGym MegaScale stability assays to quantify the exact generalization uplift over unconstrained ridge regression.
+
 
 
 

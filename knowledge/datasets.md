@@ -141,6 +141,13 @@ ProteinGym single-substitution assays include three standardized 5-fold cross-va
   - *Mutational distance shift:* Train on 1-mutant sequences; test on 2+ mutant sequences.
   - *Low vs. High sequence similarity:* Train on sequence clusters $\le 40\%$ identity to test set.
 
+### 5.1 TadA-Bench: Million-Variant Campaign-Chronology Directed Evolution Benchmark
+
+**TadA-Bench** (Gao et al., arXiv:2606.02624, May 2026; [arXiv:2606.02624](https://arxiv.org/abs/2606.02624)):
+- **What:** A high-throughput wet-lab replay benchmark tracking 31 consecutive directed evolution rounds of tRNA adenosine deaminase (TadA), encompassing over 1,000,000 variants. Released with multi-modal views (aligned DNA, RNA, protein) and unified cross-round fitness labels via `Seq2Graph`.
+- **Role in Protein Engineering:** Unlike static single-round DMS screens, directed evolution proceeds iteratively where each round samples variants conditioned on previous winners. TadA-Bench formalizes a fixed-data temporal replay challenge: models are trained on variants up to round $t$ and evaluated on their ability to rank variants that were actually screened in future round $t+1$.
+- **Rigor Insight & Split Illusion:** Random cross-validation splits show artificially inflated interpolation performance ($\rho > 0.70$). However, when evaluated on prospective future-round candidate ranking, model performance plunges ($\rho < 0.25$). Evolutionary sequence coverage, rather than local data point density, governs prospective discovery success.
+
 ---
 
 ## 6. Clinical & Population Variation Repositories

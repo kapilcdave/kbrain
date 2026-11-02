@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C19. Orthogonal Feature Projection: Quantifying Pure Structural Variance in Small PLMs
+- **Idea:** Orthogonally project out standard amino-acid physicochemical features (charge, hydropathy, volume, polarity from AAindex) from frozen ESM2-35M and SaProt-35M residue embeddings across all 217 ProteinGym substitution assays, evaluating how much of the zero-shot Spearman correlation remains.
+- **Why:** Sarmiento et al. (arXiv:2608.25548, Aug 2026) demonstrated that a substantial fraction of apparent PLM prediction accuracy is attributable to linear projection of basic tabular amino acid properties rather than learned 3D structural context. Measuring the Spearman correlation of the residual orthogonal embedding $E_{orth} = (I - P_{AA})E$ tests whether small PLMs (ESM2-35M) retain genuine contextual fitness modeling capacity or collapse once basic physicochemical heuristics are subtracted.
+- **Data:** ProteinGym v1.3 substitution assays (217 assays) and precomputed ESM2-35M / SaProt-35M embeddings.
+- **Baseline:** Full unmodified PLM embeddings and simple AAindex tabular regression.
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** 5–8 minutes on 8 CPU cores.
+
+### C18. Exact Thermodynamic Anti-Symmetry Regularization in Low-N Stability Regression
+- **Idea:** Benchmark an anti-symmetrized ridge regression estimator where forward and reverse mutations are jointly constrained ($y_{wt \to mut} = -y_{mut \to wt}$) using an anti-symmetric kernel formulation ($K_{anti}(x, x') = K(x, x') - K(x, -x')$) or paired inverse mutation data augmentation on the 64 biophysical stability DMS assays of ProteinGym under low-N regimes ($N \in \{24, 48, 96\}$).
+- **Why:** Shivram et al. (arXiv:2606.08100, Jun 2026) proved that unconstrained PLM fitness heads suffer from severe forward-reverse thermodynamic bias, predicting unphysical directional preferences that degrade out-of-distribution generalization. On CPU, evaluating anti-symmetric kernel ridge costs virtually zero additional compute and enforces exact thermodynamic consistency without neural retraining.
+- **Data:** ProteinGym v1.3 biophysical stability assays (MegaScale cDNA proteolysis subset) in `data/proteingym/dms/` with published zero-shot stability priors (DEEP-Boltz, ProSST, FoldX).
+- **Baseline:** Standard unconstrained augmented ridge regression (C3) and frozen zero-shot stability priors alone.
+- **Units:** assays or proteins via `improvement_units()`.
+- **CPU:** 3–5 minutes on 8 CPU cores.
+
 ### C17. Composable Additive vs Epistatic Interaction Ridge in Multi-Mutant ProteinGym Assays
 - **Idea:** Benchmark an explicit pairwise epistatic ridge regression model ($y = w_0 + \sum_i w_i x_i + \sum_{i < j} J_{ij} x_i x_j$) against a purely additive augmented ridge model ($y = w_0 + \sum_i w_i x_i + w_{prior} \cdot \text{Prior}$) across ProteinGym combinatorial multi-mutant DMS assays at $N \in \{48, 96, 192\}$ under held-out cross-validation folds.
 - **Why:** Cerebra-Epistasis (Wang et al., bioRxiv Sep 2026) showed that zero-shot PLMs decay sharply at mutation depth $\ge 3$ because standard sequence models assume additive log-odds, missing epistatic sign inversions and cooperative stability effects. Furthermore, kbrain's skeptic verified that low-N augmented ridge gains at $N=48$ were concentrated entirely in multi-mutants and null on single substitutions. Testing whether parameterizing explicit pairwise coupling terms ($J_{ij}$) reliably beats additive ridge isolates whether low-N supervised advantage in directed evolution is driven by local epistatic contact learning.

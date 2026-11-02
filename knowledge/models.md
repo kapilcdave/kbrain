@@ -380,3 +380,33 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** AIDO.Protein-RAG reaches ~0.518 average Spearman on ProteinGym, tied with top leaderboard models. ProSST demonstrates that quantized 3D geometric tokens yield significant gains on biophysical stability assays compared to pure 1D sequence models.
 - **Open Code / Weights / Data:** Checkpoints and code open on Hugging Face (`genbio-ai/AIDO.Protein-RAG`, `Li-Lab-Tsinghua/ProSST`).
 - **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Proves that discrete structural quantization and RAG indexing are the dominant architectural paradigms driving current frontier protein models.
+
+### 20. Constraint-Aware Anti-Symmetric Optimization for Thermodynamic Stability (SPURS-AntiSym)
+- **Paper:** *Constraint-Aware Optimization for Robust Protein Stability Prediction*
+- **Authors:** A Shivram, Aneesh S. Chivukula, Manik Gupta, Sourav Chowdhury (arXiv, Jun 2026)
+- **Citations / Links:** [arXiv:2606.08100](https://arxiv.org/abs/2606.08100)
+- **Claims:** Modern multimodal $\Delta\Delta G$ predictors (integrating sequence PLMs with inverse-folding representations like ESM + ESM-IF1 / SPURS) suffer from three severe pathologies: out-of-distribution (OOD) performance collapse, pervasive forward-reverse asymmetry ($\Delta\Delta G(A \to B) \neq -\Delta\Delta G(B \to A)$), and systematic under-prediction of rare stabilizing mutations. Rather than adding model parameters, this work introduces optimization-level interventions: Balanced MSE, a Siamese anti-symmetric regularizer, and an OOD-margin consistency loss on per-position feature representations.
+- **Benchmark & Baselines:** Evaluated across 11 biophysical stability benchmarks (MegaScale, S669, S461, Ssym, Myoglobin, p53) against SPURS, ThermoMPNN, and ESM baselines.
+- **Result:** Improves Spearman correlation on S669 from 0.486 to 0.540 ($\sigma = 0.002$) and on S461 from 0.653 to 0.711 with zero architectural modifications to the backbone. Diagnostic testing on Ssym shows anti-symmetric regularization acts as an implicit regularizer that prevents spurious overconfidence on destabilizing variants.
+- **Open Code / Weights / Data:** Benchmark scripts and optimization pipelines released on GitHub / arXiv.
+- **Hype vs. Evidence:** **CRITICAL RIGOR CONFIRMATION.** Confirms that thermodynamic consistency violations degrade empirical stability predictors, proving that enforcing anti-symmetry during inference or low-N regression directly improves generalization.
+
+### 21. Mutation Perturbation Fields & Direct-Distal Attention (RipplePLM)
+- **Paper:** *RipplePLM: Structural and Property Decoupling for Protein Mutation Effect Generation*
+- **Authors:** Liuzhenghao Lv, Yuyang Liu, Yuyang Gao, Li Yuan (arXiv, Oct 2026)
+- **Citations / Links:** [arXiv:2610.01891](https://arxiv.org/abs/2610.01891); GitHub: [Lyu6PosHao/RipplePLM](https://github.com/Lyu6PosHao/RipplePLM)
+- **Claims:** Standard PLMs smear mutational perturbations across the entire sequence representation, conflating direct physical contact disruptions with indirect distal allosteric shifts. RipplePLM builds a residue-level Mutation Perturbation Field from PLM embeddings and uses Direct-Distal Cross-Attention (DDCA) to partition features into two explicit structural pathways: the mutation site's immediate contact shell (<6 Å) and its multi-hop distal neighborhood, coupled with a Property Latent Chain (PLChain) injecting explicit biophysical constraints.
+- **Benchmark & Baselines:** Evaluated on MutaDescribe structural splits and low-N fitness regression benchmarks against mutation-specific PLMs and general LLMs.
+- **Result:** Increases structural-split ROUGE-L from 22.23 to 35.65 and shows consistent improvements in low-N fitness regression by preventing distant, non-interacting residues from corrupting the mutation representation.
+- **Open Code / Weights / Data:** Open source on GitHub: `Lyu6PosHao/RipplePLM`.
+- **Hype vs. Evidence:** **SOLID EVIDENCE / VALUABLE ARCHITECTURAL LESSON.** Confirms that separating local direct contacts from global distal background is essential for sample-efficient low-N regression.
+
+### 22. Orthogonal Projection of PLM Embeddings for Interpretable Fitness Prediction
+- **Paper:** *Interpreting Protein Language Model Embeddings via Orthogonal Projection for Protein Fitness Prediction*
+- **Authors:** Paulo Yanez Sarmiento, Pia Francesca Rissom, Manuel Pfeuffer, Marco Simnacher (arXiv, Aug 2026)
+- **Citations / Links:** [arXiv:2608.25548](https://arxiv.org/abs/2608.25548)
+- **Claims:** It is actively debated whether PLMs learn genuine higher-order 3D structural packing and evolutionary context, or simply memorize trivial tabular physicochemical properties (charge, hydropathy, volume). This work uses orthogonal subspace projection to mathematically excise the linear and non-linear effects of standard physicochemical descriptors (AAindex) from PLM embedding vectors before downstream regression.
+- **Benchmark & Baselines:** Evaluated on deep mutational scanning fitness prediction datasets, measuring the degradation of regression performance after projecting out interpretable chemical features.
+- **Result:** Demonstrates that standard tabular biochemical descriptors explain a substantial fraction of PLM fitness variance, but a robust non-reducible residual variance remains that correlates with spatial contact topology.
+- **Open Code / Weights / Data:** Python implementation open on arXiv / GitHub.
+- **Hype vs. Evidence:** **VALUABLE AUDITING TOOL FOR KBRAIN.** Provides an exact mathematical framework to audit whether our low-N regressors and zero-shot scores are discovering genuine contextual biology or merely re-indexing amino-acid lookup tables.
