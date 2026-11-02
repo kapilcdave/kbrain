@@ -41,6 +41,22 @@ use `by="protein"` when one protein has several assays). The chief picks; the sc
 ## Scout additions
 (newest first)
 
+### C17. Composable Additive vs Epistatic Interaction Ridge in Multi-Mutant ProteinGym Assays
+- **Idea:** Benchmark an explicit pairwise epistatic ridge regression model ($y = w_0 + \sum_i w_i x_i + \sum_{i < j} J_{ij} x_i x_j$) against a purely additive augmented ridge model ($y = w_0 + \sum_i w_i x_i + w_{prior} \cdot \text{Prior}$) across ProteinGym combinatorial multi-mutant DMS assays at $N \in \{48, 96, 192\}$ under held-out cross-validation folds.
+- **Why:** Cerebra-Epistasis (Wang et al., bioRxiv Sep 2026) showed that zero-shot PLMs decay sharply at mutation depth $\ge 3$ because standard sequence models assume additive log-odds, missing epistatic sign inversions and cooperative stability effects. Furthermore, kbrain's skeptic verified that low-N augmented ridge gains at $N=48$ were concentrated entirely in multi-mutants and null on single substitutions. Testing whether parameterizing explicit pairwise coupling terms ($J_{ij}$) reliably beats additive ridge isolates whether low-N supervised advantage in directed evolution is driven by local epistatic contact learning.
+- **Data:** ProteinGym multi-mutant DMS assays (GB1, beta-lactamase, fluorescent proteins, etc. in `data/proteingym/dms/`) and zero-shot priors from `pg.published_scores`.
+- **Baseline:** Pure additive augmented ridge (C3) and frozen zero-shot priors alone.
+- **Units:** assays or proteins via `improvement_units()`.
+- **CPU:** 5–10 minutes on 8 CPU cores (regularized closed-form pairwise ridge regression or low-rank kernel ridge).
+
+### C16. Training-Free Position-Adaptive Logit Fusion (VenusREM-style) on CPU Using Published Scores
+- **Idea:** Benchmark a position-adaptive logit fusion scheme that dynamically weights evolutionary MSA log-odds (GEMME, Site-Independent) and sequence/structure PLM log-odds (ESM2-35M, SaProt-35M) based on local position conservation entropy, comparing against unconditional rank blending (C1) and the best single model across all 217 ProteinGym substitution assays.
+- **Why:** VenusREM2 (Tan et al., arXiv:2609.34654, Sep 2026) attained the highest recorded Spearman correlation on ProteinGym (0.556) using training-free retrieval logit fusion. While kbrain's assay-level MSA-depth gate failed because assay-level depth was too coarse (finding in `findings/msa-depth-gated-routing.md`), VenusREM demonstrates that *position-level* confidence weighting (giving high weight to MSA conservation at deeply conserved sites, but defaulting to PLM priors at variable, poorly-aligned loops) is the true mathematical driver of retrieval gains. Because per-mutant published scores for GEMME, Site-Independent, and ESM2 already exist in `pg.published_scores`, this hypothesis can be tested in minutes entirely on CPU.
+- **Data:** ProteinGym v1.3 single-substitution assays with published scores for GEMME, ESM2-35M, ESM2-650M, Site-Independent, and SaProt-35M.
+- **Baseline:** Unconditional static 50/50 blend and the best single model (GEMME).
+- **Units:** proteins (186 UniProt IDs) via `improvement_units(by="protein")`.
+- **CPU:** 3–5 minutes on 8 CPU cores (vectorized NumPy array operations on precomputed score tables).
+
 ### C15. Tabular In-Context Learning (TabPFN) vs Ridge Regression in Low-N Regimes on Contiguous Splits
 - **Idea:** Benchmark TabPFN (an in-context transformer foundation model pretrained on synthetic causal graphs that generates Bayesian posterior predictions without gradient descent) against closed-form Ridge regression and frozen zero-shot priors at $N \in \{24, 48, 96\}$ on ProteinGym single-substitution assays under `fold_contiguous_5` (position-disjoint test mutants). Inputs are frozen zero-shot scores (GEMME, ESM2-35M) combined with one-hot indicators or PLS-reduced embedding deltas.
 - **Why:** Guan et al. (arXiv:2606.31126, Jun 2026) showed that TabPFN in-context learning paired with PLM representations matches or exceeds task-specific supervised regressors on ProteinGym. Standard regression models suffer from hyperparameter overfitting when $N \le 48$. Because TabPFN evaluates the dataset context in a single forward pass on CPU using an internal causal prior, it may prevent severe weight explosion on unseen structural positions.

@@ -341,3 +341,42 @@ Recent literature (2026 preprints) directly challenges the prevailing industry c
 - **Result:** Trained on 33B tokens in only 40 B200 GPU-hours, Proust attains Spearman rho = 0.390 on ProteinGym substitutions (approaching models requiring 50-200x more pretraining compute) and establishes a new state-of-the-art on ProteinGym indels, while retaining native autoregressive sequence generation capabilities.
 - **Open Code / Weights / Data:** Inference code and weights fully open source.
 - **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Confirms that modern causal architectural efficiency translates directly to variant scoring and indel fitness estimation.
+
+### 16. VenusREM2 & VenusREM-Harness: Model-Agnostic Retrieval Logits Fusion
+- **Paper:** *A General Harness for Protein Foundation Model Fitness Prediction* (and *From high-throughput evaluation to wet-lab studies: advancing mutation effect prediction with a retrieval-enhanced model*, Bioinformatics/ISMB)
+- **Authors:** Yang Tan, Qijia Tian, Gangyu Sun, Bozitao Zhong, Mingchen Li, Yuanxi Yu, Nanqing Dong, Liang Hong (arXiv, Sep 2026)
+- **Citations / Links:** [arXiv:2609.34654](https://arxiv.org/abs/2609.34654); GitHub: [github.com/MatBiomed/remharness](https://github.com/MatBiomed/remharness)
+- **Claims:** Protein foundation models (PFMs) miss fine-grained evolutionary conservation and family-specific epistatic constraints when scored in isolation. VenusREM-Harness (`vrh`) introduces a training-free, plug-and-play harness that boosts *any* frozen foundation model (ESM-2, SaProt, ProSST, ProteinMPNN) by retrieving homologous sequence alignments (MSAs) and performing adaptive uncertainty-weighted logit fusion, amino acid background correction, and structure-conditioned shrinkage without parameter fine-tuning.
+- **Benchmark & Baselines:** Evaluated across the 217 ProteinGym v1.3 DMS substitution benchmark assays against all 97 published single-model baselines.
+- **Result:** VenusREM2 achieves an average per-assay Spearman correlation of **0.556**, setting the current SOTA record on the ProteinGym substitution leaderboard (surpassing un-augmented ESM-2 650M at 0.446, GEMME at 0.470, and AIDO.Protein-RAG at 0.518).
+- **Open Code / Weights / Data:** Fully open-source Python harness (`vrh`) and weights on GitHub.
+- **Hype vs. Evidence:** **LEADERBOARD FRONTIER / HIGH RELEVANCE.** Demonstrates that post-hoc retrieval logit fusion beats end-to-end retraining. Directly inspires CPU-native score combination methods at kbrain (blending our published GEMME/Site-Independent and ESM2/SaProt scores).
+
+### 17. Cerebra-Epistasis: Composable Epistasis-Aware Mutation Atlas
+- **Paper:** *From single-sequence structure prediction to protein fitness landscape through a composable, epistasis-aware mutation atlas*
+- **Authors:** Weizhe Wang, Zimu Yu, Endi Yang, Ziyu Shi, Shize Yu, Jian Hu, Yunxin Xu, Haipeng Gong (bioRxiv, Sep 2026)
+- **Citations / Links:** [bioRxiv:10.1101/2026.09.28.679124](https://doi.org/10.1101/2026.09.28.679124); GitHub: `Cerebra-Epistasis`
+- **Claims:** Current zero-shot PLMs assume additive log-odds combinations across mutated sites ($\sum \Delta \log P$), severely degrading when evaluating higher-order multi-mutants dominated by non-additive epistasis (sign and reciprocal sign epistasis). Cerebra-Epistasis extracts single-sequence structural representations once (`Cerebra-Seq`), builds a composable mutation atlas of residue-level perturbations, and feeds them into an explicit epistatic interaction module that maps combinatorial landscapes from low-order (single/double) mutant calibration data.
+- **Benchmark & Baselines:** Combinatorial Deep Mutational Scanning datasets (GB1 4-site combinatorial, beta-lactamase, fluorescent proteins, ProteinGym multi-mutants) compared against additive ESM-2, ProteinNPT, and standard epistatic regression.
+- **Result:** Drastically outperforms additive zero-shot baselines at mutation depth $\ge 3$, capturing synergistic mutational jumps and avoiding dead-end lethal combinations that additive models falsely predict as beneficial.
+- **Open Code / Weights / Data:** Code and preprint publicly available on GitHub and bioRxiv.
+- **Hype vs. Evidence:** **CONFIRMED & CRITICAL RIGOR ALIGNMENT.** Corroborates kbrain's empirical skeptic finding that supervised augmented ridge gains are concentrated in multi-mutants; demonstrates that explicit modeling of pairwise interaction terms ($J_{ij}$) is the essential bridge from single-mutant screening to combinatorial engineering.
+
+### 18. EvoIF: Evolutionary Profiles via Inverse Reinforcement Learning
+- **Paper:** *Evolutionary Profiles for Protein Fitness Prediction*
+- **Authors:** Jigang Fan, Xiaoran Jiao, Shengdong Lin, Zhanming Liang, Weian Mao, Chenchen Jing, Hao Cheng, Chunhua Shen, et al. (arXiv, Oct 2025 / 2026)
+- **Citations / Links:** [arXiv:2510.07286](https://arxiv.org/abs/2510.07286)
+- **Claims:** Formulates zero-shot fitness prediction through an Inverse Reinforcement Learning (IRL) framework, mathematically showing that Masked Language Modeling on extant natural sequences is equivalent to Maximum Entropy IRL where natural sequences represent expert trajectories. Proposes EvoIF, a compact model that integrates within-family evolutionary profiles (retrieved sequence homologs) with cross-family inverse-folding structural constraints (inverse folding logits).
+- **Benchmark & Baselines:** ProteinGym substitution benchmarks vs massive PLMs (ESM-2 3B/15B, ProtBert, ESM-IF1).
+- **Result:** Matches or outperforms multi-billion parameter PLMs on zero-shot fitness prediction while using an order-of-magnitude fewer parameters and dramatically lower pre-training data, maintaining robust calibration across deep mutational variants.
+- **Open Code / Weights / Data:** Code and model architectures open on GitHub / arXiv.
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Solidifies the theoretical foundation connecting evolutionary density estimation with fitness estimation, showing that compact dual-profile models rival massive monolithic PLMs.
+
+### 19. AIDO.Protein-RAG & ProSST: Quantized Structure and Retrieval Frontiers
+- **Papers:** *AIDO.Protein-RAG: Retrieval Augmented Protein Language Models for Structure and Fitness Prediction* (GenBio AI, MBZUAI, CMU, 2025/2026) & *Protein Language Modeling with Quantized Structure and Disentangled Attention (ProSST)* (Li et al., NeurIPS 2024 / bioRxiv)
+- **Citations / Links:** [bioRxiv:10.1101/2024.11.14.623617](https://doi.org/10.1101/2024.11.14.623617); [arXiv:2404.09260](https://arxiv.org/abs/2404.09260)
+- **Claims:** ProSST converts local 3D backbone coordinates into discrete structural tokens via vector quantization, enabling disentangled sequence-structure self-attention. AIDO.Protein-RAG scales this paradigm to a 16B Mixture-of-Experts (MoE) backbone with ultra-fast hierarchical MSA retrieval, infusing co-evolutionary context even when homologous alignments are sparse.
+- **Benchmark & Baselines:** ProteinGym v1.3 substitution benchmark (217 assays) vs ESM-2 650M/3B and MSA-Transformer.
+- **Result:** AIDO.Protein-RAG reaches ~0.518 average Spearman on ProteinGym, tied with top leaderboard models. ProSST demonstrates that quantized 3D geometric tokens yield significant gains on biophysical stability assays compared to pure 1D sequence models.
+- **Open Code / Weights / Data:** Checkpoints and code open on Hugging Face (`genbio-ai/AIDO.Protein-RAG`, `Li-Lab-Tsinghua/ProSST`).
+- **Hype vs. Evidence:** **EVIDENCE CONFIRMED.** Proves that discrete structural quantization and RAG indexing are the dominant architectural paradigms driving current frontier protein models.

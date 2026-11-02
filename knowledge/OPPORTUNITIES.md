@@ -181,6 +181,20 @@ Things worth building, betting on or doing next. Format: what, why now, evidence
 - **Rough cost:** Zero GPU spend; fast CPU inference (<1 second per 96-variant plate).
 - **Next step:** Execute Candidate C15 to establish whether TabPFN provides a statistically significant bootstrap gain over standard ridge regression under strict position-disjoint splits (`fold_contiguous_5`).
 
+### 14. Model-Agnostic Retrieval Harness (VRH-as-a-Service) for Enterprise Protein Foundries
+- **What:** A lightweight, training-free API middleware that wraps an enterprise customer's proprietary or fine-tuned protein language models with automated MSA retrieval, adaptive logit fusion, and structure-conditioned shrinkage.
+- **Why now:** Industrial enzyme and antibody engineering companies (e.g., Novozymes, Codexis, Arzeda) maintain proprietary PLMs trained on proprietary scaffolds. However, standalone PLMs suffer from family-specific blind spots. VenusREM2 (Tan et al., arXiv:2609.34654, Sep 2026) demonstrated that a model-agnostic retrieval harness (`vrh`) boosts any frozen foundation model by +0.08–0.11 Spearman on ProteinGym without retraining or accessing internal weights.
+- **Evidence:** Tan et al., 2026 ([arXiv:2609.34654](https://arxiv.org/abs/2609.34654)); ProteinGym v1.3 benchmark leaderboard (0.556 SOTA).
+- **Rough cost:** Zero cloud GPU spend for the harness middleware; standard CPU retrieval and vectorized logit combination.
+- **Next step:** Execute Candidate C16 on ProteinGym to benchmark the performance uplift of position-adaptive logit fusion on our published score database.
+
+### 15. Composable Epistasis Profiler for Combinatorial Directed Evolution Libraries
+- **What:** A predictive software service that takes low-order assay data (single and double substitutions from an initial 96-well screen) and builds a composable epistatic interaction atlas ($J_{ij}$) to predict higher-order mutational fitness and flag lethal epistatic clashes before library synthesis.
+- **Why now:** Synthetic biology platforms and protein design teams frequently attempt 3- to 6-site combinatorial mutagenesis libraries, but over 80% of library variants are often completely non-functional due to negative sign epistasis. Cerebra-Epistasis (Wang et al., bioRxiv Sep 2026) demonstrated that composable residue-level mutation atlases accurately capture non-additive epistatic couplings from sparse low-order measurements, solving the failure mode of additive zero-shot PLMs at mutation depth $\ge 3$.
+- **Evidence:** Wang et al., 2026 ([bioRxiv:10.1101/2026.09.28.679124](https://doi.org/10.1101/2026.09.28.679124)); ProteinGym multi-mutant benchmarks.
+- **Rough cost:** Minimal compute; closed-form regularized interaction matrices ($L \times L \times 20 \times 20$ sparse tensor operations) executed on standard multi-core CPU.
+- **Next step:** Execute Candidate C17 on ProteinGym combinatorial assays to determine the sample size $N$ of single/double mutants needed to reliably predict higher-order combinatorial fitness.
+
 
 
 
